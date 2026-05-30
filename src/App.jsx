@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 const HC = "#1a3d2b";
@@ -24,6 +24,9 @@ const TH = {color:"#fff",padding:"6px 9px",fontSize:11,textAlign:"left"};
 const TD = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",verticalAlign:"top"};
 const TA = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",verticalAlign:"top",background:"#f8fdf9"};
 
+const SAVE_KEY = "mmafield_data";
+const HIST_KEY = "mmafield_historico";
+
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
   if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
@@ -44,42 +47,121 @@ function dlPDF() {
   setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 1500);
 }
 
+function estadoInicial() {
+  try {
+    var s = localStorage.getItem(SAVE_KEY);
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return null;
+}
+
 export default function App() {
+  var ei = estadoInicial();
+
   const [aba, setAba]       = useState("fotos");
-  const [fotos, setFotos]   = useState({});
+  const [fotos, setFotos]   = useState(ei?.fotos || {});
   const [psel, setPsel]     = useState("");
   const [leg, setLeg]       = useState("");
   const [dat, setDat]       = useState(new Date().toLocaleDateString("pt-BR"));
   const [prev, setPrev]     = useState(null);
   const [geo, setGeo]       = useState("");
   const [gst, setGst]       = useState("");
-  const [dados, setDados]   = useState({});
+  const [dados, setDados]   = useState(ei?.dados || {});
   const [pd, setPd]         = useState("pac");
-  const [inv, setInv]       = useState([]);
+  const [inv, setInv]       = useState(ei?.inv || []);
   const [ldMTR, setLdMTR]   = useState(false);
   const [erMTR, setErMTR]   = useState("");
-  const [cor, setCor]       = useState(HC);
-  const [lCons, setLCons]   = useState(null);
-  const [lEmpr, setLEmpr]   = useState(null);
-  const [campos, setCampos] = useState([
+  const [cor, setCor]       = useState(ei?.cor || HC);
+  const [lCons, setLCons]   = useState(ei?.lCons || null);
+  const [lEmpr, setLEmpr]   = useState(ei?.lEmpr || null);
+  const [campos, setCampos] = useState(ei?.campos || [
     {id:"f1",lb:"Empresa Executora",val:"",ed:false},
     {id:"f2",lb:"Empreendedor",val:"",ed:false},
     {id:"f3",lb:"Nome do Empreendimento",val:"",ed:false},
     {id:"f4",lb:"Estado (UF)",val:"",ed:false},
     {id:"f5",lb:"Responsável Técnico",val:"",ed:false},
   ]);
-  const [nrel, setNrel]     = useState("");
-  const [mes, setMes]       = useState("Janeiro");
-  const [ano, setAno]       = useState("2026");
-  const [pAtiv, setPAtiv]   = useState(PRG.map(p => p.id));
-  const [pCust, setPCust]   = useState([]);
-  const [nomes, setNomes]   = useState({});
+  const [nrel, setNrel]     = useState(ei?.nrel || "");
+  const [mes, setMes]       = useState(ei?.mes || "Janeiro");
+  const [ano, setAno]       = useState(ei?.ano || "2026");
+  const [pAtiv, setPAtiv]   = useState(ei?.pAtiv || PRG.map(p => p.id));
+  const [pCust, setPCust]   = useState(ei?.pCust || []);
+  const [nomes, setNomes]   = useState(ei?.nomes || {});
   const [enome, setEnome]   = useState(null);
-  const [extras, setExtras] = useState([]);
+  const [extras, setExtras] = useState(ei?.extras || []);
   const [novo, setNovo]     = useState("");
   const [ger, setGer]       = useState(false);
   const [cfg, setCfg]       = useState(true);
+  const [historico, setHistorico] = useState(() => {
+    try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
+  });
+  const [msgSalvo, setMsgSalvo] = useState("");
   const ref = useRef();
+  const saveTimer = useRef(null);
+
+  // Auto-save whenever important state changes
+  useEffect(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(function() {
+      try {
+        var estado = {fotos, dados, inv, cor, lCons, lEmpr, campos, nrel, mes, ano, pAtiv, pCust, nomes, extras};
+        localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
+        setMsgSalvo("✅ Salvo automaticamente");
+        setTimeout(function() { setMsgSalvo(""); }, 2000);
+      } catch(e) {}
+    }, 1500);
+  }, [fotos, dados, inv, cor, campos, nrel, mes, ano, pAtiv, pCust, nomes, extras]);
+
+  const salvarRelatorio = () => {
+    var rel = {
+      id: Date.now(),
+      mes, ano, nrel,
+      titulo: (nrel ? nrel + "º " : "") + "Relatório – " + mes + "/" + ano,
+      empresa: campos.find(c => c.id === "f1")?.val || "",
+      empreendimento: campos.find(c => c.id === "f3")?.val || "",
+      data: new Date().toLocaleDateString("pt-BR"),
+      estado: {fotos, dados, inv, cor, lCons, lEmpr, campos, nrel, mes, ano, pAtiv, pCust, nomes, extras}
+    };
+    var novo_hist = [rel, ...historico];
+    setHistorico(novo_hist);
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(novo_hist)); } catch(e) {}
+    alert("Relatório de " + mes + "/" + ano + " salvo no histórico!");
+  };
+
+  const carregarRelatorio = (rel) => {
+    var e = rel.estado;
+    setFotos(e.fotos || {});
+    setDados(e.dados || {});
+    setInv(e.inv || []);
+    setCor(e.cor || HC);
+    setLCons(e.lCons || null);
+    setLEmpr(e.lEmpr || null);
+    setCampos(e.campos || []);
+    setNrel(e.nrel || "");
+    setMes(e.mes || "Janeiro");
+    setAno(e.ano || "2026");
+    setPAtiv(e.pAtiv || PRG.map(p => p.id));
+    setPCust(e.pCust || []);
+    setNomes(e.nomes || {});
+    setExtras(e.extras || []);
+    setAba("relatorio");
+    alert("Relatório de " + rel.mes + "/" + rel.ano + " carregado!");
+  };
+
+  const excluirRelatorio = (id) => {
+    if (!window.confirm("Excluir este relatório do histórico?")) return;
+    var novo_hist = historico.filter(r => r.id !== id);
+    setHistorico(novo_hist);
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(novo_hist)); } catch(e) {}
+  };
+
+  const novoRelatorio = () => {
+    if (!window.confirm("Iniciar novo relatório? Os dados atuais serão mantidos no histórico se você salvou.")) return;
+    setFotos({}); setDados({}); setInv([]); setCor(HC); setLCons(null); setLEmpr(null);
+    setCampos([{id:"f1",lb:"Empresa Executora",val:"",ed:false},{id:"f2",lb:"Empreendedor",val:"",ed:false},{id:"f3",lb:"Nome do Empreendimento",val:"",ed:false},{id:"f4",lb:"Estado (UF)",val:"",ed:false},{id:"f5",lb:"Responsável Técnico",val:"",ed:false}]);
+    setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id)); setPCust([]); setNomes({}); setExtras([]);
+    setAba("fotos");
+  };
 
   const todos   = [...PRG, ...pCust];
   const ativos  = todos.filter(p => pAtiv.includes(p.id));
@@ -156,16 +238,23 @@ export default function App() {
     </div>
   );
 
-  const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"relatorio",lb:"📄 Relatório"},{id:"baixar",lb:"⬇️ Baixar"}];
+  const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"},{id:"baixar",lb:"⬇️ Baixar"}];
 
   return (
     <div style={{minHeight:"100vh",background:"#eef1ee",fontFamily:"Georgia,serif"}}>
       <header style={{background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",boxShadow:"0 3px 16px rgba(0,0,0,0.25)"}}>
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"12px 20px",display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:26}}>🌿</span>
-          <div>
-            <div style={{fontSize:17,fontWeight:"bold",color:"#fff",letterSpacing:0.8}}>MMA Field</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.7)",textTransform:"uppercase",letterSpacing:2}}>Meu Mundo Ambiental</div>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontSize:26}}>🌿</span>
+            <div>
+              <div style={{fontSize:17,fontWeight:"bold",color:"#fff",letterSpacing:0.8}}>MMA Field</div>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.7)",textTransform:"uppercase",letterSpacing:2}}>Meu Mundo Ambiental</div>
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {msgSalvo && <span style={{fontSize:11,color:"#a8e6c0",fontStyle:"italic"}}>{msgSalvo}</span>}
+            <button onClick={salvarRelatorio} style={{background:"#2d6a4f",color:"#fff",border:"2px solid #a8e6c0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>💾 Salvar Relatório</button>
+            <button onClick={novoRelatorio} style={{background:"transparent",color:"#fff",border:"2px solid rgba(255,255,255,0.4)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>+ Novo</button>
           </div>
         </div>
         <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:18}}>
@@ -277,7 +366,6 @@ export default function App() {
                     <textarea value={d.desc||""} onChange={e=>set({desc:e.target.value})} rows={4} style={{...SI,resize:"vertical"}} placeholder="Descreva as atividades realizadas no período..."/>
                   </div>
 
-                  {/* RESIDUOS */}
                   {pd==="residuos" && (
                     <div>
                       <div style={{...CD,border:"2px solid #5a4fcf33",background:"linear-gradient(135deg,#faf9ff,#f3f0ff)"}}>
@@ -346,7 +434,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* SUPRESSAO VEGETAL - CUBAGEM */}
                   {pd==="supveg"&&(
                     <div style={CD}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -359,11 +446,9 @@ export default function App() {
                       <div style={{overflowX:"auto"}}>
                         <table style={{width:"100%",borderCollapse:"collapse",fontSize:10,minWidth:1200}}>
                           <thead>
-                            <tr>
-                              {["Leira Nº","Dimensões (larg × alt × comp)","Volume (st)","Volume (m³) Leira","Nº Toras","Nome Científico","Nome Popular","Comp. (m)","Diam. 01 (m)","Diam. 02 (m)","Volume (m³)","Vol. Total por Espécie (m³)",""].map((h,i)=>(
-                                <th key={i} style={{...TH,background:p.cor,whiteSpace:"nowrap",padding:"6px 7px",minWidth:i===1?160:i===5||i===6?120:70}}>{h}</th>
-                              ))}
-                            </tr>
+                            <tr>{["Leira Nº","Dimensões (larg × alt × comp)","Volume (st)","Volume (m³) Leira","Nº Toras","Nome Científico","Nome Popular","Comp. (m)","Diam. 01 (m)","Diam. 02 (m)","Volume (m³)","Vol. Total por Espécie (m³)",""].map((h,i)=>(
+                              <th key={i} style={{...TH,background:p.cor,whiteSpace:"nowrap",padding:"6px 7px",minWidth:i===1?160:i===5||i===6?120:70}}>{h}</th>
+                            ))}</tr>
                           </thead>
                           <tbody>
                             {(getD("supveg").cubagem||[]).length===0&&<tr><td colSpan={13} style={{...TD,textAlign:"center",color:"#ccc",padding:"20px",fontStyle:"italic"}}>Nenhum registro — clique em "+ Adicionar Linha"</td></tr>}
@@ -378,8 +463,8 @@ export default function App() {
                                   <td style={{...TD,padding:"3px 4px"}}><input value={row.vol_st||""} onChange={e=>updR({vol_st:e.target.value})} type="number" style={i2}/></td>
                                   <td style={{...TD,padding:"3px 4px"}}><input value={row.vol_m3_leira||""} onChange={e=>updR({vol_m3_leira:e.target.value})} type="number" style={i2}/></td>
                                   <td style={{...TD,padding:"3px 4px"}}><input value={row.n_toras||""} onChange={e=>updR({n_toras:e.target.value})} type="number" style={i2}/></td>
-                                  <td style={{...TD,padding:"3px 4px"}}><input value={row.nome_cient||""} onChange={e=>updR({nome_cient:e.target.value})} placeholder="Ex: Eucalyptus sp." style={i2}/></td>
-                                  <td style={{...TD,padding:"3px 4px"}}><input value={row.nome_pop||""} onChange={e=>updR({nome_pop:e.target.value})} placeholder="Ex: Eucalipto" style={i2}/></td>
+                                  <td style={{...TD,padding:"3px 4px"}}><input value={row.nome_cient||""} onChange={e=>updR({nome_cient:e.target.value})} style={i2}/></td>
+                                  <td style={{...TD,padding:"3px 4px"}}><input value={row.nome_pop||""} onChange={e=>updR({nome_pop:e.target.value})} style={i2}/></td>
                                   <td style={{...TD,padding:"3px 4px"}}><input value={row.comp_m||""} onChange={e=>updR({comp_m:e.target.value})} type="number" style={i2}/></td>
                                   <td style={{...TD,padding:"3px 4px"}}><input value={row.diam1||""} onChange={e=>updR({diam1:e.target.value})} type="number" style={i2}/></td>
                                   <td style={{...TD,padding:"3px 4px"}}><input value={row.diam2||""} onChange={e=>updR({diam2:e.target.value})} type="number" style={i2}/></td>
@@ -400,7 +485,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* GRAFICOS */}
                   <div style={CD}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
                       <h3 style={{color:p.cor,fontSize:13,margin:0}}>📊 Gráficos</h3>
@@ -421,7 +505,7 @@ export default function App() {
                             <button onClick={remGr} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:7,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>Remover</button>
                           </div>
                           <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap"}}>
-                            <div><label style={LB}>Tipo</label><select value={gr.tipo||"barra"} onChange={e=>setGr({tipo:e.target.value})} style={{...SI,width:110}}><option value="barra">Barras</option><option value="pizza">Pizza</option><option value="linha">Linha</option></select></div>
+                            <div><label style={LB}>Tipo</label><select value={gr.tipo||"barra"} onChange={e=>setGr({tipo:e.target.value})} style={{...SI,width:110}}><option value="barra">Barras</option><option value="pizza">Pizza</option></select></div>
                             <div><label style={LB}>Unidade de Medida</label><select value={gr.unidade||""} onChange={e=>setGr({unidade:e.target.value})} style={{...SI,width:140}}><option value="">Sem unidade</option><option value="t">Tonelada (t)</option><option value="m">Metro (m)</option><option value="m2">m²</option><option value="un">Unidade (un)</option><option value="%">Percentual (%)</option></select></div>
                             <div><label style={LB}>Cor</label><div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:5}}>{COR.map(c=><div key={c} onClick={()=>setGr({cor:c})} style={{width:20,height:20,borderRadius:4,background:c,cursor:"pointer",border:"2px solid "+(gr.cor===c?"#333":"transparent")}}/>)}<input type="color" value={gr.cor||p.cor} onChange={e=>setGr({cor:e.target.value})} style={{width:24,height:24,padding:0,border:"none",cursor:"pointer",borderRadius:4}}/></div></div>
                           </div>
@@ -576,6 +660,38 @@ export default function App() {
                 <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* HISTORICO */}
+        {aba==="historico"&&(
+          <div>
+            <h2 style={{color:HC,marginBottom:6}}>📁 Histórico de Relatórios</h2>
+            <p style={{fontSize:12,color:"#888",marginBottom:20}}>Relatórios salvos neste dispositivo. Clique em "Abrir" para carregar qualquer relatório anterior.</p>
+            {historico.length===0?(
+              <div style={{...CD,textAlign:"center",padding:"48px 20px",color:"#aaa"}}>
+                <div style={{fontSize:44,marginBottom:10}}>📁</div>
+                <div style={{fontSize:14,fontWeight:"bold",color:"#2d6a4f",marginBottom:6}}>Nenhum relatório salvo</div>
+                <div style={{fontSize:12}}>Clique em <strong>"💾 Salvar Relatório"</strong> no topo para salvar o relatório atual no histórico.</div>
+              </div>
+            ):(
+              <div style={{display:"grid",gap:12}}>
+                {historico.map(rel=>(
+                  <div key={rel.id} style={{...CD,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px"}}>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:"bold",color:HC,marginBottom:4}}>📄 {rel.titulo}</div>
+                      {rel.empreendimento&&<div style={{fontSize:12,color:"#555",marginBottom:2}}>🏗️ {rel.empreendimento}</div>}
+                      {rel.empresa&&<div style={{fontSize:11,color:"#888",marginBottom:2}}>🏢 {rel.empresa}</div>}
+                      <div style={{fontSize:10,color:"#aaa"}}>Salvo em {rel.data}</div>
+                    </div>
+                    <div style={{display:"flex",gap:8}}>
+                      <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:13,fontWeight:"bold"}}>📂 Abrir</button>
+                      <button onClick={()=>excluirRelatorio(rel.id)} style={{background:"none",border:"2px solid #b5451b",color:"#b5451b",borderRadius:8,padding:"8px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>🗑️ Excluir</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
