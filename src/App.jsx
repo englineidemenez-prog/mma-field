@@ -1,5 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const HC = "#1a3d2b";
 const COR = ["#5a4fcf","#2d6a4f","#b5451b","#7d5a3c","#b08000","#0e6b7c","#c0622b","#8b5e1a","#6b4c9a","#6b7280","#e63946","#457b9d","#2a9d8f","#e9c46a","#f4a261","#264653","#6d6875","#b5838d","#3d405b","#81b29a","#118ab2","#06d6a0","#ef476f","#ffd166","#4cc9f0","#4361ee","#3a0ca3","#7209b7"];
@@ -23,9 +29,219 @@ const TD  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",vertica
 const TA  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",verticalAlign:"top",background:"#f8fdf9"};
 const SAVE_KEY = "mmafield_data";
 const HIST_KEY = "mmafield_historico";
-
 const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Programas Ambientais do Plano Básico Ambiental (PBA), em conformidade com as condicionantes da Licença de Operação (LO) nº _______, emitida pelo órgão ambiental competente. As atividades descritas neste documento foram desenvolvidas no período de referência, visando o monitoramento, controle e mitigação dos impactos ambientais associados ao empreendimento.";
 
+// ─────────────────────────────────────────────
+// TELA DE AUTENTICAÇÃO
+// ─────────────────────────────────────────────
+function AuthScreen({ onLogin }) {
+  const [modo, setModo] = useState("login"); // "login" | "cadastro" | "esqueci"
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+
+  const handleLogin = async () => {
+    setErro(""); setCarregando(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    setCarregando(false);
+    if (error) { setErro("Email ou senha incorretos."); return; }
+    onLogin(data.user);
+  };
+
+  const handleCadastro = async () => {
+    setErro("");
+    if (senha !== confirmar) { setErro("As senhas não coincidem."); return; }
+    if (senha.length < 6) { setErro("A senha deve ter pelo menos 6 caracteres."); return; }
+    setCarregando(true);
+    const { data, error } = await supabase.auth.signUp({ email, password: senha });
+    setCarregando(false);
+    if (error) { setErro("Erro ao criar conta: " + error.message); return; }
+    setSucesso("Conta criada! Verifique seu email para confirmar o cadastro.");
+    setModo("login");
+  };
+
+  const handleEsqueci = async () => {
+    setErro(""); setCarregando(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    setCarregando(false);
+    if (error) { setErro("Erro ao enviar email."); return; }
+    setSucesso("Email de recuperação enviado! Verifique sua caixa de entrada.");
+  };
+
+  const estiloFundo = {
+    minHeight:"100vh",
+    background:"linear-gradient(135deg,#1a3d2b 0%,#2d6a4f 50%,#1a3d2b 100%)",
+    display:"flex",
+    alignItems:"center",
+    justifyContent:"center",
+    fontFamily:"Georgia,serif",
+    padding:20,
+  };
+
+  const estiloCard = {
+    background:"#fff",
+    borderRadius:18,
+    padding:"40px 36px",
+    width:"100%",
+    maxWidth:400,
+    boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
+  };
+
+  const estiloInput = {
+    width:"100%",
+    padding:"11px 14px",
+    border:"1.5px solid #cdd8d3",
+    borderRadius:9,
+    fontSize:14,
+    fontFamily:"Georgia,serif",
+    background:"#fafdfb",
+    boxSizing:"border-box",
+    outline:"none",
+    marginBottom:12,
+    transition:"border-color 0.2s",
+  };
+
+  const estiloBotao = {
+    width:"100%",
+    padding:"13px",
+    background:"linear-gradient(135deg,#2d6a4f,#1a3d2b)",
+    color:"#fff",
+    border:"none",
+    borderRadius:9,
+    fontSize:14,
+    fontWeight:"bold",
+    fontFamily:"Georgia,serif",
+    cursor:"pointer",
+    marginTop:4,
+    letterSpacing:0.5,
+  };
+
+  const estiloLink = {
+    background:"none",
+    border:"none",
+    color:"#2d6a4f",
+    cursor:"pointer",
+    fontSize:12,
+    fontFamily:"Georgia,serif",
+    textDecoration:"underline",
+    padding:0,
+  };
+
+  return (
+    <div style={estiloFundo}>
+      <div style={estiloCard}>
+        {/* Logo */}
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:42,marginBottom:8}}>🌿</div>
+          <div style={{fontSize:22,fontWeight:"bold",color:HC,letterSpacing:1}}>MMA Field</div>
+          <div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:2,marginTop:3}}>Meu Mundo Ambiental</div>
+        </div>
+
+        {/* Título da tela */}
+        <div style={{fontSize:15,fontWeight:"bold",color:HC,marginBottom:20,textAlign:"center"}}>
+          {modo === "login" && "Entrar na sua conta"}
+          {modo === "cadastro" && "Criar nova conta"}
+          {modo === "esqueci" && "Recuperar senha"}
+        </div>
+
+        {/* Mensagem de erro */}
+        {erro && (
+          <div style={{background:"#fff0f0",border:"1px solid #ffcccc",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#b00000"}}>
+            ⚠️ {erro}
+          </div>
+        )}
+
+        {/* Mensagem de sucesso */}
+        {sucesso && (
+          <div style={{background:"#f0fff4",border:"1px solid #a8e6c0",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#1a5c35"}}>
+            ✅ {sucesso}
+          </div>
+        )}
+
+        {/* Campos */}
+        <div>
+          <label style={{...LB,marginBottom:5}}>Email</label>
+          <input
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={estiloInput}
+            onKeyDown={e => e.key === "Enter" && modo === "login" && handleLogin()}
+          />
+
+          {modo !== "esqueci" && (
+            <>
+              <label style={{...LB,marginBottom:5}}>Senha</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                style={estiloInput}
+                onKeyDown={e => e.key === "Enter" && modo === "login" && handleLogin()}
+              />
+            </>
+          )}
+
+          {modo === "cadastro" && (
+            <>
+              <label style={{...LB,marginBottom:5}}>Confirmar Senha</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={confirmar}
+                onChange={e => setConfirmar(e.target.value)}
+                style={estiloInput}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Botão principal */}
+        <button
+          onClick={modo === "login" ? handleLogin : modo === "cadastro" ? handleCadastro : handleEsqueci}
+          disabled={carregando}
+          style={{...estiloBotao, opacity: carregando ? 0.7 : 1}}
+        >
+          {carregando ? "⏳ Aguarde..." : modo === "login" ? "Entrar" : modo === "cadastro" ? "Criar Conta" : "Enviar Email de Recuperação"}
+        </button>
+
+        {/* Links de navegação */}
+        <div style={{marginTop:20,textAlign:"center",display:"flex",flexDirection:"column",gap:8}}>
+          {modo === "login" && (
+            <>
+              <button onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }} style={estiloLink}>
+                Não tem conta? Criar conta
+              </button>
+              <button onClick={() => { setModo("esqueci"); setErro(""); setSucesso(""); }} style={{...estiloLink,color:"#888"}}>
+                Esqueci minha senha
+              </button>
+            </>
+          )}
+          {(modo === "cadastro" || modo === "esqueci") && (
+            <button onClick={() => { setModo("login"); setErro(""); setSucesso(""); }} style={estiloLink}>
+              ← Voltar para o login
+            </button>
+          )}
+        </div>
+
+        <div style={{marginTop:24,textAlign:"center",fontSize:10,color:"#bbb"}}>
+          MMA Field © 2026 · Meu Mundo Ambiental
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// FUNÇÕES AUXILIARES
+// ─────────────────────────────────────────────
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
   if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
@@ -35,7 +251,6 @@ function dlWord(mes, ano) {
   a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
   URL.revokeObjectURL(u);
 }
-
 function dlPDF() {
   var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
   var s = document.createElement("style");
@@ -57,13 +272,55 @@ function dlPDF() {
     setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
   }, 600);
 }
-
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
   return null;
 }
 
+// ─────────────────────────────────────────────
+// APP PRINCIPAL
+// ─────────────────────────────────────────────
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [carregandoAuth, setCarregandoAuth] = useState(true);
+
+  useEffect(() => {
+    // Verificar sessão existente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setCarregandoAuth(false);
+    });
+    // Escutar mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  if (carregandoAuth) {
+    return (
+      <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{color:"#fff",fontFamily:"Georgia,serif",fontSize:16}}>🌿 Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen onLogin={setUser} />;
+  }
+
+  return <AppPrincipal user={user} onLogout={handleLogout} />;
+}
+
+// ─────────────────────────────────────────────
+// APP PRINCIPAL (conteúdo do app após login)
+// ─────────────────────────────────────────────
+function AppPrincipal({ user, onLogout }) {
   var ei = estadoInicial();
   const [aba, setAba]       = useState("fotos");
   const [fotos, setFotos]   = useState(ei?.fotos || {});
@@ -106,7 +363,6 @@ export default function App() {
   const [msgSalvo, setMsgSalvo] = useState("");
   const ref = useRef();
   const saveTimer = useRef(null);
-
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
@@ -118,7 +374,6 @@ export default function App() {
       } catch(e) {}
     }, 1500);
   }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro]);
-
   const salvarRelatorio = () => {
     var rel = {
       id: Date.now(), mes, ano, nrel,
@@ -133,7 +388,6 @@ export default function App() {
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
     alert("Relatório de "+mes+"/"+ano+" salvo no histórico!");
   };
-
   const carregarRelatorio = (rel) => {
     var e = rel.estado;
     setFotos(e.fotos||{}); setDados(e.dados||{}); setInv(e.inv||[]);
@@ -145,19 +399,16 @@ export default function App() {
     setAba("relatorio");
     alert("Relatório de "+rel.mes+"/"+rel.ano+" carregado!");
   };
-
   const excluirRelatorio = (id) => {
     if (!window.confirm("Excluir este relatório?")) return;
     var nh = historico.filter(r=>r.id!==id);
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
   };
-
   const baixarRelatorio = (rel) => {
     carregarRelatorio(rel);
     setTimeout(function() { setAba("relatorio"); setTimeout(function() { dlWord(rel.mes, rel.ano); }, 800); }, 500);
   };
-
   const novoRelatorio = () => {
     if (!window.confirm("Iniciar novo relatório?")) return;
     setFotos({}); setDados({}); setInv([]); setCor(HC); setLCons(null); setLEmpr(null);
@@ -165,7 +416,6 @@ export default function App() {
     setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id));
     setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT); setAba("fotos");
   };
-
   const todos  = [...PRG,...pCust];
   const ativos = todos.filter(p=>pAtiv.includes(p.id));
   const getL   = id => nomes[id]||todos.find(p=>p.id===id)?.lb||id;
@@ -177,7 +427,6 @@ export default function App() {
   const getD   = id => dados[id]||{desc:"",graficos:[],cor:PRG.find(p=>p.id===id)?.cor||"#2d6a4f"};
   const setD   = (id,p) => setDados(d=>({...d,[id]:{...getD(id),...p}}));
   const getF   = id => fotos[id]||[];
-
   const captGeo = () => {
     if (!navigator.geolocation) { setGst("GPS indisponível."); return; }
     setGst("📡 Obtendo localização...");
@@ -186,22 +435,18 @@ export default function App() {
       e=>setGst("❌ "+e.message),{enableHighAccuracy:true,timeout:10000}
     );
   };
-
   const onFoto = e => {
     var f=e.target.files[0]; if(!f) return;
     var r=new FileReader(); r.onload=ev=>setPrev(ev.target.result); r.readAsDataURL(f);
     if(navigator.geolocation){setGst("📡 Obtendo localização...");navigator.geolocation.getCurrentPosition(p=>{setGeo(p.coords.latitude.toFixed(6)+", "+p.coords.longitude.toFixed(6)+" (±"+Math.round(p.coords.accuracy)+"m)");setGst("✅ Localização obtida");},()=>setGst(""),{enableHighAccuracy:true,timeout:8000});}
   };
-
   const addF = () => {
     if(!prev||!psel) return;
     setFotos(f=>({...f,[psel]:[...(f[psel]||[]),{id:Date.now(),src:prev,leg,dat,geo}]}));
     setPrev(null);setLeg("");setGeo("");setGst("");
     if(ref.current) ref.current.value="";
   };
-
   const remF = (pid,fid) => setFotos(f=>({...f,[pid]:(f[pid]||[]).filter(x=>x.id!==fid)}));
-
   const lerMTR = async arq => {
     setLdMTR(true); setErMTR("");
     try {
@@ -217,7 +462,6 @@ export default function App() {
     } catch(e){setErMTR("Erro: "+e.message);}
     setLdMTR(false);
   };
-
   const addExtra = async () => {
     if(!novo.trim()) return; setGer(true);
     try {
@@ -229,7 +473,6 @@ export default function App() {
     }catch(e){}
     setGer(false);
   };
-
   const Cab = () => (
     <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
       {lCons?<img src={lCons} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -239,7 +482,6 @@ export default function App() {
       {lEmpr?<img src={lEmpr} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
     </div>
   );
-
   const renderGrafico = (gr, height, forReport) => {
     var gd2=(gr.dados||[]).filter(x=>x.l&&x.v);
     if(gd2.length===0) return null;
@@ -261,9 +503,7 @@ export default function App() {
       </ResponsiveContainer>
     );
   };
-
   const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"config",lb:"⚙️ Configurar"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"}];
-
   return (
     <div style={{minHeight:"100vh",background:"#eef1ee",fontFamily:"Georgia,serif"}}>
       <header style={{background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",boxShadow:"0 3px 16px rgba(0,0,0,0.25)"}}>
@@ -277,8 +517,10 @@ export default function App() {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             {msgSalvo&&<span style={{fontSize:11,color:"#a8e6c0",fontStyle:"italic"}}>{msgSalvo}</span>}
+            <span style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>👤 {user.email}</span>
             <button onClick={salvarRelatorio} style={{background:"#2d6a4f",color:"#fff",border:"2px solid #a8e6c0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>💾 Salvar Relatório</button>
             <button onClick={novoRelatorio} style={{background:"transparent",color:"#fff",border:"2px solid rgba(255,255,255,0.4)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>+ Novo</button>
+            <button onClick={onLogout} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
           </div>
         </div>
         <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:18}}>
@@ -289,9 +531,7 @@ export default function App() {
           ))}
         </nav>
       </header>
-
       <main style={{maxWidth:1100,margin:"0 auto",padding:"20px"}}>
-
         {/* FOTOS */}
         {aba==="fotos"&&(
           <div>
@@ -361,7 +601,6 @@ export default function App() {
             </div>
           </div>
         )}
-
         {/* DADOS */}
         {aba==="dados"&&(
           <div>
@@ -383,8 +622,6 @@ export default function App() {
                     <label style={LB}>Descrição das Atividades</label>
                     <textarea value={d.desc||""} onChange={e=>set({desc:e.target.value})} rows={4} style={{...SI,resize:"vertical"}} placeholder="Descreva as atividades realizadas no período..."/>
                   </div>
-
-                  {/* RESIDUOS */}
                   {pd==="residuos"&&(
                     <div>
                       <div style={{...CD,border:"2px solid #5a4fcf33",background:"linear-gradient(135deg,#faf9ff,#f3f0ff)"}}>
@@ -415,10 +652,7 @@ export default function App() {
                                     ))}
                                     <td style={{...TD,background:"#faf9ff",padding:"3px 4px"}}>
                                       <select value={row.unidade||"t"} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,unidade:e.target.value}:r))} style={{width:"100%",padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}>
-                                        <option value="kg">kg</option>
-                                        <option value="t">t</option>
-                                        <option value="m3">m³</option>
-                                        <option value="un">un</option>
+                                        <option value="kg">kg</option><option value="t">t</option><option value="m3">m³</option><option value="un">un</option>
                                       </select>
                                     </td>
                                     {["transportador","destinador","tratamento"].map(f=>(
@@ -463,8 +697,6 @@ export default function App() {
                       })()}
                     </div>
                   )}
-
-                  {/* EFLUENTES - unidades */}
                   {pd==="efluentes"&&(
                     <div style={{...CD,border:"1px solid #0e6b7c44",background:"#f5fbfd",marginBottom:14}}>
                       <div style={{fontSize:12,fontWeight:"bold",color:"#0e6b7c",marginBottom:8}}>🛢️ Registro de Efluentes</div>
@@ -472,19 +704,13 @@ export default function App() {
                         <div><label style={LB}>Volume gerado</label><input value={d.vol_gerado||""} onChange={e=>set({vol_gerado:e.target.value})} placeholder="Ex: 150" style={SI}/></div>
                         <div><label style={LB}>Unidade</label>
                           <select value={d.unid_efl||"m3"} onChange={e=>set({unid_efl:e.target.value})} style={SI}>
-                            <option value="m3">m³</option>
-                            <option value="L">Litros (L)</option>
-                            <option value="kg">kg</option>
-                            <option value="t">Tonelada (t)</option>
-                            <option value="un">Unidade (un)</option>
+                            <option value="m3">m³</option><option value="L">Litros (L)</option><option value="kg">kg</option><option value="t">Tonelada (t)</option><option value="un">Unidade (un)</option>
                           </select>
                         </div>
                         <div><label style={LB}>Destinação</label><input value={d.dest_efl||""} onChange={e=>set({dest_efl:e.target.value})} placeholder="Ex: ETE, fossa" style={SI}/></div>
                       </div>
                     </div>
                   )}
-
-                  {/* SUPVEG */}
                   {pd==="supveg"&&(
                     <div style={CD}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -530,8 +756,6 @@ export default function App() {
                       </div>
                     </div>
                   )}
-
-                  {/* GRAFICOS */}
                   <div style={CD}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
                       <h3 style={{color:p.cor,fontSize:13,margin:0}}>📊 Gráficos</h3>
@@ -597,7 +821,6 @@ export default function App() {
             })()}
           </div>
         )}
-
         {/* CONFIG */}
         {aba==="config"&&(
           <div>
@@ -666,7 +889,6 @@ export default function App() {
                 </div>
               )}
             </div>
-
             <div id="extra-card" style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
               <div style={{fontSize:13,fontWeight:"bold",color:"#2d6a4f",marginBottom:8}}>✨ Adicionar Programa Extra com IA</div>
               <div style={{display:"flex",gap:8}}>
@@ -676,7 +898,6 @@ export default function App() {
             </div>
           </div>
         )}
-
         {/* RELATORIO */}
         {aba==="relatorio"&&(
           <div>
@@ -689,20 +910,15 @@ export default function App() {
                   <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
                   {campos.find(c=>c.id==="f5")?.val&&<div style={{fontSize:12,color:"#555"}}>{campos.find(c=>c.id==="f5").val}<br/><strong>{emp}</strong></div>}
                 </div>
-
-                {/* INTRODUCAO */}
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
-
                 <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>{campos.map((f,i)=><tr key={f.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{f.lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{f.val||"—"}</td></tr>)}</tbody></table>
-
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-
                 <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:18,textAlign:"left"}}>3. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
                   var d=getD(p.id); var fp=getF(p.id);
@@ -728,7 +944,6 @@ export default function App() {
             </div>
           </div>
         )}
-
         {/* HISTORICO */}
         {aba==="historico"&&(
           <div>
@@ -762,7 +977,6 @@ export default function App() {
             )}
           </div>
         )}
-
       </main>
     </div>
   );
