@@ -40,10 +40,18 @@ function dlPDF() {
   var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
   var s = document.createElement("style");
   s.id = "pprt";
-  s.textContent = "@media print" + ob + "header,nav,.np" + ob + "display:none!important" + cb + "#reldoc" + ob + "box-shadow:none!important" + cb + "@page" + ob + "margin:1.5cm;size:A4" + cb + cb;
+  s.textContent = "@media print" + ob +
+    "body > div > header, body > div > header *, nav, .np, #cfg-card, #extra-card" + ob + "display:none!important" + cb +
+    "body" + ob + "background:#fff!important" + cb +
+    "main" + ob + "padding:0!important;max-width:100%!important" + cb +
+    "#reldoc" + ob + "box-shadow:none!important;border:none!important;border-radius:0!important" + cb +
+    "@page" + ob + "margin:1.5cm;size:A4" + cb +
+    cb;
   document.head.appendChild(s);
-  window.print();
-  setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 1500);
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 2000);
+  }, 300);
 }
 
 function estadoInicial() {
@@ -590,7 +598,7 @@ export default function App() {
         {aba==="relatorio"&&(
           <div>
             <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
-            <div style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
+            <div id="cfg-card" style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
               <button onClick={()=>setCfg(c=>!c)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",background:"none",border:"none",cursor:"pointer",fontFamily:"Georgia,serif",padding:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}><span>⚙️</span><div><div style={{fontSize:13,fontWeight:"bold",color:HC}}>Configurações do Relatório</div><div style={{fontSize:10,color:"#888"}}>Logos, identificação, período, programas, cores</div></div></div>
                 <span style={{transform:cfg?"rotate(180deg)":"none",transition:"0.2s"}}>▾</span>
@@ -654,7 +662,7 @@ export default function App() {
               )}
             </div>
 
-            <div style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
+            <div id="extra-card" style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
               <div style={{fontSize:13,fontWeight:"bold",color:"#2d6a4f",marginBottom:8}}>✨ Adicionar Programa Extra com IA</div>
               <div style={{display:"flex",gap:8}}>
                 <input value={novo} onChange={e=>setNovo(e.target.value)} placeholder="Nome do programa..." style={{...SI,flex:1}} onKeyDown={e=>{if(e.key==="Enter"&&novo.trim())addExtra();}}/>
@@ -692,7 +700,7 @@ export default function App() {
                     <div key={p.id} style={{marginBottom:32}}>
                       <h3 style={{color:cor,fontSize:13,borderLeft:"4px solid "+p.cor,paddingLeft:10,marginBottom:10,textAlign:"left"}}>{pi+1}. {getL(p.id).toUpperCase()}</h3>
                       {d.desc&&<p style={{fontSize:12,color:"#444",lineHeight:1.8,marginBottom:12,textAlign:"justify"}}>{d.desc}</p>}
-                      {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:140,objectFit:"cover",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
+                      {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:160,objectFit:"cover",objectPosition:"center",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
                       {grafRel.map((gr,gi)=>(
                         <div key={gi} style={{marginBottom:16}}>
                           <h4 style={{fontSize:11,color:"#333",marginBottom:5,textAlign:"left"}}>{gr.titulo||"Gráfico "+(gi+1)}</h4>
