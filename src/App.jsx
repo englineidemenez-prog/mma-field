@@ -41,18 +41,21 @@ function dlPDF() {
   var s = document.createElement("style");
   s.id = "pprt";
   s.textContent =
+    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
     "@media print" + ob +
-      "body *" + ob + "visibility:hidden" + cb +
-      "#reldoc,#reldoc *" + ob + "visibility:visible" + cb +
-      "#reldoc" + ob + "position:absolute;left:0;top:0;width:100%;box-shadow:none!important;border:none!important;border-radius:0!important" + cb +
-      "#capa-rel" + ob + "page-break-after:always;border-bottom:none!important" + cb +
-      "@page" + ob + "margin:1.5cm;size:A4" + cb +
+      "body *" + ob + "visibility:hidden!important" + cb +
+      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
+      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
+      "h2,h3" + ob + "page-break-after:avoid" + cb +
+      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
+      "table" + ob + "page-break-inside:avoid" + cb +
     cb;
   document.head.appendChild(s);
   setTimeout(function() {
     window.print();
-    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 2500);
-  }, 500);
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
+  }, 600);
 }
 
 function estadoInicial() {
@@ -259,7 +262,7 @@ export default function App() {
     );
   };
 
-  const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"}];
+  const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"config",lb:"⚙️ Configurar"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"}];
 
   return (
     <div style={{minHeight:"100vh",background:"#eef1ee",fontFamily:"Georgia,serif"}}>
