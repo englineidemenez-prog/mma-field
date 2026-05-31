@@ -40,18 +40,19 @@ function dlPDF() {
   var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
   var s = document.createElement("style");
   s.id = "pprt";
-  s.textContent = "@media print" + ob +
-    "body > div > header, body > div > header *, nav, .np, #cfg-card, #extra-card" + ob + "display:none!important" + cb +
-    "body" + ob + "background:#fff!important" + cb +
-    "main" + ob + "padding:0!important;max-width:100%!important" + cb +
-    "#reldoc" + ob + "box-shadow:none!important;border:none!important;border-radius:0!important" + cb +
-    "@page" + ob + "margin:1.5cm;size:A4" + cb +
+  s.textContent =
+    "@media print" + ob +
+      "body *" + ob + "visibility:hidden" + cb +
+      "#reldoc,#reldoc *" + ob + "visibility:visible" + cb +
+      "#reldoc" + ob + "position:absolute;left:0;top:0;width:100%;box-shadow:none!important;border:none!important;border-radius:0!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always;border-bottom:none!important" + cb +
+      "@page" + ob + "margin:1.5cm;size:A4" + cb +
     cb;
   document.head.appendChild(s);
   setTimeout(function() {
     window.print();
-    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 2000);
-  }, 300);
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 2500);
+  }, 500);
 }
 
 function estadoInicial() {
@@ -594,10 +595,11 @@ export default function App() {
           </div>
         )}
 
-        {/* RELATORIO */}
-        {aba==="relatorio"&&(
+        {/* CONFIG */}
+        {aba==="config"&&(
           <div>
-            <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
+            <h2 style={{color:HC,marginBottom:14}}>⚙️ Configurações do Relatório</h2>
+            <div style={{fontSize:12,color:"#888",marginBottom:16}}>Preencha os dados antes de gerar o relatório. As configurações são salvas automaticamente.</div>
             <div id="cfg-card" style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
               <button onClick={()=>setCfg(c=>!c)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",background:"none",border:"none",cursor:"pointer",fontFamily:"Georgia,serif",padding:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}><span>⚙️</span><div><div style={{fontSize:13,fontWeight:"bold",color:HC}}>Configurações do Relatório</div><div style={{fontSize:10,color:"#888"}}>Logos, identificação, período, programas, cores</div></div></div>
@@ -669,11 +671,17 @@ export default function App() {
                 <button onClick={addExtra} disabled={!novo.trim()||ger} style={{background:!novo.trim()||ger?"#ccc":"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:8,padding:"9px 14px",cursor:!novo.trim()||ger?"not-allowed":"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold",whiteSpace:"nowrap"}}>{ger?"⏳ Gerando...":"✨ Adicionar"}</button>
               </div>
             </div>
+          </div>
+        )}
 
+        {/* RELATORIO */}
+        {aba==="relatorio"&&(
+          <div>
+            <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
               <Cab/>
               <div style={{padding:"28px 40px"}}>
-                <div style={{textAlign:"center",padding:"20px 0",marginBottom:20,borderBottom:"1px solid #eee"}}>
+                <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
                   <div style={{fontSize:12,color:"#555",marginBottom:12}}>{emp||"[Empresa Executora]"} apresenta a {campos.find(c=>c.id==="f2")?.val||"[Empreendedor]"} o documento:</div>
                   <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
                   {campos.find(c=>c.id==="f5")?.val&&<div style={{fontSize:12,color:"#555"}}>{campos.find(c=>c.id==="f5").val}<br/><strong>{emp}</strong></div>}
@@ -681,7 +689,7 @@ export default function App() {
 
                 {/* INTRODUCAO */}
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>1. INTRODUÇÃO</h2>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
 
