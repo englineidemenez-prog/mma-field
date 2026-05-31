@@ -88,8 +88,9 @@ function AuthScreen({ onLogin }) {
     borderRadius:18,
     padding:"40px 36px",
     width:"100%",
-    maxWidth:400,
+    maxWidth:420,
     boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
+    overflow:"visible",
   };
 
   const estiloInput = {
@@ -213,10 +214,10 @@ function AuthScreen({ onLogin }) {
         </button>
 
         {/* Links de navegação */}
-        <div style={{marginTop:20,textAlign:"center",display:"flex",flexDirection:"column",gap:8}}>
+        <div style={{marginTop:20,textAlign:"center",display:"flex",flexDirection:"column",gap:10,paddingBottom:4}}>
           {modo === "login" && (
             <>
-              <button onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }} style={estiloLink}>
+              <button onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }} style={{...estiloLink,fontSize:13,fontWeight:"bold",color:"#2d6a4f"}}>
                 Não tem conta? Criar conta
               </button>
               <button onClick={() => { setModo("esqueci"); setErro(""); setSucesso(""); }} style={{...estiloLink,color:"#888"}}>
