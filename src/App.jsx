@@ -214,13 +214,16 @@ function AuthScreen({ onLogin }) {
         </button>
 
         {/* Links de navegação */}
-        <div style={{marginTop:20,textAlign:"center",display:"flex",flexDirection:"column",gap:10,paddingBottom:4}}>
+        <div style={{marginTop:16,textAlign:"center",display:"flex",flexDirection:"column",gap:10}}>
           {modo === "login" && (
             <>
-              <button onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }} style={{...estiloLink,fontSize:13,fontWeight:"bold",color:"#2d6a4f"}}>
-                Não tem conta? Criar conta
+              <button
+                onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }}
+                style={{width:"100%",padding:"12px",background:"transparent",color:"#2d6a4f",border:"2px solid #2d6a4f",borderRadius:9,fontSize:14,fontWeight:"bold",fontFamily:"Georgia,serif",cursor:"pointer",letterSpacing:0.5}}
+              >
+                Criar nova conta
               </button>
-              <button onClick={() => { setModo("esqueci"); setErro(""); setSucesso(""); }} style={{...estiloLink,color:"#888"}}>
+              <button onClick={() => { setModo("esqueci"); setErro(""); setSucesso(""); }} style={{...estiloLink,color:"#888",marginTop:4}}>
                 Esqueci minha senha
               </button>
             </>
