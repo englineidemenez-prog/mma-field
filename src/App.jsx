@@ -236,7 +236,7 @@ function AuthScreen({ onLogin }) {
         </div>
 
         <div style={{marginTop:24,textAlign:"center",fontSize:10,color:"#bbb"}}>
-          MMA Field © 2026 · Meu Mundo Ambiental
+          MMA Field 2026
         </div>
       </div>
     </div>
