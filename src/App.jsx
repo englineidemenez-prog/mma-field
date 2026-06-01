@@ -164,7 +164,7 @@ function AuthScreen({ onLogin }) {
           </div>
         )}
 
-        {modo==="login"&&<button onClick={()=>setModo("cadastro")} style={{width:"100%",padding:"13px",background:"#2d6a4f",color:"#fff
+        {/* Campos */}
         <div>
           <label style={{...LB,marginBottom:5}}>Email</label>
           <input
@@ -180,7 +180,7 @@ function AuthScreen({ onLogin }) {
             <>
               <label style={{...LB,marginBottom:5}}>Senha</label>
               <input
-                  type="password" autoComplete="new-password" autoComplete="new-password"
+                type="password"
                 placeholder="••••••••"
                 value={senha}
                 onChange={e => setSenha(e.target.value)}
@@ -194,7 +194,7 @@ function AuthScreen({ onLogin }) {
             <>
               <label style={{...LB,marginBottom:5}}>Confirmar Senha</label>
               <input
-                  type="password" autoComplete="new-password" autoComplete="new-password"
+                type="password"
                 placeholder="••••••••"
                 value={confirmar}
                 onChange={e => setConfirmar(e.target.value)}
@@ -236,7 +236,7 @@ function AuthScreen({ onLogin }) {
         </div>
 
         <div style={{marginTop:24,textAlign:"center",fontSize:10,color:"#bbb"}}>
-          MMA Field 2026
+          MMA Field © 2026 · Meu Mundo Ambiental
         </div>
       </div>
     </div>
@@ -289,12 +289,9 @@ export default function App() {
   const [carregandoAuth, setCarregandoAuth] = useState(true);
 
   useEffect(() => {
-    // Verificar sessão existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    supabase.auth.signOut().then(() => {
       setCarregandoAuth(false);
     });
-    // Escutar mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
