@@ -164,7 +164,7 @@ function AuthScreen({ onLogin }) {
           </div>
         )}
 
-        {/* Campos */}
+        {modo==="login"&&<button onClick={()=>setModo("cadastro")} style={{width:"100%",padding:"13px",background:"#2d6a4f",color:"#fff
         <div>
           <label style={{...LB,marginBottom:5}}>Email</label>
           <input
