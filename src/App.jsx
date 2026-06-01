@@ -180,7 +180,7 @@ function AuthScreen({ onLogin }) {
             <>
               <label style={{...LB,marginBottom:5}}>Senha</label>
               <input
-                type="password"
+                  type="password" autoComplete="new-password" autoComplete="new-password"
                 placeholder="••••••••"
                 value={senha}
                 onChange={e => setSenha(e.target.value)}
@@ -194,7 +194,7 @@ function AuthScreen({ onLogin }) {
             <>
               <label style={{...LB,marginBottom:5}}>Confirmar Senha</label>
               <input
-                type="password"
+                  type="password" autoComplete="new-password" autoComplete="new-password"
                 placeholder="••••••••"
                 value={confirmar}
                 onChange={e => setConfirmar(e.target.value)}
