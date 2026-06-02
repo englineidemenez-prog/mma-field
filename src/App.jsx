@@ -35,7 +35,7 @@ const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Pro
 // TELA DE AUTENTICAÇÃO
 // ─────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
-  const [modo, setModo] = useState("login"); // "login" | "cadastro" | "esqueci"
+  const [modo, setModo] = useState("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
@@ -136,35 +136,30 @@ function AuthScreen({ onLogin }) {
   return (
     <div style={estiloFundo}>
       <div style={estiloCard}>
-        {/* Logo */}
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:42,marginBottom:8}}>🌿</div>
           <div style={{fontSize:22,fontWeight:"bold",color:HC,letterSpacing:1}}>MMA Field</div>
           <div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:2,marginTop:3}}>Meu Mundo Ambiental</div>
         </div>
 
-        {/* Título da tela */}
         <div style={{fontSize:15,fontWeight:"bold",color:HC,marginBottom:20,textAlign:"center"}}>
           {modo === "login" && "Entrar na sua conta"}
           {modo === "cadastro" && "Criar nova conta"}
           {modo === "esqueci" && "Recuperar senha"}
         </div>
 
-        {/* Mensagem de erro */}
         {erro && (
           <div style={{background:"#fff0f0",border:"1px solid #ffcccc",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#b00000"}}>
             ⚠️ {erro}
           </div>
         )}
 
-        {/* Mensagem de sucesso */}
         {sucesso && (
           <div style={{background:"#f0fff4",border:"1px solid #a8e6c0",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#1a5c35"}}>
             ✅ {sucesso}
           </div>
         )}
 
-        {/* Campos */}
         <div>
           <label style={{...LB,marginBottom:5}}>Email</label>
           <input
@@ -204,7 +199,6 @@ function AuthScreen({ onLogin }) {
           )}
         </div>
 
-        {/* Botão principal */}
         <button
           onClick={modo === "login" ? handleLogin : modo === "cadastro" ? handleCadastro : handleEsqueci}
           disabled={carregando}
@@ -213,7 +207,6 @@ function AuthScreen({ onLogin }) {
           {carregando ? "⏳ Aguarde..." : modo === "login" ? "Entrar" : modo === "cadastro" ? "Criar Conta" : "Enviar Email de Recuperação"}
         </button>
 
-        {/* Links de navegação */}
         <div style={{marginTop:16,textAlign:"center",display:"flex",flexDirection:"column",gap:10}}>
           {modo === "login" && (
             <>
@@ -290,6 +283,7 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setCarregandoAuth(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
