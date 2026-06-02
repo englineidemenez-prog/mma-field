@@ -289,7 +289,7 @@ export default function App() {
   const [carregandoAuth, setCarregandoAuth] = useState(true);
 
   useEffect(() => {
-    supabase.auth.signOut().then(() => { setUser(null); setUser(null); setUser(null);
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setCarregandoAuth(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
