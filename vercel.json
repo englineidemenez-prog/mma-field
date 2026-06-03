@@ -1,6 +1,5 @@
 {
-  "routes": [
-    { "src": "/cadastro", "dest": "/cadastro.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }
