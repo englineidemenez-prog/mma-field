@@ -4,8 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  { auth: { persistSession: true, storageKey: "mmafield-auth" } }
+  import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
 const HC = "#1a3d2b";
@@ -167,7 +166,6 @@ function AuthScreen({ onLogin }) {
             type="email"
             placeholder="seu@email.com"
             value={email}
-            autoComplete="username"
             onChange={e => setEmail(e.target.value)}
             style={estiloInput}
             onKeyDown={e => e.key === "Enter" && modo === "login" && handleLogin()}
@@ -180,7 +178,6 @@ function AuthScreen({ onLogin }) {
                 type="password"
                 placeholder="••••••••"
                 value={senha}
-                autoComplete="current-password"
                 onChange={e => setSenha(e.target.value)}
                 style={estiloInput}
                 onKeyDown={e => e.key === "Enter" && modo === "login" && handleLogin()}
@@ -195,7 +192,6 @@ function AuthScreen({ onLogin }) {
                 type="password"
                 placeholder="••••••••"
                 value={confirmar}
-                autoComplete="new-password"
                 onChange={e => setConfirmar(e.target.value)}
                 style={estiloInput}
               />
