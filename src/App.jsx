@@ -51,47 +51,73 @@ function useIsMobile() {
 // ─────────────────────────────────────────────
 function BannerInstalar() {
   const [prompt, setPrompt] = useState(null);
-  const [visivel, setVisivel] = useState(false);
+  const [visivelMobile, setVisivelMobile] = useState(false);
+  const [visivelDesktop, setVisivelDesktop] = useState(false);
   const [instalado, setInstalado] = useState(false);
+  const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
       setPrompt(e);
-      setVisivel(true);
+      if (isMobileDevice) setVisivelMobile(true);
+      else setVisivelDesktop(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
     window.addEventListener("appinstalled", () => {
-      setVisivel(false);
+      setVisivelMobile(false);
+      setVisivelDesktop(false);
       setInstalado(true);
     });
+    if (!isMobileDevice) {
+      setTimeout(() => setVisivelDesktop(true), 2000);
+    }
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const instalar = async () => {
-    if (!prompt) return;
-    prompt.prompt();
-    const { outcome } = await prompt.userChoice;
-    if (outcome === "accepted") setVisivel(false);
+    if (prompt) {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === "accepted") { setVisivelMobile(false); setVisivelDesktop(false); }
+    }
   };
 
-  if (instalado || !visivel) return null;
+  if (instalado) return null;
 
-  return (
+  if (visivelDesktop && !isMobileDevice) return (
+    <div style={{position:"fixed",top:0,left:0,right:0,background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 4px 20px rgba(0,0,0,0.3)",zIndex:9999}}>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:24}}>🌿</span>
+        <div>
+          <div style={{color:"#fff",fontWeight:"bold",fontSize:13,fontFamily:"Georgia,serif"}}>💻 Instale o MMA Field no seu computador</div>
+          <div style={{color:"rgba(255,255,255,0.75)",fontSize:11,fontFamily:"Georgia,serif"}}>Clique no ícone ⊕ na barra de endereço do navegador, ou use o botão ao lado</div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8,flexShrink:0}}>
+        <button onClick={()=>setVisivelDesktop(false)} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"7px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>Fechar</button>
+        {prompt && <button onClick={instalar} style={{background:"#a8e6c0",border:"none",color:"#1a3d2b",borderRadius:8,padding:"7px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:13,fontWeight:"bold"}}>⬇️ Baixar App</button>}
+      </div>
+    </div>
+  );
+
+  if (visivelMobile && isMobileDevice) return (
     <div style={{position:"fixed",bottom:0,left:0,right:0,background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 -4px 20px rgba(0,0,0,0.3)",zIndex:9999}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
         <span style={{fontSize:32}}>🌿</span>
         <div>
           <div style={{color:"#fff",fontWeight:"bold",fontSize:14,fontFamily:"Georgia,serif"}}>Instale o MMA Field</div>
-          <div style={{color:"rgba(255,255,255,0.75)",fontSize:11,fontFamily:"Georgia,serif"}}>Acesso rápido direto da tela inicial</div>
+          <div style={{color:"rgba(255,255,255,0.75)",fontSize:11,fontFamily:"Georgia,serif"}}>Acesso rápido na tela inicial do celular</div>
         </div>
       </div>
       <div style={{display:"flex",gap:8}}>
-        <button onClick={()=>setVisivel(false)} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>Agora não</button>
+        <button onClick={()=>setVisivelMobile(false)} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>Agora não</button>
         <button onClick={instalar} style={{background:"#a8e6c0",border:"none",color:"#1a3d2b",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:13,fontWeight:"bold"}}>📲 Instalar</button>
       </div>
     </div>
   );
+
+  return null;
 }
 
 // ─────────────────────────────────────────────
