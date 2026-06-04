@@ -33,6 +33,54 @@ const HIST_KEY = "mmafield_historico";
 const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Programas Ambientais do Plano Básico Ambiental (PBA), em conformidade com as condicionantes da Licença de Operação (LO) nº _______, emitida pelo órgão ambiental competente. As atividades descritas neste documento foram desenvolvidas no período de referência, visando o monitoramento, controle e mitigação dos impactos ambientais associados ao empreendimento.";
 
 // ─────────────────────────────────────────────
+// BANNER DE INSTALAÇÃO PWA
+// ─────────────────────────────────────────────
+function BannerInstalar() {
+  const [prompt, setPrompt] = useState(null);
+  const [visivel, setVisivel] = useState(false);
+  const [instalado, setInstalado] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setPrompt(e);
+      setVisivel(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => {
+      setVisivel(false);
+      setInstalado(true);
+    });
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const instalar = async () => {
+    if (!prompt) return;
+    prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome === "accepted") setVisivel(false);
+  };
+
+  if (instalado || !visivel) return null;
+
+  return (
+    <div style={{position:"fixed",bottom:0,left:0,right:0,background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 -4px 20px rgba(0,0,0,0.3)",zIndex:9999}}>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:32}}>🌿</span>
+        <div>
+          <div style={{color:"#fff",fontWeight:"bold",fontSize:14,fontFamily:"Georgia,serif"}}>Instale o MMA Field</div>
+          <div style={{color:"rgba(255,255,255,0.75)",fontSize:11,fontFamily:"Georgia,serif"}}>Acesso rápido direto da tela inicial</div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={()=>setVisivel(false)} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>Agora não</button>
+        <button onClick={instalar} style={{background:"#a8e6c0",border:"none",color:"#1a3d2b",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:13,fontWeight:"bold"}}>📲 Instalar</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TELA DE AUTENTICAÇÃO
 // ─────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
@@ -310,10 +358,10 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthScreen onLogin={setUser} />;
+    return <><AuthScreen onLogin={setUser} /><BannerInstalar /></>;
   }
 
-  return <AppPrincipal user={user} onLogout={handleLogout} />;
+  return <><AppPrincipal user={user} onLogout={handleLogout} /><BannerInstalar /></>;
 }
 
 // ─────────────────────────────────────────────
