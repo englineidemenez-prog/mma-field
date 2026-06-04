@@ -32,6 +32,20 @@ const SAVE_KEY = "mmafield_data";
 const HIST_KEY = "mmafield_historico";
 const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Programas Ambientais do Plano Básico Ambiental (PBA), em conformidade com as condicionantes da Licença de Operação (LO) nº _______, emitida pelo órgão ambiental competente. As atividades descritas neste documento foram desenvolvidas no período de referência, visando o monitoramento, controle e mitigação dos impactos ambientais associados ao empreendimento.";
 
+
+// ─────────────────────────────────────────────
+// HOOK RESPONSIVO
+// ─────────────────────────────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
+
 // ─────────────────────────────────────────────
 // BANNER DE INSTALAÇÃO PWA
 // ─────────────────────────────────────────────
@@ -463,6 +477,7 @@ function AppPrincipal({ user, onLogout }) {
     setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id));
     setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT); setAba("fotos");
   };
+  const isMobile = useIsMobile();
   const todos  = [...PRG,...pCust];
   const ativos = todos.filter(p=>pAtiv.includes(p.id));
   const getL   = id => nomes[id]||todos.find(p=>p.id===id)?.lb||id;
@@ -564,13 +579,13 @@ function AppPrincipal({ user, onLogout }) {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             {msgSalvo&&<span style={{fontSize:11,color:"#a8e6c0",fontStyle:"italic"}}>{msgSalvo}</span>}
-            <span style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>👤 {user.email}</span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,0.6)",display:isMobile?"none":"inline"}}>👤 {user.email}</span>
             <button onClick={salvarRelatorio} style={{background:"#2d6a4f",color:"#fff",border:"2px solid #a8e6c0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>💾 Salvar Relatório</button>
             <button onClick={novoRelatorio} style={{background:"transparent",color:"#fff",border:"2px solid rgba(255,255,255,0.4)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>+ Novo</button>
             <button onClick={onLogout} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
           </div>
         </div>
-        <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:18}}>
+        <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:isMobile?4:18,flexWrap:"wrap"}}>
           {ABS.map(t=>(
             <button key={t.id} onClick={()=>setAba(t.id)} style={{background:aba===t.id?"#eef1ee":"transparent",color:aba===t.id?HC:"rgba(255,255,255,0.85)",border:"none",padding:"9px 20px",borderRadius:"8px 8px 0 0",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:aba===t.id?"bold":"normal"}}>
               {t.lb}
@@ -583,7 +598,7 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="fotos"&&(
           <div>
             <h2 style={{color:HC,marginBottom:18}}>📷 Registro Fotográfico</h2>
-            <div style={{display:"grid",gridTemplateColumns:"380px 1fr",gap:18,alignItems:"start"}}>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"380px 1fr",gap:18,alignItems:"start"}}>
               <div style={CD}>
                 <h3 style={{color:"#2d6a4f",marginBottom:14,fontSize:14}}>Nova Foto</h3>
                 <label style={LB}>Data</label>
