@@ -334,14 +334,14 @@ function AuthScreen({ onLogin }) {
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
   if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  var estilos = "<style>@page{size:A4 portrait;margin:2cm 2.5cm}body{font-family:Georgia,serif;font-size:11pt;color:#222;width:100%}table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word}td,th{padding:5px 8px;font-size:10pt;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}img{max-width:100%;height:auto;display:block}#capa-rel{page-break-after:always;min-height:180mm}h2,h3{page-break-after:avoid}</style>";
+  var estilos = "<style>@page{size:A4 portrait;margin:2cm 2.5cm}body{font-family:Georgia,serif;font-size:11pt;color:#222;width:100%}table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word}td,th{padding:5px 8px;font-size:10pt;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}img{max-width:100%;height:auto;display:block}#capa-rel{page-break-after:always;min-height:180mm}h2,h3{page-break-after:avoid}svg{display:none!important}.recharts-wrapper{display:none!important}button{display:none!important}textarea{border:none!important;resize:none!important}</style>";
   var conteudo = el.innerHTML;
-  var html = "<html><head><meta charset=utf-8>" + estilos + "</head><body style=margin:0;padding:0>" + conteudo + "</body></html>";
-  var b = new Blob([html], {type:"application/msword"});
+  var html = "\ufeff<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><meta name=ProgId content=Word.Document>" + estilos + "</head><body style='margin:0;padding:0'>" + conteudo + "</body></html>";
+  var b = new Blob([html], {type:"application/vnd.ms-word;charset=utf-8"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
   a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
-  URL.revokeObjectURL(u);
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
 }
 function dlPDF() {
   var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
@@ -498,7 +498,10 @@ function AppPrincipal({ user, onLogout }) {
   };
   const baixarRelatorio = (rel) => {
     carregarRelatorio(rel);
-    setTimeout(function() { setAba("relatorio"); setTimeout(function() { dlWord(rel.mes, rel.ano); }, 800); }, 500);
+    setTimeout(function() {
+      setAba("relatorio");
+      setTimeout(function() { dlWord(rel.mes, rel.ano); }, 1500);
+    }, 600);
   };
   const novoRelatorio = () => {
     if (!window.confirm("Iniciar novo relatório?")) return;
