@@ -479,7 +479,8 @@ function dlPDF() {
         "width:100%!important;height:auto!important;" +
         "object-fit:cover!important;display:block!important;page-break-inside:avoid!important" +
       cb +
-      "button,input,select,nav,header" + ob + "display:none!important" + cb +
+      "button,input,select,nav,header,#reldoc input[type=checkbox]" + ob + "display:none!important" + cb +
+      "#reldoc input[type=checkbox] + *" + ob + "margin-left:0!important" + cb +
       "textarea" + ob + "border:none!important;resize:none!important;background:transparent!important" + cb +
       "button,input,select" + ob + "display:none!important" + cb +
     cb;
@@ -1192,7 +1193,7 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="relatorio"&&(
           <div>
             <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
-            <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db",fontSize:13}}>
+            <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",border:"1px solid #dde5db",fontSize:13}}>
               {/* CAPA - só cabeçalho no topo */}
               <Cab/>
               <div style={{padding:"20px 32px"}}>
@@ -1207,7 +1208,7 @@ function AppPrincipal({ user, onLogout }) {
                 {/* SUMÁRIO - sem card, direto */}
                 <div style={{pageBreakAfter:"always",paddingTop:8,minHeight:180,border:"none",background:"transparent"}}>
                   {/* CAB INTERNO */}
-                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                     {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                     <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                     {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -1231,7 +1232,7 @@ function AppPrincipal({ user, onLogout }) {
                 {/* PÁG 3 - IDENTIFICAÇÃO */}
                 <div style={{pageBreakAfter:"always",paddingTop:8}}>
                   {/* CAB INTERNO */}
-                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                     {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                     <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                     {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -1259,7 +1260,7 @@ function AppPrincipal({ user, onLogout }) {
                 {/* PÁG 4 - EQUIPE TÉCNICA */}
                 <div style={{pageBreakAfter:"always",paddingTop:8}}>
                   {/* CAB INTERNO */}
-                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                     {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                     <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                     {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -1273,7 +1274,7 @@ function AppPrincipal({ user, onLogout }) {
                 {/* PÁG 5 - INTRODUÇÃO */}
                 <div style={{pageBreakAfter:"always",paddingTop:8}}>
                   {/* CAB INTERNO */}
-                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                     {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                     <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                     {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -1283,7 +1284,7 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 <div style={{marginBottom:20,pageBreakBefore:"always"}}>
                   {/* CAB INTERNO */}
-                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                     {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                     <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                     {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -1293,7 +1294,7 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 <div style={{pageBreakBefore:"always"}}>
                   {/* CAB INTERNO */}
-                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                  <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                     {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                     <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                     {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
@@ -1305,7 +1306,7 @@ function AppPrincipal({ user, onLogout }) {
                   var grafRel=(d.graficos||[]).filter(gr=>gr.addRel&&(gr.dados||[]).some(x=>x.l&&x.v));
                   return(
                     <div key={p.id} style={{marginBottom:32,pageBreakBefore:pi>0?"always":"auto"}}>
-                      {pi>0&&<div style={{borderBottom:"2px solid "+HC,padding:"8px 0",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16}}>
+                      {pi>0&&<div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb",marginBottom:16,marginLeft:-32,marginRight:-32,marginTop:-20}}>
                         {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
                         <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
                         {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
