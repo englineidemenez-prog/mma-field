@@ -426,7 +426,7 @@ function dlPDF() {
   var s = document.createElement("style");
   s.id = "pprt";
   s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:2cm 2cm 2cm 3cm" + cb +
+    "@page" + ob + "size:A4 portrait;margin:2cm 2cm 2cm 2cm" + cb +
     "@media print" + ob +
       "body" + ob + "margin:0!important;padding:0!important;background:#fff!important;font-family:Arial,sans-serif!important" + cb +
       "body *" + ob + "visibility:hidden!important" + cb +
@@ -1146,7 +1146,7 @@ function AppPrincipal({ user, onLogout }) {
                 <button onClick={()=>setIdent(id=>({...id,cons_campos:[...(id.cons_campos||[]),{k:"cc"+Date.now(),lb:"Novo Campo",val:""}]}))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {[["cons_nome","Empresa Consultora"],["cons_cnpj","CNPJ"],["cons_end","Endereço"],["cons_tel","Telefone"],["cons_rep","Representante Legal"],["cons_email","E-mail"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).map(([k,lb])=>(
+                {[["cons_nome","Empresa"],["cons_cnpj","CNPJ"],["cons_end","Endereço"],["cons_tel","Telefone"],["cons_rep","Representante Legal"],["cons_email","E-mail"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).map(([k,lb])=>(
                   <div key={k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
                     <div style={{flex:1}}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
                     <button onClick={()=>setIdent(id=>({...id,cons_excluidos:[...(id.cons_excluidos||[]),k]}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}} title="Excluir campo">×</button>
@@ -1192,60 +1192,69 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="relatorio"&&(
           <div>
             <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
-            <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
+            <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db",fontSize:13}}>
+              {/* CAPA - só cabeçalho no topo */}
               <Cab/>
-              <div style={{padding:"28px 40px"}}>
+              <div style={{padding:"20px 32px"}}>
                 {/* CAPA */}
-                <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{(ident.cons_nome||emp||"Empresa Executora")} apresenta a {(ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"MMA Field")} o documento:</div>
-                  <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
+                <div id="capa-rel" style={{textAlign:"center",pageBreakAfter:"always",minHeight:"65vh",display:"flex",flexDirection:"column",justifyContent:"space-between",paddingBottom:16}}>
+                  <div/>
+                  <div>
+                    <div style={{fontSize:12,color:"#555",marginBottom:20,fontStyle:"italic"}}>{(ident.cons_nome||emp||"Empresa Executora")} apresenta a {(ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"MMA Field")} o documento:</div>
+                    <div style={{fontSize:15,fontWeight:"bold",color:cor,lineHeight:1.9}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}</div>
+                  </div>
+                  <div style={{fontSize:13,color:"#555",paddingBottom:8,borderTop:"1px solid #eee",paddingTop:16}}>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
                 </div>
-                {/* SUMÁRIO */}
-                <div style={{pageBreakAfter:"always",paddingTop:10,minHeight:180}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:16,textAlign:"left"}}>SUMÁRIO</h2>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><tbody>
-                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold",width:30}}>1.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>IDENTIFICAÇÃO DO EMPREENDIMENTO</td><td style={{textAlign:"right",color:"#888"}}>3</td></tr>
-                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>2.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>IDENTIFICAÇÃO DA EQUIPE TÉCNICA</td><td style={{textAlign:"right",color:"#888"}}>4</td></tr>
-                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>3.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>INTRODUÇÃO</td><td style={{textAlign:"right",color:"#888"}}>5</td></tr>
-                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>4.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>PROGRAMAS EM EXECUÇÃO</td><td style={{textAlign:"right",color:"#888"}}>5</td></tr>
-                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>5.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</td><td style={{textAlign:"right",color:"#888"}}>6</td></tr>
-                    {ativos.map((p,i)=><tr key={p.id}><td style={{padding:"3px 0 3px 16px",color:"#aaa",width:30}}></td><td style={{padding:"3px 8px",color:"#555"}}>5.{i+1} {getL(p.id)}</td><td style={{textAlign:"right",color:"#bbb"}}>{7+i}</td></tr>)}
+                {/* SUMÁRIO - sem card, direto */}
+                <div style={{pageBreakAfter:"always",paddingTop:8,minHeight:180}}>
+                  <Cab/>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:16,textAlign:"left",marginTop:16}}>SUMÁRIO</h2>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}><tbody>
+                    <tr><td style={{padding:"5px 0",color:cor,fontWeight:"bold",width:30}}>1.</td><td style={{padding:"5px 8px",fontWeight:"bold"}}>IDENTIFICAÇÃO DO EMPREENDIMENTO</td><td style={{textAlign:"right",color:"#888"}}>3</td></tr>
+                    <tr><td style={{padding:"5px 0",color:cor,fontWeight:"bold"}}>2.</td><td style={{padding:"5px 8px",fontWeight:"bold"}}>IDENTIFICAÇÃO DA EQUIPE TÉCNICA</td><td style={{textAlign:"right",color:"#888"}}>4</td></tr>
+                    <tr><td style={{padding:"5px 0",color:cor,fontWeight:"bold"}}>3.</td><td style={{padding:"5px 8px",fontWeight:"bold"}}>INTRODUÇÃO</td><td style={{textAlign:"right",color:"#888"}}>5</td></tr>
+                    <tr><td style={{padding:"5px 0",color:cor,fontWeight:"bold"}}>4.</td><td style={{padding:"5px 8px",fontWeight:"bold"}}>PROGRAMAS EM EXECUÇÃO</td><td style={{textAlign:"right",color:"#888"}}>6</td></tr>
+                    <tr><td style={{padding:"5px 0",color:cor,fontWeight:"bold"}}>5.</td><td style={{padding:"5px 8px",fontWeight:"bold"}}>GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</td><td style={{textAlign:"right",color:"#888"}}>7</td></tr>
+                    {ativos.map((p,i)=><tr key={p.id}><td style={{padding:"3px 0 3px 16px",color:"#aaa",width:30}}></td><td style={{padding:"3px 8px",color:"#555"}}>5.{i+1} {getL(p.id)}</td><td style={{textAlign:"right",color:"#bbb"}}>{8+i}</td></tr>)}
                   </tbody></table>
                 </div>
                 {/* PÁG 3 - IDENTIFICAÇÃO */}
-                <div style={{pageBreakAfter:"always",paddingTop:10}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:14,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
-                  <h4 style={{color:"#555",fontSize:11,marginBottom:8}}>Quadro 1 – Identificação do Empreendedor</h4>
-                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>
+                <div style={{pageBreakAfter:"always",paddingTop:8}}>
+                  <Cab/>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:14,textAlign:"left",marginTop:16}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
+                  <h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 1 – Identificação do Empreendedor</h4>
+                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:12}}><tbody>
                     {[["empr_nome","Empreendedor",ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"—"],["empr_cnpj","CNPJ",ident.empr_cnpj||"—"],["empr_end","Endereço",ident.empr_end||"—"],["empr_tel","Telefone",ident.empr_tel||"—"],["empr_rep","Representante Legal",ident.empr_rep||campos.find(c=>c.id==="f5")?.val||"—"],["empr_email","E-mail",ident.empr_email||"—"]].filter(([k])=>!((ident.empr_excluidos||[]).includes(k))).concat((ident.empr_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
-                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{vl}</td></tr>
+                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200,fontSize:12}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontSize:12}}>{vl}</td></tr>
                     ))}
                   </tbody></table>
-                  <h4 style={{color:"#555",fontSize:11,marginBottom:8}}>Quadro 2 – {ident.cons_titulo||"Identificação da Empresa Consultora"}</h4>
-                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>
-                    {[["cons_nome","Empresa Consultora",ident.cons_nome||emp||"—"],["cons_cnpj","CNPJ",ident.cons_cnpj||"—"],["cons_end","Endereço",ident.cons_end||"—"],["cons_tel","Telefone",ident.cons_tel||"—"],["cons_rep","Representante Legal",ident.cons_rep||"—"],["cons_email","E-mail",ident.cons_email||"—"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).concat((ident.cons_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
-                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{vl}</td></tr>
+                  <h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 2 – {ident.cons_titulo||"Identificação da Empresa"}</h4>
+                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:12}}><tbody>
+                    {[["cons_nome","Empresa",ident.cons_nome||emp||"—"],["cons_cnpj","CNPJ",ident.cons_cnpj||"—"],["cons_end","Endereço",ident.cons_end||"—"],["cons_tel","Telefone",ident.cons_tel||"—"],["cons_rep","Representante Legal",ident.cons_rep||"—"],["cons_email","E-mail",ident.cons_email||"—"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).concat((ident.cons_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
+                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200,fontSize:12}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontSize:12}}>{vl}</td></tr>
                     ))}
                   </tbody></table>
-                  {(nEmp||campos.find(c=>c.id==="f4")?.val)&&<><h4 style={{color:"#555",fontSize:11,marginBottom:8}}>Quadro 3 – Identificação do Empreendimento</h4>
-                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>
+                  {(nEmp||campos.find(c=>c.id==="f4")?.val)&&<><h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 3 – Identificação do Empreendimento</h4>
+                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:12}}><tbody>
                     {[["Nome do Empreendimento",nEmp||"—"],["Estado (UF)",campos.find(c=>c.id==="f4")?.val||"—"],...campos.filter(c=>!["f1","f2","f3","f4","f5"].includes(c.id)).map(c=>[c.lb,c.val||"—"])].map(([lb,vl],i)=>(
-                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{vl}</td></tr>
+                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200,fontSize:12}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontSize:12}}>{vl}</td></tr>
                     ))}
                   </tbody></table></>}
                 </div>
                 {/* PÁG 4 - EQUIPE TÉCNICA */}
-                <div style={{pageBreakAfter:"always",paddingTop:10}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:14,textAlign:"left"}}>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA</h2>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                <div style={{pageBreakAfter:"always",paddingTop:8}}>
+                  <Cab/>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:14,textAlign:"left",marginTop:16}}>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA</h2>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
                     <thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead>
-                    <tbody>{equipe.length===0?<tr><td colSpan={3} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Nenhum membro cadastrado</td></tr>:equipe.map((m,i)=><tr key={m.id}><td style={i%2?TA:TD}>{m.nome||"—"}</td><td style={i%2?TA:TD}>{m.funcao||"—"}</td><td style={i%2?TA:TD}>{m.registro||"—"}</td></tr>)}</tbody>
+                    <tbody>{equipe.length===0?<tr><td colSpan={3} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Nenhum membro cadastrado</td></tr>:equipe.map((m,i)=><tr key={m.id}><td style={{...(i%2?TA:TD),fontSize:12}}>{m.nome||"—"}</td><td style={{...(i%2?TA:TD),fontSize:12}}>{m.funcao||"—"}</td><td style={{...(i%2?TA:TD),fontSize:12}}>{m.registro||"—"}</td></tr>)}</tbody>
                   </table>
                 </div>
                 {/* PÁG 5 - INTRODUÇÃO */}
-                <div style={{pageBreakAfter:"always",paddingTop:10}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>3. INTRODUÇÃO</h2>
-                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={6} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb",width:"100%"}}/>
+                <div style={{pageBreakAfter:"always",paddingTop:8}}>
+                  <Cab/>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",marginTop:16}}>3. INTRODUÇÃO</h2>
+                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={6} style={{...SI,fontSize:13,lineHeight:1.9,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb",width:"100%"}}/>
                 </div>
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>4. PROGRAMAS EM EXECUÇÃO</h2>
