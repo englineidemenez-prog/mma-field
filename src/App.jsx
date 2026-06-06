@@ -334,7 +334,93 @@ function AuthScreen({ onLogin }) {
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
   if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  var estilos = "<style>@page{size:A4 portrait;margin:2cm 2.5cm}body{font-family:Georgia,serif;font-size:11pt;color:#222;width:100%}table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word}td,th{padding:5px 8px;font-size:10pt;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}img{max-width:100%;height:auto;display:block}#capa-rel{page-break-after:always;min-height:180mm}h2,h3{page-break-after:avoid}svg{display:none!important}.recharts-wrapper{display:none!important}button{display:none!important}textarea{border:none!important;resize:none!important}</style>";
+  var estilos = [
+    "@page{size:A4 portrait;margin:2cm 3cm 2cm 3cm}",
+    "body{font-family:Arial,sans-serif;font-size:11pt;color:#222;width:100%;margin:0;padding:0}",
+    /* Cabeçalho como tabela */
+    ".word-cab{width:100%;border-collapse:collapse;border-bottom:2px solid #1a3d2b;margin-bottom:10pt}",
+    ".word-cab td{vertical-align:middle;padding:6pt 8pt}",
+    ".word-cab .cab-centro{text-align:center;font-family:Arial,sans-serif;font-size:8pt;color:#444;line-height:1.6;font-weight:bold}",
+    ".word-cab img{height:55pt;width:auto;max-width:100pt;object-fit:contain;display:block}",
+    /* Capa */
+    "#capa-rel{page-break-after:always;min-height:200mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}",
+    /* Títulos padrão MRS */
+    "h2{font-family:Arial,sans-serif;font-size:12pt;font-weight:bold;text-transform:uppercase;text-align:justify;margin:18pt 0 6pt 0;page-break-after:avoid;border-bottom:2px solid currentColor;padding-bottom:4pt}",
+    "h3{font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-align:justify;margin:12pt 0 6pt 0;page-break-after:avoid}",
+    "h4{font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-align:justify;margin:8pt 0 4pt 0;page-break-after:avoid}",
+    /* Texto */
+    "p{font-family:Arial,sans-serif;font-size:11pt;line-height:16pt;text-align:justify;margin:6pt 0}",
+    /* Tabelas padrão MRS */
+    "table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word;font-family:Arial,sans-serif;font-size:9pt;margin:6pt 0}",
+    "th{background:#4d4d4d;color:#fff;padding:4pt 6pt;font-size:9pt;font-weight:bold;text-align:center;border:0.5pt solid #999}",
+    "td{padding:4pt 6pt;font-size:9pt;border:0.5pt solid #ccc;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}",
+    "tr:nth-child(even) td{background:#f0f0f0}",
+    /* Fotos */
+    "img{max-width:100%;height:auto;display:block;margin:0 auto}",
+    ".foto-tab{width:100%;border-collapse:collapse;margin:8pt 0}",
+    ".foto-tab td{border:none;padding:4pt;text-align:center;vertical-align:top;width:50%}",
+    ".foto-tab img{width:100%;max-height:80mm;object-fit:cover;border:1pt solid #ddd}",
+    ".foto-leg{font-family:Arial,sans-serif;font-size:8pt;font-weight:bold;text-align:center;margin-top:3pt;color:#444}",
+    ".foto-geo{font-family:Arial,sans-serif;font-size:7pt;color:#888;text-align:center}",
+    /* Ocultar UI */
+    "button,textarea,input,select,nav{display:none!important}",
+    "svg,.recharts-wrapper{display:none!important}",
+    /* Quebras */
+    "h2,h3,h4{page-break-after:avoid}",
+    ".prog-section{page-break-inside:avoid}",
+  ].join("");
+
+  // Clonar para não alterar o DOM
+  var clone = el.cloneNode(true);
+
+  // Substituir cabeçalho flex por tabela compatível
+  var cabDiv = clone.firstElementChild;
+  if (cabDiv) {
+    var imgs = cabDiv.querySelectorAll("img");
+    var centroDiv = cabDiv.querySelector("div[style*='textAlign:center'], div[style*='text-align:center']");
+    var imgEsq = imgs[0] ? '<img src="'+imgs[0].src+'" style="height:55pt;width:auto;max-width:100pt;object-fit:contain"/>' : '<div style="width:100pt;height:55pt;background:#eee;display:inline-block"></div>';
+    var imgDir = imgs[1] ? '<img src="'+imgs[1].src+'" style="height:55pt;width:auto;max-width:100pt;object-fit:contain"/>' : '<div style="width:100pt;height:55pt;background:#eee;display:inline-block"></div>';
+    var centroHTML = centroDiv ? centroDiv.innerHTML : "";
+    cabDiv.outerHTML = '<table class="word-cab"><tr>' +
+      '<td style="width:110pt;text-align:left">'+imgEsq+'</td>' +
+      '<td class="cab-centro">'+centroHTML+'</td>' +
+      '<td style="width:110pt;text-align:right">'+imgDir+'</td>' +
+      '</tr></table>';
+  }
+
+  // Converter grids de fotos em tabelas
+  clone.querySelectorAll("div[style*='gridTemplateColumns']").forEach(function(grid) {
+    var items = grid.children;
+    var rows = "";
+    for (var i = 0; i < items.length; i += 2) {
+      var c1 = items[i], c2 = items[i+1];
+      var celula = function(cel) {
+        if (!cel) return '<td></td>';
+        var img = cel.querySelector("img");
+        var geo = cel.querySelector("div[style*='fontSize:8']");
+        var leg = cel.querySelector("div[style*='fontSize:10']");
+        return '<td style="width:50%;border:none;padding:4pt;text-align:center">' +
+          (img ? '<img src="'+img.src+'" style="width:100%;max-height:80mm;object-fit:cover;border:1pt solid #ddd"/>' : '') +
+          (geo ? '<div class="foto-geo">📍 '+geo.textContent+'</div>' : '') +
+          (leg ? '<div class="foto-leg">'+leg.textContent+'</div>' : '') +
+          '</td>';
+      };
+      rows += '<tr>'+celula(c1)+celula(c2)+'</tr>';
+    }
+    grid.outerHTML = '<table class="foto-tab"><tbody>'+rows+'</tbody></table>';
+  });
+
+  var conteudo = clone.innerHTML;
+  var html = "\ufeff<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>" +
+    "<head><meta charset='utf-8'><meta name=ProgId content=Word.Document>" +
+    "<style>"+estilos+"</style></head>" +
+    "<body style='margin:0;padding:0'>"+conteudo+"</body></html>";
+  var b = new Blob([html], {type:"application/vnd.ms-word;charset=utf-8"});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement("a");
+  a.href = u; a.download = "Relatorio_"+mes+"_"+ano+".doc"; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
+}
   var conteudo = el.innerHTML;
   var html = "\ufeff<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><meta name=ProgId content=Word.Document>" + estilos + "</head><body style='margin:0;padding:0'>" + conteudo + "</body></html>";
   var b = new Blob([html], {type:"application/vnd.ms-word;charset=utf-8"});
@@ -348,22 +434,68 @@ function dlPDF() {
   var s = document.createElement("style");
   s.id = "pprt";
   s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:2cm 2.5cm" + cb +
+    "@page" + ob + "size:A4 portrait;margin:2cm 2cm 2cm 3cm" + cb +
     "@media print" + ob +
+      "body" + ob + "margin:0!important;padding:0!important;background:#fff!important;font-family:Arial,sans-serif!important" + cb +
       "body *" + ob + "visibility:hidden!important" + cb +
       "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
-      "#reldoc" + ob + "position:static!important;width:100%!important;max-width:170mm!important;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0 auto!important;overflow:visible!important" + cb +
-      "#reldoc img" + ob + "max-width:100%!important;height:auto!important;page-break-inside:avoid!important" + cb +
-      "#capa-rel" + ob + "page-break-after:always!important;min-height:180mm!important" + cb +
-      "h2,h3" + ob + "page-break-after:avoid!important" + cb +
-      "table" + ob + "page-break-inside:avoid!important;width:100%!important;table-layout:fixed!important" + cb +
-      "td,th" + ob + "word-wrap:break-word!important;overflow-wrap:break-word!important;max-width:100%!important" + cb +
+      "#reldoc" + ob +
+        "position:fixed!important;left:0!important;top:0!important;" +
+        "width:100%!important;max-width:100%!important;" +
+        "box-shadow:none!important;border:none!important;" +
+        "border-radius:0!important;padding:0!important;" +
+        "margin:0!important;overflow:visible!important;background:#fff!important;" +
+        "font-family:Arial,sans-serif!important;font-size:10pt!important" +
+      cb +
+      "#reldoc > div:first-child" + ob +
+        "display:flex!important;flex-direction:row!important;" +
+        "align-items:center!important;justify-content:space-between!important;" +
+        "flex-wrap:nowrap!important;padding:6pt 0!important;" +
+        "border-bottom:2pt solid #1a3d2b!important;margin-bottom:10pt!important" +
+      cb +
+      "#reldoc > div:first-child img" + ob +
+        "height:45pt!important;width:auto!important;max-width:90pt!important;" +
+        "object-fit:contain!important;flex-shrink:0!important;visibility:visible!important" +
+      cb +
+      "#reldoc > div:first-child > div" + ob +
+        "flex:1!important;text-align:center!important;" +
+        "font-family:Arial,sans-serif!important;font-size:8pt!important;font-weight:bold!important" +
+      cb +
+      "#capa-rel" + ob +
+        "page-break-after:always!important;break-after:always!important;" +
+        "min-height:220mm!important;display:flex!important;" +
+        "flex-direction:column!important;justify-content:center!important;align-items:center!important" +
+      cb +
+      "h2" + ob +
+        "font-family:Arial,sans-serif!important;font-size:11pt!important;" +
+        "font-weight:bold!important;text-transform:uppercase!important;" +
+        "page-break-after:avoid!important;break-after:avoid!important;margin:14pt 0 5pt 0!important" +
+      cb +
+      "h3,h4" + ob +
+        "font-family:Arial,sans-serif!important;font-size:10pt!important;" +
+        "page-break-after:avoid!important;break-after:avoid!important;margin:10pt 0 4pt 0!important" +
+      cb +
+      "p" + ob + "font-family:Arial,sans-serif!important;font-size:10pt!important;line-height:15pt!important;text-align:justify!important;margin:5pt 0!important" + cb +
+      "table" + ob + "width:100%!important;border-collapse:collapse!important;table-layout:fixed!important;font-family:Arial,sans-serif!important;font-size:9pt!important;page-break-inside:avoid!important" + cb +
+      "th" + ob + "background:#4d4d4d!important;color:#fff!important;padding:3pt 5pt!important;font-size:8pt!important;font-weight:bold!important;text-align:center!important" + cb +
+      "td" + ob + "padding:3pt 5pt!important;font-size:8pt!important;border:0.5pt solid #ccc!important;word-wrap:break-word!important;overflow-wrap:break-word!important" + cb +
+      "#reldoc div[style*='gridTemplateColumns']" + ob +
+        "display:grid!important;grid-template-columns:1fr 1fr!important;gap:5mm!important;width:100%!important" +
+      cb +
+      "#reldoc img" + ob +
+        "max-width:100%!important;max-height:60mm!important;" +
+        "width:100%!important;height:auto!important;" +
+        "object-fit:cover!important;display:block!important;page-break-inside:avoid!important" +
+      cb +
+      "button,input,select,nav,header" + ob + "display:none!important" + cb +
+      "textarea" + ob + "border:none!important;resize:none!important;background:transparent!important" + cb +
+      "svg,.recharts-wrapper,.recharts-surface" + ob + "display:none!important;visibility:hidden!important" + cb +
     cb;
   document.head.appendChild(s);
   setTimeout(function() {
     window.print();
-    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
-  }, 800);
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 4000);
+  }, 1000);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
