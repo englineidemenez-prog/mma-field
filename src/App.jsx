@@ -1117,16 +1117,49 @@ function AppPrincipal({ user, onLogout }) {
             </div>
             {/* IDENTIFICAÇÃO DO EMPREENDEDOR E CONSULTORA */}
             <div style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
-              <h4 style={{color:HC,marginBottom:12,fontSize:13}}>🏢 Identificação do Empreendedor</h4>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <h4 style={{color:HC,fontSize:13,margin:0}}>🏢 Identificação do Empreendedor</h4>
+                <button onClick={()=>setIdent(id=>({...id,empr_campos:[...(id.empr_campos||[]),{k:"ec"+Date.now(),lb:"Novo Campo",val:""}]}))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
+              </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-                {[["empr_nome","Empreendedor"],["empr_cnpj","CNPJ"],["empr_end","Endereço"],["empr_tel","Telefone"],["empr_rep","Representante Legal"],["empr_contato","Contato"],["empr_email","E-mail"]].map(([k,lb])=>(
-                  <div key={k}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
+                {[["empr_nome","Empreendedor"],["empr_cnpj","CNPJ"],["empr_end","Endereço"],["empr_tel","Telefone"],["empr_rep","Representante Legal"],["empr_email","E-mail"]].filter(([k])=>!((ident.empr_excluidos||[]).includes(k))).map(([k,lb])=>(
+                  <div key={k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
+                    <div style={{flex:1}}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
+                    <button onClick={()=>setIdent(id=>({...id,empr_excluidos:[...(id.empr_excluidos||[]),k]}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}} title="Excluir campo">×</button>
+                  </div>
+                ))}
+                {(ident.empr_campos||[]).map((c,ci)=>(
+                  <div key={c.k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
+                    <div style={{flex:1}}>
+                      <input value={c.lb} onChange={e=>setIdent(id=>({...id,empr_campos:id.empr_campos.map((x,i)=>i===ci?{...x,lb:e.target.value}:x)}))} style={{...SI,fontSize:9,padding:"2px 5px",marginBottom:3,fontWeight:"bold",color:"#2d6a4f"}}/>
+                      <input value={c.val} onChange={e=>setIdent(id=>({...id,empr_campos:id.empr_campos.map((x,i)=>i===ci?{...x,val:e.target.value}:x)}))} style={{...SI,fontSize:11}}/>
+                    </div>
+                    <button onClick={()=>setIdent(id=>({...id,empr_campos:id.empr_campos.filter((_,i)=>i!==ci)}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}}>×</button>
+                  </div>
                 ))}
               </div>
-              <h4 style={{color:HC,marginBottom:12,fontSize:13,marginTop:16}}>🔬 Identificação da Empresa Consultora</h4>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,marginTop:16,borderTop:"1px solid #e2ebe5",paddingTop:14}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:13}}>🔬</span>
+                  <input value={ident.cons_titulo||"Identificação da Empresa Consultora"} onChange={e=>setIdent(id=>({...id,cons_titulo:e.target.value}))} style={{fontSize:12,fontWeight:"bold",color:HC,border:"1px dashed #c8ddd2",padding:"3px 8px",width:300,borderRadius:5,fontFamily:"Georgia,serif",background:"transparent"}} title="Clique para editar"/>
+                </div>
+                <button onClick={()=>setIdent(id=>({...id,cons_campos:[...(id.cons_campos||[]),{k:"cc"+Date.now(),lb:"Novo Campo",val:""}]}))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
+              </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {[["cons_nome","Empresa Consultora"],["cons_cnpj","CNPJ"],["cons_end","Endereço"],["cons_tel","Telefone"],["cons_rep","Representante Legal"],["cons_contato","Contato"],["cons_email","E-mail"]].map(([k,lb])=>(
-                  <div key={k}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
+                {[["cons_nome","Empresa Consultora"],["cons_cnpj","CNPJ"],["cons_end","Endereço"],["cons_tel","Telefone"],["cons_rep","Representante Legal"],["cons_email","E-mail"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).map(([k,lb])=>(
+                  <div key={k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
+                    <div style={{flex:1}}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
+                    <button onClick={()=>setIdent(id=>({...id,cons_excluidos:[...(id.cons_excluidos||[]),k]}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}} title="Excluir campo">×</button>
+                  </div>
+                ))}
+                {(ident.cons_campos||[]).map((c,ci)=>(
+                  <div key={c.k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
+                    <div style={{flex:1}}>
+                      <input value={c.lb} onChange={e=>setIdent(id=>({...id,cons_campos:id.cons_campos.map((x,i)=>i===ci?{...x,lb:e.target.value}:x)}))} style={{...SI,fontSize:9,padding:"2px 5px",marginBottom:3,fontWeight:"bold",color:"#2d6a4f"}}/>
+                      <input value={c.val} onChange={e=>setIdent(id=>({...id,cons_campos:id.cons_campos.map((x,i)=>i===ci?{...x,val:e.target.value}:x)}))} style={{...SI,fontSize:11}}/>
+                    </div>
+                    <button onClick={()=>setIdent(id=>({...id,cons_campos:id.cons_campos.filter((_,i)=>i!==ci)}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}}>×</button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -1162,16 +1195,58 @@ function AppPrincipal({ user, onLogout }) {
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
               <Cab/>
               <div style={{padding:"28px 40px"}}>
+                {/* CAPA */}
                 <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{emp||"[Empresa Executora]"} apresenta a {campos.find(c=>c.id==="f2")?.val||"[Empreendedor]"} o documento:</div>
+                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{(ident.cons_nome||emp||"Empresa Executora")} apresenta a {(ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"MMA Field")} o documento:</div>
                   <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
-                  {campos.find(c=>c.id==="f5")?.val&&<div style={{fontSize:12,color:"#555"}}>{campos.find(c=>c.id==="f5").val}<br/><strong>{emp}</strong></div>}
                 </div>
-                <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
-                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
+                {/* SUMÁRIO */}
+                <div style={{pageBreakAfter:"always",paddingTop:10,minHeight:180}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:16,textAlign:"left"}}>SUMÁRIO</h2>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><tbody>
+                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold",width:30}}>1.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>IDENTIFICAÇÃO DO EMPREENDIMENTO</td><td style={{textAlign:"right",color:"#888"}}>3</td></tr>
+                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>2.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>IDENTIFICAÇÃO DA EQUIPE TÉCNICA</td><td style={{textAlign:"right",color:"#888"}}>4</td></tr>
+                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>3.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>INTRODUÇÃO</td><td style={{textAlign:"right",color:"#888"}}>5</td></tr>
+                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>4.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>PROGRAMAS EM EXECUÇÃO</td><td style={{textAlign:"right",color:"#888"}}>5</td></tr>
+                    <tr><td style={{padding:"4px 0",color:cor,fontWeight:"bold"}}>5.</td><td style={{padding:"4px 8px",fontWeight:"bold"}}>GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</td><td style={{textAlign:"right",color:"#888"}}>6</td></tr>
+                    {ativos.map((p,i)=><tr key={p.id}><td style={{padding:"3px 0 3px 16px",color:"#aaa",width:30}}></td><td style={{padding:"3px 8px",color:"#555"}}>5.{i+1} {getL(p.id)}</td><td style={{textAlign:"right",color:"#bbb"}}>{7+i}</td></tr>)}
+                  </tbody></table>
                 </div>
-                <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>{campos.map((f,i)=><tr key={f.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{f.lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{f.val||"—"}</td></tr>)}</tbody></table>
+                {/* PÁG 3 - IDENTIFICAÇÃO */}
+                <div style={{pageBreakAfter:"always",paddingTop:10}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:14,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
+                  <h4 style={{color:"#555",fontSize:11,marginBottom:8}}>Quadro 1 – Identificação do Empreendedor</h4>
+                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>
+                    {[["empr_nome","Empreendedor",ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"—"],["empr_cnpj","CNPJ",ident.empr_cnpj||"—"],["empr_end","Endereço",ident.empr_end||"—"],["empr_tel","Telefone",ident.empr_tel||"—"],["empr_rep","Representante Legal",ident.empr_rep||campos.find(c=>c.id==="f5")?.val||"—"],["empr_email","E-mail",ident.empr_email||"—"]].filter(([k])=>!((ident.empr_excluidos||[]).includes(k))).concat((ident.empr_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
+                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{vl}</td></tr>
+                    ))}
+                  </tbody></table>
+                  <h4 style={{color:"#555",fontSize:11,marginBottom:8}}>Quadro 2 – {ident.cons_titulo||"Identificação da Empresa Consultora"}</h4>
+                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>
+                    {[["cons_nome","Empresa Consultora",ident.cons_nome||emp||"—"],["cons_cnpj","CNPJ",ident.cons_cnpj||"—"],["cons_end","Endereço",ident.cons_end||"—"],["cons_tel","Telefone",ident.cons_tel||"—"],["cons_rep","Representante Legal",ident.cons_rep||"—"],["cons_email","E-mail",ident.cons_email||"—"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).concat((ident.cons_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
+                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{vl}</td></tr>
+                    ))}
+                  </tbody></table>
+                  {(nEmp||campos.find(c=>c.id==="f4")?.val)&&<><h4 style={{color:"#555",fontSize:11,marginBottom:8}}>Quadro 3 – Identificação do Empreendimento</h4>
+                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>
+                    {[["Nome do Empreendimento",nEmp||"—"],["Estado (UF)",campos.find(c=>c.id==="f4")?.val||"—"],...campos.filter(c=>!["f1","f2","f3","f4","f5"].includes(c.id)).map(c=>[c.lb,c.val||"—"])].map(([lb,vl],i)=>(
+                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{vl}</td></tr>
+                    ))}
+                  </tbody></table></>}
+                </div>
+                {/* PÁG 4 - EQUIPE TÉCNICA */}
+                <div style={{pageBreakAfter:"always",paddingTop:10}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:14,textAlign:"left"}}>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA</h2>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                    <thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead>
+                    <tbody>{equipe.length===0?<tr><td colSpan={3} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Nenhum membro cadastrado</td></tr>:equipe.map((m,i)=><tr key={m.id}><td style={i%2?TA:TD}>{m.nome||"—"}</td><td style={i%2?TA:TD}>{m.funcao||"—"}</td><td style={i%2?TA:TD}>{m.registro||"—"}</td></tr>)}</tbody>
+                  </table>
+                </div>
+                {/* PÁG 5 - INTRODUÇÃO */}
+                <div style={{pageBreakAfter:"always",paddingTop:10}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>3. INTRODUÇÃO</h2>
+                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={6} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb",width:"100%"}}/>
+                </div>
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>4. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
