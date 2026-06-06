@@ -428,69 +428,75 @@ function dlPDF() {
   s.textContent =
     "@page" + ob + "size:A4 portrait;margin:2cm 2cm 2cm 2cm" + cb +
     "@media print" + ob +
-      "body" + ob + "margin:0!important;padding:0!important;background:#fff!important;font-family:Arial,sans-serif!important" + cb +
-      "body *" + ob + "visibility:hidden!important" + cb +
-      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
+      // Esconder tudo exceto reldoc
+      "body" + ob + "margin:0!important;padding:0!important;background:#fff!important" + cb +
+      "body > *:not(#pprt-wrap)" + ob + "display:none!important" + cb +
       "#reldoc" + ob +
-        "position:static!important;" +
+        "display:block!important;visibility:visible!important;" +
         "width:100%!important;max-width:100%!important;" +
         "box-shadow:none!important;border:none!important;" +
-        "border-radius:0!important;padding:4mm 0!important;" +
-        "margin:0!important;overflow:visible!important;background:#fff!important;" +
-        "font-family:Arial,sans-serif!important;font-size:10pt!important" +
+        "border-radius:0!important;padding:0!important;" +
+        "margin:0!important;background:#fff!important;font-size:10pt!important" +
       cb +
+      "#reldoc *" + ob + "visibility:visible!important" + cb +
+      // Cabeçalho - logos corretos
       "#reldoc > div:first-child" + ob +
         "display:flex!important;flex-direction:row!important;" +
         "align-items:center!important;justify-content:space-between!important;" +
-        "flex-wrap:nowrap!important;padding:6pt 0!important;" +
-        "border-bottom:2pt solid #1a3d2b!important;margin-bottom:10pt!important" +
+        "padding:6pt 0!important;border-bottom:2pt solid #1a3d2b!important;margin-bottom:10pt!important" +
       cb +
       "#reldoc > div:first-child img" + ob +
-        "height:45pt!important;width:auto!important;max-width:90pt!important;" +
-        "object-fit:contain!important;flex-shrink:0!important;visibility:visible!important" +
+        "height:50pt!important;width:auto!important;max-width:none!important;" +
+        "object-fit:contain!important" +
       cb +
-      "#reldoc > div:first-child > div" + ob +
-        "flex:1!important;text-align:center!important;" +
-        "font-family:Arial,sans-serif!important;font-size:8pt!important;font-weight:bold!important" +
+      // Imagens de fotos (não logos)
+      "#reldoc .foto-img" + ob +
+        "max-width:100%!important;max-height:55mm!important;" +
+        "width:100%!important;height:auto!important;object-fit:cover!important" +
       cb +
-      "#capa-rel" + ob +
-        "page-break-after:always!important;break-after:always!important;" +
-        "display:flex!important;" +
-        "flex-direction:column!important;justify-content:flex-end!important;align-items:center!important;padding-bottom:40mm!important" +
+      // Gráficos Recharts - garantir visibilidade
+      ".recharts-wrapper" + ob +
+        "display:block!important;overflow:visible!important;width:100%!important" +
       cb +
-      "h2" + ob +
-        "font-family:Arial,sans-serif!important;font-size:11pt!important;" +
-        "font-weight:bold!important;text-transform:uppercase!important;" +
-        "page-break-after:avoid!important;break-after:avoid!important;margin:14pt 0 5pt 0!important" +
+      ".recharts-wrapper svg" + ob +
+        "display:block!important;overflow:visible!important;width:100%!important" +
       cb +
-      "h3,h4" + ob +
-        "font-family:Arial,sans-serif!important;font-size:10pt!important;" +
-        "page-break-after:avoid!important;break-after:avoid!important;margin:10pt 0 4pt 0!important" +
+      ".recharts-wrapper text,.recharts-label,.recharts-cartesian-axis-tick-value" + ob +
+        "display:block!important;visibility:visible!important;font-size:8pt!important" +
       cb +
-      "p" + ob + "font-family:Arial,sans-serif!important;font-size:10pt!important;line-height:15pt!important;text-align:justify!important;margin:5pt 0!important" + cb +
-      "table" + ob + "width:100%!important;border-collapse:collapse!important;table-layout:fixed!important;font-family:Arial,sans-serif!important;font-size:9pt!important;page-break-inside:avoid!important" + cb +
-      "th" + ob + "background:#4d4d4d!important;color:#fff!important;padding:3pt 5pt!important;font-size:8pt!important;font-weight:bold!important;text-align:center!important" + cb +
-      "td" + ob + "padding:3pt 5pt!important;font-size:8pt!important;border:0.5pt solid #ccc!important;word-wrap:break-word!important;overflow-wrap:break-word!important" + cb +
+      // Tabelas
+      "table" + ob + "width:100%!important;border-collapse:collapse!important;font-size:9pt!important" + cb +
+      "th" + ob + "background:#4d4d4d!important;color:#fff!important;padding:3pt 5pt!important;font-size:8pt!important" + cb +
+      "td" + ob + "padding:3pt 5pt!important;font-size:8pt!important;border:0.5pt solid #ccc!important" + cb +
+      // Fotos grid
       "#reldoc div[style*='gridTemplateColumns']" + ob +
-        "display:grid!important;grid-template-columns:1fr 1fr!important;gap:5mm!important;width:100%!important" +
+        "display:grid!important;grid-template-columns:1fr 1fr!important;gap:5mm!important" +
       cb +
-      "#reldoc img" + ob +
-        "max-width:100%!important;max-height:60mm!important;" +
-        "width:100%!important;height:auto!important;" +
-        "object-fit:cover!important;display:block!important;page-break-inside:avoid!important" +
-      cb +
-      "button,input,select,nav,header,label" + ob + "display:none!important" + cb +
-      ".recharts-wrapper" + ob + "display:block!important;visibility:visible!important" + cb +
-      ".recharts-wrapper *" + ob + "visibility:visible!important" + cb +
-      ".recharts-wrapper text" + ob + "display:block!important;font-size:9pt!important" + cb +
-      "textarea" + ob + "border:none!important;resize:none!important;background:transparent!important" + cb +
-      "button,input,select" + ob + "display:none!important" + cb +
+      // Esconder elementos de UI
+      "button,input,select,nav,header,label,textarea" + ob + "display:none!important" + cb +
+      // Quebras de página
+      "#capa-rel" + ob + "page-break-after:always!important" + cb +
+      "h2,h3,h4" + ob + "page-break-after:avoid!important" + cb +
     cb;
+
+  // Mover reldoc para body temporariamente para print
+  var reldoc = document.getElementById("reldoc");
+  var wrap = document.createElement("div");
+  wrap.id = "pprt-wrap";
+  var clone = reldoc.cloneNode(true);
+  // Remover botões e inputs do clone
+  clone.querySelectorAll("button,input,select,label,textarea").forEach(function(el){ el.remove(); });
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+
   document.head.appendChild(s);
   setTimeout(function() {
     window.print();
-    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 4000);
-  }, 1000);
+    setTimeout(function() {
+      var x = document.getElementById("pprt"); if (x) x.remove();
+      var w = document.getElementById("pprt-wrap"); if (w) w.remove();
+    }, 4000);
+  }, 1200);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
