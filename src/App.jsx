@@ -433,10 +433,10 @@ function dlPDF() {
       "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
       "#reldoc" + ob +
         "position:static!important;" +
-        "width:100%!important;max-width:170mm!important;" +
+        "width:100%!important;max-width:100%!important;" +
         "box-shadow:none!important;border:none!important;" +
-        "border-radius:0!important;padding:0!important;" +
-        "margin:0 auto!important;overflow:visible!important;background:#fff!important;" +
+        "border-radius:0!important;padding:4mm 0!important;" +
+        "margin:0!important;overflow:visible!important;background:#fff!important;" +
         "font-family:Arial,sans-serif!important;font-size:10pt!important" +
       cb +
       "#reldoc > div:first-child" + ob +
@@ -455,8 +455,8 @@ function dlPDF() {
       cb +
       "#capa-rel" + ob +
         "page-break-after:always!important;break-after:always!important;" +
-        "min-height:220mm!important;display:flex!important;" +
-        "flex-direction:column!important;justify-content:center!important;align-items:center!important" +
+        "display:flex!important;" +
+        "flex-direction:column!important;justify-content:flex-end!important;align-items:center!important;padding-bottom:40mm!important" +
       cb +
       "h2" + ob +
         "font-family:Arial,sans-serif!important;font-size:11pt!important;" +
@@ -481,7 +481,7 @@ function dlPDF() {
       cb +
       "button,input,select,nav,header" + ob + "display:none!important" + cb +
       "textarea" + ob + "border:none!important;resize:none!important;background:transparent!important" + cb +
-      "svg,.recharts-wrapper,.recharts-surface" + ob + "display:none!important;visibility:hidden!important" + cb +
+      "button,input,select" + ob + "display:none!important" + cb +
     cb;
   document.head.appendChild(s);
   setTimeout(function() {
@@ -572,6 +572,11 @@ function AppPrincipal({ user, onLogout }) {
   const [ger, setGer]       = useState(false);
   const [cfg, setCfg]       = useState(true);
   const [intro, setIntro]   = useState(ei?.intro || INTRO_DEFAULT);
+  const [ident, setIdent]   = useState(ei?.ident || {
+    empr_nome:"", empr_cnpj:"", empr_end:"", empr_tel:"", empr_rep:"", empr_contato:"", empr_email:"",
+    cons_nome:"", cons_cnpj:"", cons_end:"", cons_tel:"", cons_rep:"", cons_contato:"", cons_email:""
+  });
+  const [equipe, setEquipe] = useState(ei?.equipe || []);
   const [historico, setHistorico] = useState(() => {
     try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
   });
@@ -582,13 +587,13 @@ function AppPrincipal({ user, onLogout }) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
       try {
-        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro};
+        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,ident,equipe};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
       } catch(e) {}
     }, 1500);
-  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro]);
+  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,ident,equipe]);
   const salvarRelatorio = () => {
     var rel = {
       id: Date.now(), mes, ano, nrel,
@@ -596,7 +601,7 @@ function AppPrincipal({ user, onLogout }) {
       empresa: campos.find(c=>c.id==="f1")?.val||"",
       empreendimento: campos.find(c=>c.id==="f3")?.val||"",
       data: new Date().toLocaleDateString("pt-BR"),
-      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro}
+      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,ident,equipe}
     };
     var nh = [rel,...historico];
     setHistorico(nh);
@@ -632,7 +637,9 @@ function AppPrincipal({ user, onLogout }) {
     setFotos({}); setDados({}); setInv([]); setCor(HC); setLCons(null); setLEmpr(null);
     setCampos([{id:"f1",lb:"Empresa Executora",val:"",ed:false},{id:"f2",lb:"Empreendedor",val:"",ed:false},{id:"f3",lb:"Nome do Empreendimento",val:"",ed:false},{id:"f4",lb:"Estado (UF)",val:"",ed:false},{id:"f5",lb:"Responsável Técnico",val:"",ed:false}]);
     setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id));
-    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT); setAba("fotos");
+    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT);
+    setIdent({empr_nome:"",empr_cnpj:"",empr_end:"",empr_tel:"",empr_rep:"",empr_contato:"",empr_email:"",cons_nome:"",cons_cnpj:"",cons_end:"",cons_tel:"",cons_rep:"",cons_contato:"",cons_email:""});
+    setEquipe([]); setAba("fotos");
   };
   const isMobile = useIsMobile();
   const todos  = [...PRG,...pCust];
@@ -1108,6 +1115,37 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
               )}
             </div>
+            {/* IDENTIFICAÇÃO DO EMPREENDEDOR E CONSULTORA */}
+            <div style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
+              <h4 style={{color:HC,marginBottom:12,fontSize:13}}>🏢 Identificação do Empreendedor</h4>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                {[["empr_nome","Empreendedor"],["empr_cnpj","CNPJ"],["empr_end","Endereço"],["empr_tel","Telefone"],["empr_rep","Representante Legal"],["empr_contato","Contato"],["empr_email","E-mail"]].map(([k,lb])=>(
+                  <div key={k}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
+                ))}
+              </div>
+              <h4 style={{color:HC,marginBottom:12,fontSize:13,marginTop:16}}>🔬 Identificação da Empresa Consultora</h4>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[["cons_nome","Empresa Consultora"],["cons_cnpj","CNPJ"],["cons_end","Endereço"],["cons_tel","Telefone"],["cons_rep","Representante Legal"],["cons_contato","Contato"],["cons_email","E-mail"]].map(([k,lb])=>(
+                  <div key={k}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
+                ))}
+              </div>
+            </div>
+            {/* EQUIPE TÉCNICA */}
+            <div style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <h4 style={{color:HC,fontSize:13,margin:0}}>👥 Equipe Técnica</h4>
+                <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11,fontWeight:"bold"}}>+ Adicionar Membro</button>
+              </div>
+              {equipe.length===0&&<div style={{fontSize:11,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:"16px 0"}}>Nenhum membro cadastrado.</div>}
+              {equipe.map((m,mi)=>(
+                <div key={m.id} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr auto",gap:8,marginBottom:8,alignItems:"end"}}>
+                  <div><label style={LB}>Nome</label><input value={m.nome} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,nome:e.target.value}:x))} style={{...SI,fontSize:11}}/></div>
+                  <div><label style={LB}>Função</label><input value={m.funcao} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,funcao:e.target.value}:x))} style={{...SI,fontSize:11}}/></div>
+                  <div><label style={LB}>Registro Profissional</label><input value={m.registro} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,registro:e.target.value}:x))} style={{...SI,fontSize:11}}/></div>
+                  <button onClick={()=>setEquipe(eq=>eq.filter((_,i)=>i!==mi))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:6,padding:"7px 10px",cursor:"pointer",fontSize:13,marginBottom:1}}>×</button>
+                </div>
+              ))}
+            </div>
             <div id="extra-card" style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
               <div style={{fontSize:13,fontWeight:"bold",color:"#2d6a4f",marginBottom:8}}>✨ Adicionar Programa Extra com IA</div>
               <div style={{display:"flex",gap:8}}>
@@ -1135,10 +1173,10 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>{campos.map((f,i)=><tr key={f.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{f.lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{f.val||"—"}</td></tr>)}</tbody></table>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>4. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-                <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:18,textAlign:"left"}}>3. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
+                <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:18,textAlign:"left",pageBreakBefore:"always"}}>5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
                   var d=getD(p.id); var fp=getF(p.id);
                   var grafRel=(d.graficos||[]).filter(gr=>gr.addRel&&(gr.dados||[]).some(x=>x.l&&x.v));
