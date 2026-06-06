@@ -341,7 +341,7 @@ function dlWord(mes, ano) {
     ".word-cab{width:100%;border-collapse:collapse;border-bottom:2px solid #1a3d2b;margin-bottom:10pt}",
     ".word-cab td{vertical-align:middle;padding:6pt 8pt}",
     ".word-cab .cab-centro{text-align:center;font-family:Arial,sans-serif;font-size:8pt;color:#444;line-height:1.6;font-weight:bold}",
-    ".word-cab img{height:55pt;width:auto;max-width:100pt;object-fit:contain;display:block}",
+    ".word-cab img{height:40pt;width:auto;max-width:80pt;object-fit:contain;display:block}",
     /* Capa */
     "#capa-rel{page-break-after:always;min-height:200mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}",
     /* Títulos padrão MRS */
@@ -359,7 +359,7 @@ function dlWord(mes, ano) {
     "img{max-width:100%;height:auto;display:block;margin:0 auto}",
     ".foto-tab{width:100%;border-collapse:collapse;margin:8pt 0}",
     ".foto-tab td{border:none;padding:4pt;text-align:center;vertical-align:top;width:50%}",
-    ".foto-tab img{width:100%;max-height:80mm;object-fit:cover;border:1pt solid #ddd}",
+    ".foto-tab img{width:100%;max-height:55mm;object-fit:cover;border:1pt solid #ddd}",
     ".foto-leg{font-family:Arial,sans-serif;font-size:8pt;font-weight:bold;text-align:center;margin-top:3pt;color:#444}",
     ".foto-geo{font-family:Arial,sans-serif;font-size:7pt;color:#888;text-align:center}",
     /* Ocultar UI */
@@ -378,8 +378,8 @@ function dlWord(mes, ano) {
   if (cabDiv) {
     var imgs = cabDiv.querySelectorAll("img");
     var centroDiv = cabDiv.querySelector("div[style*='textAlign:center'], div[style*='text-align:center']");
-    var imgEsq = imgs[0] ? '<img src="'+imgs[0].src+'" style="height:55pt;width:auto;max-width:100pt;object-fit:contain"/>' : '<div style="width:100pt;height:55pt;background:#eee;display:inline-block"></div>';
-    var imgDir = imgs[1] ? '<img src="'+imgs[1].src+'" style="height:55pt;width:auto;max-width:100pt;object-fit:contain"/>' : '<div style="width:100pt;height:55pt;background:#eee;display:inline-block"></div>';
+    var imgEsq = imgs[0] ? '<img src="'+imgs[0].src+'" style="height:40pt;width:auto;max-width:80pt;object-fit:contain"/>' : '<div style="width:80pt;height:40pt;background:#eee;display:inline-block"></div>';
+    var imgDir = imgs[1] ? '<img src="'+imgs[1].src+'" style="height:40pt;width:auto;max-width:80pt;object-fit:contain"/>' : '<div style="width:80pt;height:40pt;background:#eee;display:inline-block"></div>';
     var centroHTML = centroDiv ? centroDiv.innerHTML : "";
     cabDiv.outerHTML = '<table class="word-cab"><tr>' +
       '<td style="width:110pt;text-align:left">'+imgEsq+'</td>' +
@@ -432,11 +432,11 @@ function dlPDF() {
       "body *" + ob + "visibility:hidden!important" + cb +
       "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
       "#reldoc" + ob +
-        "position:fixed!important;left:0!important;top:0!important;" +
-        "width:100%!important;max-width:100%!important;" +
+        "position:static!important;" +
+        "width:100%!important;max-width:170mm!important;" +
         "box-shadow:none!important;border:none!important;" +
         "border-radius:0!important;padding:0!important;" +
-        "margin:0!important;overflow:visible!important;background:#fff!important;" +
+        "margin:0 auto!important;overflow:visible!important;background:#fff!important;" +
         "font-family:Arial,sans-serif!important;font-size:10pt!important" +
       cb +
       "#reldoc > div:first-child" + ob +
