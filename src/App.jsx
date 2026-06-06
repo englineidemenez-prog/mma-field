@@ -421,14 +421,6 @@ function dlWord(mes, ano) {
   a.href = u; a.download = "Relatorio_"+mes+"_"+ano+".doc"; a.click();
   setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
 }
-  var conteudo = el.innerHTML;
-  var html = "\ufeff<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><meta name=ProgId content=Word.Document>" + estilos + "</head><body style='margin:0;padding:0'>" + conteudo + "</body></html>";
-  var b = new Blob([html], {type:"application/vnd.ms-word;charset=utf-8"});
-  var u = URL.createObjectURL(b);
-  var a = document.createElement("a");
-  a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
-  setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
-}
 function dlPDF() {
   var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
   var s = document.createElement("style");
