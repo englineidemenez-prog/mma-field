@@ -334,7 +334,10 @@ function AuthScreen({ onLogin }) {
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
   if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  var b = new Blob(["<html><body>" + el.innerHTML + "</body></html>"], {type:"application/msword"});
+  var estilos = "<style>@page{size:A4 portrait;margin:2cm 2.5cm}body{font-family:Georgia,serif;font-size:11pt;color:#222;width:100%}table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word}td,th{padding:5px 8px;font-size:10pt;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}img{max-width:100%;height:auto;display:block}#capa-rel{page-break-after:always;min-height:180mm}h2,h3{page-break-after:avoid}</style>";
+  var conteudo = el.innerHTML;
+  var html = "<html><head><meta charset=utf-8>" + estilos + "</head><body style=margin:0;padding:0>" + conteudo + "</body></html>";
+  var b = new Blob([html], {type:"application/msword"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
   a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
@@ -345,21 +348,22 @@ function dlPDF() {
   var s = document.createElement("style");
   s.id = "pprt";
   s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
+    "@page" + ob + "size:A4 portrait;margin:2cm 2.5cm" + cb +
     "@media print" + ob +
       "body *" + ob + "visibility:hidden!important" + cb +
       "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
-      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
-      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
-      "h2,h3" + ob + "page-break-after:avoid" + cb +
-      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
-      "table" + ob + "page-break-inside:avoid" + cb +
+      "#reldoc" + ob + "position:static!important;width:100%!important;max-width:170mm!important;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0 auto!important;overflow:visible!important" + cb +
+      "#reldoc img" + ob + "max-width:100%!important;height:auto!important;page-break-inside:avoid!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:180mm!important" + cb +
+      "h2,h3" + ob + "page-break-after:avoid!important" + cb +
+      "table" + ob + "page-break-inside:avoid!important;width:100%!important;table-layout:fixed!important" + cb +
+      "td,th" + ob + "word-wrap:break-word!important;overflow-wrap:break-word!important;max-width:100%!important" + cb +
     cb;
   document.head.appendChild(s);
   setTimeout(function() {
     window.print();
     setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
-  }, 600);
+  }, 800);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -563,11 +567,11 @@ function AppPrincipal({ user, onLogout }) {
   };
   const Cab = () => (
     <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-      {lCons?<img src={lCons} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+      {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
       <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}>
         <strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}
       </div>
-      {lEmpr?<img src={lEmpr} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+      {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
     </div>
   );
   const renderGrafico = (gr, height, forReport) => {
