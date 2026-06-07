@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -242,273 +242,35 @@ function AuthScreen({ onLogin }) {
 // ─────────────────────────────────────────────
 // FUNÇÕES AUXILIARES
 // ─────────────────────────────────────────────
-function buildRelatorioHTML(dados_rel) {
-  var {lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust} = dados_rel;
-  var corP = cor||"#1a3d2b";
-  var nEmp = empreendimento.nome||"[Empreendimento]";
-  var nCons = construtora.nome||"[Empresa Executora]";
-  var nEmpr = empreendedor.nome||"[Empreendedor]";
-  var numR = nrel ? nrel+"º" : "1º";
-  var tecnico = equipe.length>0 ? equipe[0] : null;
-
-  // CABEÇALHO — modelo MRS: logo | título central | logo cliente
-  function cab() {
-    return `<div class="cab">
-      <div class="cab-esq">
-        ${lCons ? `<img src="${lCons}" class="cab-img"/>` : `<div class="cab-nome">${nCons}</div>`}
-      </div>
-      <div class="cab-centro">
-        <div class="cab-titulo-proj">${nEmp}</div>
-        <div class="cab-subtitulo">${numR} RELATÓRIO – ${mes.toUpperCase()}/${ano}</div>
-      </div>
-      <div class="cab-dir">
-        ${lEmpr ? `<img src="${lEmpr}" class="cab-img"/>` : `<div class="cab-nome cab-nome-dir">LOGO<br/>CLIENTE</div>`}
-      </div>
-    </div>
-    <div class="cab-linha"></div>`;
-  }
-
-  // RODAPÉ — modelo MRS: empresa | site | página
-  function rod(pg) {
-    return `<div class="rod">
-      <span>${nCons}</span>
-      <span>${nCons.toLowerCase().replace(/ /g,"")}.com.br</span>
-      <span>${pg||""}</span>
-    </div>`;
-  }
-
-  // CAPA — modelo MRS
-  var capaHTML = `<div class="pagina">
-    ${cab()}
-    <div class="capa-body">
-      <div class="capa-apresentacao">APRESENTAÇÃO</div>
-      <div class="capa-apresenta-txt">
-        <p>${nCons} apresenta a ${nEmpr} o documento intitulado:</p>
-      </div>
-      <div class="capa-spacer"></div>
-      <div class="capa-projeto">${nEmp}</div>
-      <div class="capa-spacer"></div>
-      <div class="capa-periodo">${mes} de ${ano}</div>
-      <div class="capa-spacer"></div>
-      ${tecnico ? `<div class="capa-tecnico">
-        <div>${tecnico.nome}</div>
-        <div style="font-weight:bold;">${nCons}</div>
-      </div>` : `<div class="capa-tecnico"><div style="font-weight:bold;">${nCons}</div></div>`}
-    </div>
-    ${rod(1)}
-  </div>`;
-
-  // SUMÁRIO — modelo MRS com pontilhado
-  var itens_sumario = [
-    {n:"1", t:"IDENTIFICAÇÃO DO EMPREENDIMENTO", pg:"1"},
-    {n:"2", t:"IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL", pg:"1"},
-    {n:"3", t:"INTRODUÇÃO", pg:"5"},
-    ...ativos.map((p,i) => ({n:"3."+(i+1), t:p.lb, pg:"5", sub:true})),
-    {n:"4", t:"GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS", pg:"5"},
-  ];
-  var sumarioHTML = `<div class="pagina">
-    ${cab()}
-    <div class="pg-body">
-      <h1 class="sum-tit">SUMÁRIO</h1>
-      <table class="sum-tab">
-        ${itens_sumario.map((it,idx)=>`<tr>
-          <td class="sum-n${it.sub?" sum-sub":""}">${it.n}</td>
-          <td class="sum-t${it.sub?" sum-sub":""}">${it.t}</td>
-          <td class="sum-dots"></td>
-          <td class="sum-pg${it.sub?" sum-sub":""}">${it.pg}</td>
-        </tr>`).join("")}
-      </table>
-    </div>
-    ${rod(2)}
-  </div>`;
-
-  // IDENTIFICAÇÃO
-  function quad(titulo, linhas) {
-    var rows = linhas.filter(r=>r[1]);
-    if (rows.length===0) return "";
-    return `<p class="quad-tit">${titulo}</p>
-    <table class="quad-tab">
-      ${rows.map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]}</td></tr>`).join("")}
-    </table>`;
-  }
-
-  // Página 1 — Identificação do Empreendedor + Construtora + Empreendimento
-  var identHTML = `<div class="pagina">
-    ${cab()}
-    <div class="pg-body">
-      <h1 class="sec-num">1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>
-
-      <p class="quad-tit">Quadro 1 – Identificação do Empreendedor</p>
-      <table class="quad-tab" style="margin-bottom:14pt;">
-        <tr><th style="width:140pt;">Campo</th><th>Informação</th></tr>
-        ${[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]].map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
-      </table>
-
-      <p class="quad-tit">Quadro 2 – Identificação da ${construtora.label||"Empresa Construtora"}</p>
-      <table class="quad-tab" style="margin-bottom:14pt;">
-        <tr><th style="width:140pt;">Campo</th><th>Informação</th></tr>
-        ${[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]].map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
-      </table>
-
-      <p class="quad-tit">Quadro 3 – Identificação do Empreendimento</p>
-      <table class="quad-tab" style="margin-bottom:14pt;">
-        <tr><th style="width:140pt;">Campo</th><th>Informação</th></tr>
-        ${[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]].map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
-      </table>
-    </div>
-    ${rod(3)}
-  </div>
-
-  ${equipe.length>0?`<div class="pagina">
-    ${cab()}
-    <div class="pg-body">
-      <h1 class="sec-num">2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL</h1>
-      <p class="quad-tit">Quadro 4 – Equipe Técnica – Responsáveis Técnicos</p>
-      <table class="quad-tab">
-        <tr><th>Nome</th><th>Função</th><th>Registro Profissional</th></tr>
-        ${equipe.map((m,i)=>`<tr class="${i%2?"alt":""}"><td>${m.nome||"—"}</td><td>${m.funcao||"—"}</td><td>${m.registro||"N/A"}</td></tr>`).join("")}
-      </table>
-    </div>
-    ${rod(4)}
-  </div>`:""}`;
-
-  // INTRODUÇÃO
-  var introHTML = `<div class="pagina">
-    ${cab()}
-    <div class="pg-body">
-      <h1 class="sec-num">3. INTRODUÇÃO</h1>
-      <p class="pg-texto">${(intro||"").replace(/
-/g,"</p><p class='pg-texto'>")}</p>
-    </div>
-    ${rod(4)}
-  </div>`;
-
-  // PROGRAMAS EM EXECUÇÃO
-  var pgmExecHTML = `<div class="pagina">
-    ${cab()}
-    <div class="pg-body">
-      <h1 class="sec-num">4. PROGRAMAS EM EXECUÇÃO</h1>
-      <table class="quad-tab">
-        <tr><th style="width:40pt;">Nº</th><th>Programa</th><th style="width:100pt;">Status</th></tr>
-        ${ativos.map((p,i)=>`<tr class="${i%2?"alt":""}">
-          <td style="text-align:center;">${i+1}</td>
-          <td>${p.lb}</td>
-          <td style="color:${corP};font-weight:bold;">● Em Execução</td>
-        </tr>`).join("")}
-      </table>
-    </div>
-    ${rod(5)}
-  </div>`;
-
-  // GESTÃO E SUPERVISÃO
-  var gestaoHTML = ativos.map((prog,pi) => {
-    var pd = dados[prog.id]||{};
-    var pgFotos = fotos[prog.id]||[];
-    var descricao = pd.descricao||pd.desc||"";
-
-    var fotosHTML = "";
-    if (pgFotos.length>0) {
-      var pares = [];
-      for (var i=0;i<pgFotos.length;i+=2) pares.push([pgFotos[i],pgFotos[i+1]]);
-      fotosHTML = `<h3 class="sub-tit">${pi+1}.1 Registro Fotográfico</h3>
-      <table class="foto-tab">
-        ${pares.map((par,ri)=>`<tr>
-          <td class="foto-cel"><img src="${par[0].src}" class="foto-img"/><div class="foto-leg">Foto ${ri*2+1}${par[0].leg?" – "+par[0].leg:""}</div></td>
-          ${par[1]?`<td class="foto-cel"><img src="${par[1].src}" class="foto-img"/><div class="foto-leg">Foto ${ri*2+2}${par[1].leg?" – "+par[1].leg:""}</div></td>`:`<td class="foto-cel"></td>`}
-        </tr>`).join("")}
-      </table>`;
-    }
-
-    return `<div class="pagina">
-      ${cab()}
-      <div class="pg-body">
-        ${pi===0?`<h1 class="sec-num">5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h1>`:""}
-        <h2 class="prog-tit" style="border-left:5px solid ${prog.cor||corP};">${pi+1}. ${nomes[prog.id]||prog.lb}</h2>
-        ${descricao?`<h3 class="sub-tit">Descrição das Atividades</h3><p class="pg-texto">${descricao.replace(/
-/g,"</p><p class='pg-texto'>")}</p>`:""}
-        ${fotosHTML}
-      </div>
-      ${rod(6+pi)}
-    </div>`;
-  }).join("");
-
-  // CSS modelo MRS
-  var css = `
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:Arial,sans-serif;font-size:10pt;color:#222;background:#f0f0f0;}
-    .pagina{width:210mm;min-height:297mm;margin:0 auto 10pt;background:#fff;display:flex;flex-direction:column;page-break-after:always;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
-    .cab{display:flex;align-items:center;padding:8pt 15mm 6pt;min-height:18mm;}
-    .cab-esq{width:90pt;display:flex;align-items:center;}
-    .cab-centro{flex:1;text-align:center;padding:0 8pt;}
-    .cab-dir{width:90pt;display:flex;align-items:center;justify-content:flex-end;}
-    .cab-img{max-height:32pt;max-width:80pt;object-fit:contain;}
-    .cab-nome{font-size:8pt;font-weight:bold;color:${corP};line-height:1.3;}
-    .cab-nome-dir{text-align:right;color:#aaa;font-size:7pt;font-weight:normal;}
-    .cab-titulo-proj{font-size:9pt;font-weight:bold;color:#333;text-transform:uppercase;}
-    .cab-subtitulo{font-size:8pt;color:#555;margin-top:2pt;}
-    .cab-linha{height:2pt;background:${corP};margin:0 15mm;}
-    .capa-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:15mm 20mm 10mm;}
-    .capa-apresentacao{font-size:13pt;font-weight:bold;color:#333;text-align:center;margin-bottom:16pt;letter-spacing:1pt;}
-    .capa-apresenta-txt{font-size:10pt;color:#555;text-align:center;margin-bottom:10pt;}
-    .capa-spacer{flex:1;min-height:20pt;}
-    .capa-projeto{font-size:13pt;font-weight:bold;text-align:center;color:#222;border-bottom:1pt solid #ccc;padding-bottom:10pt;width:100%;}
-    .capa-periodo{font-size:10pt;color:#555;text-align:center;}
-    .capa-tecnico{font-size:10pt;text-align:center;line-height:1.8;color:#333;}
-    .rod{display:flex;justify-content:space-between;padding:5pt 15mm;border-top:1pt solid #ddd;font-size:7pt;color:#888;margin-top:auto;}
-    .pg-body{flex:1;padding:8mm 15mm 4mm;}
-    .sum-tit{font-size:12pt;font-weight:bold;color:#333;margin-bottom:14pt;text-transform:uppercase;}
-    .sum-tab{width:100%;border-collapse:collapse;font-size:10pt;}
-    .sum-tab tr{height:20pt;}
-    .sum-n{width:30pt;font-weight:bold;vertical-align:middle;padding:2pt 0;}
-    .sum-t{vertical-align:middle;padding:2pt 4pt;}
-    .sum-dots{background-image:radial-gradient(circle,#aaa 1px,transparent 1px);background-size:4pt 100%;background-repeat:repeat-x;background-position:0 60%;}
-    .sum-pg{width:20pt;text-align:right;vertical-align:middle;}
-    .sum-sub{font-style:italic;color:#555;font-size:9pt;}
-    .sec-num{font-size:11pt;font-weight:bold;color:${corP};margin-bottom:10pt;padding-bottom:4pt;border-bottom:1pt solid ${corP};text-transform:uppercase;}
-    .prog-tit{font-size:10pt;font-weight:bold;color:#222;margin:10pt 0 6pt;padding:5pt 10pt;background:#f5f5f5;}
-    .sub-tit{font-size:10pt;font-weight:bold;color:${corP};margin:8pt 0 5pt;}
-    .pg-texto{font-size:10pt;line-height:1.7;color:#333;margin-bottom:6pt;text-align:justify;}
-    .quad-tit{font-size:10pt;font-weight:bold;color:#333;margin:8pt 0 3pt;}
-    .quad-tab{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:8pt;}
-    .quad-tab th{background:${corP};color:#fff;padding:4pt 8pt;text-align:left;font-weight:bold;}
-    .quad-tab td{padding:4pt 8pt;border:1pt solid #e0e0e0;}
-    .quad-tab tr.alt td{background:#f8f8f8;}
-    .qk{font-weight:bold;color:${corP};width:110pt;}
-    .foto-tab{width:100%;border-collapse:separate;border-spacing:8pt;}
-    .foto-cel{width:50%;vertical-align:top;text-align:center;}
-    .foto-img{width:100%;height:100pt;object-fit:cover;border:1pt solid #ddd;}
-    .foto-leg{font-size:8pt;color:#555;text-align:center;margin-top:3pt;font-style:italic;}
-    @media print{
-      body{background:#fff;}
-      .pagina{box-shadow:none;margin:0;page-break-after:always;}
-      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-    }`;
-
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-  <title>Relatório – ${nEmp} – ${mes}/${ano}</title>
-  <style>${css}</style></head><body>
-  ${capaHTML}${sumarioHTML}${identHTML}${introHTML}${pgmExecHTML}${gestaoHTML}
-  </body></html>`;
-}
-
-function dlWord(mes, ano, dados_rel) {
-  var html = buildRelatorioHTML(dados_rel);
-  var b = new Blob([html], {type:"application/msword"});
+function dlWord(mes, ano) {
+  var el = document.getElementById("reldoc");
+  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
+  var b = new Blob(["<html><body>" + el.innerHTML + "</body></html>"], {type:"application/msword"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
-  a.href = u; a.download = "Relatorio_"+mes+"_"+ano+".doc"; a.click();
+  a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
   URL.revokeObjectURL(u);
 }
-function dlPDF(dados_rel) {
-  var html = buildRelatorioHTML(dados_rel);
-  var blob = new Blob([html], {type:"text/html;charset=utf-8"});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = "Relatorio_MMA_Field.html";
-  a.click();
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-  setTimeout(function(){ alert("Arquivo baixado!\n\nAbra o arquivo .html no navegador e pressione Ctrl+P para imprimir/salvar como PDF."); }, 500);
+function dlPDF() {
+  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
+  var s = document.createElement("style");
+  s.id = "pprt";
+  s.textContent =
+    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
+    "@media print" + ob +
+      "body *" + ob + "visibility:hidden!important" + cb +
+      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
+      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
+      "h2,h3" + ob + "page-break-after:avoid" + cb +
+      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
+      "table" + ob + "page-break-inside:avoid" + cb +
+    cb;
+  document.head.appendChild(s);
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
+  }, 600);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -560,33 +322,6 @@ export default function App() {
 // ─────────────────────────────────────────────
 function AppPrincipal({ user, onLogout }) {
   var ei = estadoInicial();
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("dados_usuario").select("estado").eq("user_id", user.id).single().then(({data}) => {
-      if (!data?.estado) return;
-      var e = data.estado;
-      if (e.fotos) setFotos(e.fotos);
-      if (e.dados) setDados(e.dados);
-      if (e.inv) setInv(e.inv);
-      if (e.cor) setCor(e.cor);
-      if (e.lCons) setLCons(e.lCons);
-      if (e.lEmpr) setLEmpr(e.lEmpr);
-      if (e.campos) setCampos(e.campos);
-      if (e.nrel) setNrel(e.nrel);
-      if (e.mes) setMes(e.mes);
-      if (e.ano) setAno(e.ano);
-      if (e.pAtiv) setPAtiv(e.pAtiv);
-      if (e.pCust) setPCust(e.pCust);
-      if (e.nomes) setNomes(e.nomes);
-      if (e.extras) setExtras(e.extras);
-      if (e.intro) setIntro(e.intro);
-      if (e.empreendedor) setEmpreendedor(e.empreendedor);
-      if (e.construtora) setConstrutora(e.construtora);
-      if (e.empreendimento) setEmpreendimento(e.empreendimento);
-      if (e.equipe) setEquipe(e.equipe);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(e));
-    });
-  }, [user?.id]);
   const [aba, setAba]       = useState("fotos");
   const [fotos, setFotos]   = useState(ei?.fotos || {});
   const [psel, setPsel]     = useState("");
@@ -627,27 +362,15 @@ function AppPrincipal({ user, onLogout }) {
   const [historico, setHistorico] = useState(() => {
     try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
   });
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("historico_relatorios").select("*").eq("user_id", user.id).order("created_at", {ascending:false}).then(({data}) => {
-      if (!data || data.length === 0) return;
-      var rels = data.map(r => ({id:r.rel_id, titulo:r.titulo, mes:r.mes, ano:r.ano, empresa:r.empresa, empreendimento:r.empreendimento, data:r.data_salvo, estado:r.estado}));
-      setHistorico(rels);
-      try { localStorage.setItem(HIST_KEY, JSON.stringify(rels)); } catch(e) {}
-    });
-  }, [user?.id]);
   const [msgSalvo, setMsgSalvo] = useState("");
   const ref = useRef();
   const saveTimer = useRef(null);
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async function() {
+    saveTimer.current = setTimeout(function() {
       try {
         var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
-        if (user) {
-          await supabase.from("dados_usuario").upsert({user_id:user.id, estado, updated_at:new Date().toISOString()}, {onConflict:"user_id"});
-        }
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
       } catch(e) {}
@@ -665,12 +388,6 @@ function AppPrincipal({ user, onLogout }) {
     var nh = [rel,...historico];
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
-    if (user) {
-      supabase.from("historico_relatorios").insert({
-        user_id:user.id, rel_id:rel.id, titulo:rel.titulo, mes:rel.mes, ano:rel.ano,
-        empresa:rel.empresa, empreendimento:rel.empreendimento, data_salvo:rel.data, estado:rel.estado
-      });
-    }
     alert("Relatório de "+mes+"/"+ano+" salvo no histórico!");
   };
   const carregarRelatorio = (rel) => {
@@ -696,8 +413,7 @@ function AppPrincipal({ user, onLogout }) {
   };
   const baixarRelatorio = (rel) => {
     carregarRelatorio(rel);
-    var dr = {lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel:rel.estado?.nrel||nrel,mes:rel.mes,ano:rel.ano,intro:rel.estado?.intro||intro,ativos,dados:rel.estado?.dados||dados,fotos:rel.estado?.fotos||fotos,nomes,cor,pCust};
-    dlWord(rel.mes, rel.ano, dr);
+    setTimeout(function() { setAba("relatorio"); setTimeout(function() { dlWord(rel.mes, rel.ano); }, 800); }, 500);
   };
   const novoRelatorio = () => {
     if (!window.confirm("Iniciar novo relatório?")) return;
@@ -1139,12 +855,12 @@ function AppPrincipal({ user, onLogout }) {
                       <div><label style={LB}>Nome do Empreendimento</label><input value={empreendimento.nome||""} onChange={e=>setEmpreendimento(x=>({...x,nome:e.target.value}))} style={SI}/></div>
                       <div><label style={LB}>Estado (UF)</label><input value={empreendimento.uf||""} onChange={e=>setEmpreendimento(x=>({...x,uf:e.target.value}))} style={SI}/></div>
                     </div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px"}}>
-                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
-                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#fff",color:"#2d6a4f",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
+                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
                     </div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4,border:"1px solid #2d6a4f"}}>
-                      <thead><tr><th style={{...TH,background:"#1a3d2b"}}>Nome</th><th style={{...TH,background:"#1a3d2b"}}>Função</th><th style={{...TH,background:"#1a3d2b"}}>Registro Profissional</th><th style={{...TH,background:"#1a3d2b",width:30}}></th></tr></thead>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
+                      <thead><tr><th style={{...TH,background:"#2d6a4f"}}>Nome</th><th style={{...TH,background:"#2d6a4f"}}>Função</th><th style={{...TH,background:"#2d6a4f"}}>Registro Profissional</th><th style={{...TH,background:"#2d6a4f",width:30}}></th></tr></thead>
                       <tbody>
                         {equipe.length===0&&<tr><td colSpan={4} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Clique em "+ Membro" para adicionar</td></tr>}
                         {equipe.map((m,mi)=>(
@@ -1192,35 +908,21 @@ function AppPrincipal({ user, onLogout }) {
         {/* RELATORIO */}
         {aba==="relatorio"&&(
           <div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-              <h2 style={{color:HC,margin:0}}>📄 Relatório Mensal</h2>
-              <div style={{display:"flex",gap:8}}>
-                <button onClick={()=>{var dr={lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust};dlWord(mes,ano,dr);}} style={{background:"#5a4fcf",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📥 Baixar Word</button>
-                <button onClick={()=>{var dr={lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
-              </div>
-            </div>
+            <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
-              <div id="cab-pdf"><Cab/></div>
-              <div id="reldoc-inner" style={{padding:"28px 40px"}}>
+              <Cab/>
+              <div style={{padding:"28px 40px"}}>
                 <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
                   <div style={{fontSize:12,color:"#555",marginBottom:12}}>{construtora.nome||emp||"[Empresa Executora]"} apresenta a {empreendedor.nome||"[Empreendedor]"} o documento:</div>
                   <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{(empreendimento.nome||nEmp)&&<><br/>{(empreendimento.nome||nEmp).toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
                   {equipe.length>0&&<div style={{fontSize:12,color:"#555"}}>{equipe.map(m=>m.nome).join(", ")}<br/><strong>{construtora.nome||emp}</strong></div>}
                 </div>
-                <div id="sumario-rel" className="pg-break" style={{marginBottom:20,pageBreakAfter:"always"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",fontWeight:"bold"}}>SUMÁRIO</h2>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><tbody>
-                    {[["1. INTRODUÇÃO",""],["2. IDENTIFICAÇÃO DO EMPREENDIMENTO",""],["3. PROGRAMAS EM EXECUÇÃO",""],...ativos.map((p,pi)=>["   3."+(pi+1)+" "+getL(p.id),""]),["4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS",""]].map((item,i)=>(
-                      <tr key={i}><td style={{padding:"4px 0",fontSize:11,color:i===0||i===1||i===2||i===3+ativos.length?"#333":"#555",fontWeight:i<3||i===3+ativos.length?"bold":"normal",paddingLeft:item[0].startsWith("   ")?"20px":"0"}}>{item[0]}</td><td style={{padding:"4px 0",textAlign:"right",fontSize:11,color:"#999",borderBottom:"1px dotted #ccc"}}></td></tr>
-                    ))}
-                  </tbody></table>
-                </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>1. INTRODUÇÃO</h2>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
-                <div id="ident-rel" className="pg-break" style={{marginBottom:20,pageBreakAfter:"always"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>2. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
+                <div style={{marginBottom:20}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
                   <div style={{marginBottom:10}}>
                     <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 1 – Identificação do Empreendedor</div>
                     <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
@@ -1249,10 +951,10 @@ function AppPrincipal({ user, onLogout }) {
                   </div>
                 </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>3. PROGRAMAS EM EXECUÇÃO</h2>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-                <h2 style={{color:cor,fontSize:13,marginBottom:18,textAlign:"left"}}>4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
+                <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:18,textAlign:"left"}}>3. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
                   var d=getD(p.id); var fp=getF(p.id);
                   var grafRel=(d.graficos||[]).filter(gr=>gr.addRel&&(gr.dados||[]).some(x=>x.l&&x.v));
@@ -1260,7 +962,7 @@ function AppPrincipal({ user, onLogout }) {
                     <div key={p.id} style={{marginBottom:32}}>
                       <h3 style={{color:cor,fontSize:13,borderLeft:"4px solid "+p.cor,paddingLeft:10,marginBottom:10,textAlign:"left"}}>{pi+1}. {getL(p.id).toUpperCase()}</h3>
                       {d.desc&&<p style={{fontSize:12,color:"#444",lineHeight:1.8,marginBottom:12,textAlign:"justify"}}>{d.desc}</p>}
-                      {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div className="foto-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:160,objectFit:"cover",objectPosition:"center",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
+                      {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:160,objectFit:"cover",objectPosition:"center",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
                       {grafRel.map((gr,gi)=>(
                         <div key={gi} style={{marginBottom:16}}>
                           <h4 style={{fontSize:11,color:"#333",marginBottom:5,textAlign:"left"}}>{gr.titulo||"Gráfico "+(gi+1)}</h4>
@@ -1272,8 +974,7 @@ function AppPrincipal({ user, onLogout }) {
                   );
                 })}
                 {extras.map((pe,pi)=><div key={pe.id} style={{marginBottom:28}}><h3 style={{color:cor,fontSize:13,borderLeft:"4px solid #2d6a4f",paddingLeft:10,marginBottom:10,textAlign:"left"}}>{ativos.length+pi+1}. {pe.nome.toUpperCase()}</h3><p style={{fontSize:12,color:"#444",lineHeight:1.8}}>{pe.intro}</p></div>)}
-                <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{construtora.nome||emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
-              </div>
+                <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
               </div>
             </div>
           </div>
@@ -1302,7 +1003,7 @@ function AppPrincipal({ user, onLogout }) {
                     <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
                       <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📂 Abrir</button>
                       <button onClick={()=>baixarRelatorio(rel)} style={{background:"#5a4fcf",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📥 Baixar Word</button>
-                      <button onClick={()=>{var dr={lCons:rel.estado?.lCons||lCons,lEmpr:rel.estado?.lEmpr||lEmpr,empreendedor:rel.estado?.empreendedor||empreendedor,construtora:rel.estado?.construtora||construtora,empreendimento:rel.estado?.empreendimento||empreendimento,equipe:rel.estado?.equipe||equipe,nrel:rel.estado?.nrel||nrel,mes:rel.mes,ano:rel.ano,intro:rel.estado?.intro||intro,ativos,dados:rel.estado?.dados||dados,fotos:rel.estado?.fotos||fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📄 Gerar PDF</button>
+                      <button onClick={()=>{carregarRelatorio(rel);setTimeout(function(){dlPDF();},1000);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
                       <button onClick={()=>excluirRelatorio(rel.id)} style={{background:"none",border:"2px solid #b5451b",color:"#b5451b",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>🗑️ Excluir</button>
                     </div>
                   </div>
