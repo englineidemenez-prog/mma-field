@@ -501,13 +501,14 @@ function dlWord(mes, ano, dados_rel) {
 }
 function dlPDF(dados_rel) {
   var html = buildRelatorioHTML(dados_rel);
-  var win = window.open("","_blank","width=900,height=700");
-  if (!win) { alert("Permita pop-ups para gerar o PDF."); return; }
-  win.document.write(html);
-  win.document.close();
-  win.onload = function() {
-    setTimeout(function() { win.print(); }, 800);
-  };
+  var blob = new Blob([html], {type:"text/html;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "Relatorio_MMA_Field.html";
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  setTimeout(function(){ alert("Arquivo baixado!\n\nAbra o arquivo .html no navegador e pressione Ctrl+P para imprimir/salvar como PDF."); }, 500);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
