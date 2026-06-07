@@ -981,4 +981,3 @@ function AppPrincipal({ user, onLogout }) {
     </div>
   );
 }
-
