@@ -488,9 +488,18 @@ function dlPDF() {
   var reldoc = document.getElementById("reldoc");
   var wrap = document.createElement("div");
   wrap.id = "pprt-wrap";
+  wrap.style.cssText = "position:static;width:100%;background:#fff";
   var clone = reldoc.cloneNode(true);
-  // Remover botões e inputs do clone
+  // Remover elementos de UI do clone
   clone.querySelectorAll("button,input,select,label,textarea").forEach(function(el){ el.remove(); });
+  // Garantir que recharts wrappers sejam visíveis
+  clone.querySelectorAll(".recharts-wrapper").forEach(function(el){
+    el.style.overflow = "visible";
+    el.style.display = "block";
+  });
+  clone.querySelectorAll(".recharts-wrapper svg").forEach(function(el){
+    el.style.overflow = "visible";
+  });
   wrap.appendChild(clone);
   document.body.appendChild(wrap);
 
@@ -1219,11 +1228,7 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* SUMÁRIO */}
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
+                <Cab/>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:16,textAlign:"left"}}>SUMÁRIO</h2>
                   <div style={{fontSize:12}}>
@@ -1243,11 +1248,7 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* PÁG 3 - IDENTIFICAÇÃO */}
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
+                <Cab/>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",marginTop:16}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
                   <h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 1 – Identificação do Empreendedor</h4>
@@ -1271,11 +1272,7 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* PÁG 4 - EQUIPE TÉCNICA */}
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
+                <Cab/>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",marginTop:16}}>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
@@ -1285,30 +1282,18 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* PÁG 5 - INTRODUÇÃO */}
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
+                <Cab/>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left",marginTop:16}}>3. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={6} style={{...SI,fontSize:13,lineHeight:1.9,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb",width:"100%"}}/>
                 </div>
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
+                <Cab/>
                 <div style={{padding:"20px 32px",marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>4. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
+                <Cab/>
                 <div style={{padding:"20px 32px"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:18,textAlign:"left"}}>5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
