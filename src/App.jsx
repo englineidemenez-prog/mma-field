@@ -4,8 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  { auth: { persistSession: true, storageKey: "mmafield-auth" } }
+  import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
 const HC = "#1a3d2b";
@@ -32,99 +31,11 @@ const SAVE_KEY = "mmafield_data";
 const HIST_KEY = "mmafield_historico";
 const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Programas Ambientais do Plano Básico Ambiental (PBA), em conformidade com as condicionantes da Licença de Operação (LO) nº _______, emitida pelo órgão ambiental competente. As atividades descritas neste documento foram desenvolvidas no período de referência, visando o monitoramento, controle e mitigação dos impactos ambientais associados ao empreendimento.";
 
-
-// ─────────────────────────────────────────────
-// HOOK RESPONSIVO
-// ─────────────────────────────────────────────
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return isMobile;
-}
-
-// ─────────────────────────────────────────────
-// BANNER DE INSTALAÇÃO PWA
-// ─────────────────────────────────────────────
-function BannerInstalar() {
-  const [prompt, setPrompt] = useState(null);
-  const [visivelMobile, setVisivelMobile] = useState(false);
-  const [visivelDesktop, setVisivelDesktop] = useState(false);
-  const [instalado, setInstalado] = useState(false);
-  const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault();
-      setPrompt(e);
-      if (isMobileDevice) setVisivelMobile(true);
-      else setVisivelDesktop(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => {
-      setVisivelMobile(false);
-      setVisivelDesktop(false);
-      setInstalado(true);
-    });
-    if (!isMobileDevice) {
-      setTimeout(() => setVisivelDesktop(true), 2000);
-    }
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
-
-  const instalar = async () => {
-    if (prompt) {
-      prompt.prompt();
-      const { outcome } = await prompt.userChoice;
-      if (outcome === "accepted") { setVisivelMobile(false); setVisivelDesktop(false); }
-    }
-  };
-
-  if (instalado) return null;
-
-  if (visivelDesktop && !isMobileDevice) return (
-    <div style={{position:"fixed",top:0,left:0,right:0,background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 4px 20px rgba(0,0,0,0.3)",zIndex:9999}}>
-      <div style={{display:"flex",alignItems:"center",gap:12}}>
-        <span style={{fontSize:24}}>🌿</span>
-        <div>
-          <div style={{color:"#fff",fontWeight:"bold",fontSize:13,fontFamily:"Georgia,serif"}}>💻 Instale o MMA Field no seu computador</div>
-          <div style={{color:"rgba(255,255,255,0.75)",fontSize:11,fontFamily:"Georgia,serif"}}>Clique no ícone ⊕ na barra de endereço do navegador, ou use o botão ao lado</div>
-        </div>
-      </div>
-      <div style={{display:"flex",gap:8,flexShrink:0}}>
-        <button onClick={()=>setVisivelDesktop(false)} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"7px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>Fechar</button>
-        {prompt && <button onClick={instalar} style={{background:"#a8e6c0",border:"none",color:"#1a3d2b",borderRadius:8,padding:"7px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:13,fontWeight:"bold"}}>⬇️ Baixar App</button>}
-      </div>
-    </div>
-  );
-
-  if (visivelMobile && isMobileDevice) return (
-    <div style={{position:"fixed",bottom:0,left:0,right:0,background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 -4px 20px rgba(0,0,0,0.3)",zIndex:9999}}>
-      <div style={{display:"flex",alignItems:"center",gap:12}}>
-        <span style={{fontSize:32}}>🌿</span>
-        <div>
-          <div style={{color:"#fff",fontWeight:"bold",fontSize:14,fontFamily:"Georgia,serif"}}>Instale o MMA Field</div>
-          <div style={{color:"rgba(255,255,255,0.75)",fontSize:11,fontFamily:"Georgia,serif"}}>Acesso rápido na tela inicial do celular</div>
-        </div>
-      </div>
-      <div style={{display:"flex",gap:8}}>
-        <button onClick={()=>setVisivelMobile(false)} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>Agora não</button>
-        <button onClick={instalar} style={{background:"#a8e6c0",border:"none",color:"#1a3d2b",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:13,fontWeight:"bold"}}>📲 Instalar</button>
-      </div>
-    </div>
-  );
-
-  return null;
-}
-
 // ─────────────────────────────────────────────
 // TELA DE AUTENTICAÇÃO
 // ─────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
-  const [modo, setModo] = useState("login");
+  const [modo, setModo] = useState("login"); // "login" | "cadastro" | "esqueci"
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
@@ -177,9 +88,8 @@ function AuthScreen({ onLogin }) {
     borderRadius:18,
     padding:"40px 36px",
     width:"100%",
-    maxWidth:420,
+    maxWidth:400,
     boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
-    overflow:"visible",
   };
 
   const estiloInput = {
@@ -225,37 +135,41 @@ function AuthScreen({ onLogin }) {
   return (
     <div style={estiloFundo}>
       <div style={estiloCard}>
+        {/* Logo */}
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:42,marginBottom:8}}>🌿</div>
           <div style={{fontSize:22,fontWeight:"bold",color:HC,letterSpacing:1}}>MMA Field</div>
           <div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:2,marginTop:3}}>Meu Mundo Ambiental</div>
         </div>
 
+        {/* Título da tela */}
         <div style={{fontSize:15,fontWeight:"bold",color:HC,marginBottom:20,textAlign:"center"}}>
           {modo === "login" && "Entrar na sua conta"}
           {modo === "cadastro" && "Criar nova conta"}
           {modo === "esqueci" && "Recuperar senha"}
         </div>
 
+        {/* Mensagem de erro */}
         {erro && (
           <div style={{background:"#fff0f0",border:"1px solid #ffcccc",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#b00000"}}>
             ⚠️ {erro}
           </div>
         )}
 
+        {/* Mensagem de sucesso */}
         {sucesso && (
           <div style={{background:"#f0fff4",border:"1px solid #a8e6c0",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#1a5c35"}}>
             ✅ {sucesso}
           </div>
         )}
 
+        {/* Campos */}
         <div>
           <label style={{...LB,marginBottom:5}}>Email</label>
           <input
             type="email"
             placeholder="seu@email.com"
             value={email}
-            autoComplete="username"
             onChange={e => setEmail(e.target.value)}
             style={estiloInput}
             onKeyDown={e => e.key === "Enter" && modo === "login" && handleLogin()}
@@ -268,7 +182,6 @@ function AuthScreen({ onLogin }) {
                 type="password"
                 placeholder="••••••••"
                 value={senha}
-                autoComplete="current-password"
                 onChange={e => setSenha(e.target.value)}
                 style={estiloInput}
                 onKeyDown={e => e.key === "Enter" && modo === "login" && handleLogin()}
@@ -283,7 +196,6 @@ function AuthScreen({ onLogin }) {
                 type="password"
                 placeholder="••••••••"
                 value={confirmar}
-                autoComplete="new-password"
                 onChange={e => setConfirmar(e.target.value)}
                 style={estiloInput}
               />
@@ -291,6 +203,7 @@ function AuthScreen({ onLogin }) {
           )}
         </div>
 
+        {/* Botão principal */}
         <button
           onClick={modo === "login" ? handleLogin : modo === "cadastro" ? handleCadastro : handleEsqueci}
           disabled={carregando}
@@ -299,16 +212,14 @@ function AuthScreen({ onLogin }) {
           {carregando ? "⏳ Aguarde..." : modo === "login" ? "Entrar" : modo === "cadastro" ? "Criar Conta" : "Enviar Email de Recuperação"}
         </button>
 
-        <div style={{marginTop:16,textAlign:"center",display:"flex",flexDirection:"column",gap:10}}>
+        {/* Links de navegação */}
+        <div style={{marginTop:20,textAlign:"center",display:"flex",flexDirection:"column",gap:8}}>
           {modo === "login" && (
             <>
-              <button
-                onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }}
-                style={{width:"100%",padding:"12px",background:"transparent",color:"#2d6a4f",border:"2px solid #2d6a4f",borderRadius:9,fontSize:14,fontWeight:"bold",fontFamily:"Georgia,serif",cursor:"pointer",letterSpacing:0.5}}
-              >
-                Criar nova conta
+              <button onClick={() => { setModo("cadastro"); setErro(""); setSucesso(""); }} style={estiloLink}>
+                Não tem conta? Criar conta
               </button>
-              <button onClick={() => { setModo("esqueci"); setErro(""); setSucesso(""); }} style={{...estiloLink,color:"#888",marginTop:4}}>
+              <button onClick={() => { setModo("esqueci"); setErro(""); setSucesso(""); }} style={{...estiloLink,color:"#888"}}>
                 Esqueci minha senha
               </button>
             </>
@@ -334,124 +245,32 @@ function AuthScreen({ onLogin }) {
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
   if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  var estilos = [
-    "@page{size:A4 portrait;margin:2cm 3cm 2cm 3cm}",
-    "body{font-family:Arial,sans-serif;font-size:11pt;color:#222;width:100%;margin:0;padding:0}",
-    /* Cabeçalho como tabela */
-    ".word-cab{width:100%;border-collapse:collapse;border-bottom:2px solid #1a3d2b;margin-bottom:10pt}",
-    ".word-cab td{vertical-align:middle;padding:6pt 8pt}",
-    ".word-cab .cab-centro{text-align:center;font-family:Arial,sans-serif;font-size:8pt;color:#444;line-height:1.6;font-weight:bold}",
-    ".word-cab img{height:40pt;width:auto;max-width:80pt;object-fit:contain;display:block}",
-    /* Capa */
-    "#capa-rel{page-break-after:always;min-height:200mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}",
-    /* Títulos padrão MRS */
-    "h2{font-family:Arial,sans-serif;font-size:12pt;font-weight:bold;text-transform:uppercase;text-align:justify;margin:18pt 0 6pt 0;page-break-after:avoid;border-bottom:2px solid currentColor;padding-bottom:4pt}",
-    "h3{font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-align:justify;margin:12pt 0 6pt 0;page-break-after:avoid}",
-    "h4{font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-align:justify;margin:8pt 0 4pt 0;page-break-after:avoid}",
-    /* Texto */
-    "p{font-family:Arial,sans-serif;font-size:11pt;line-height:16pt;text-align:justify;margin:6pt 0}",
-    /* Tabelas padrão MRS */
-    "table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word;font-family:Arial,sans-serif;font-size:9pt;margin:6pt 0}",
-    "th{background:#4d4d4d;color:#fff;padding:4pt 6pt;font-size:9pt;font-weight:bold;text-align:center;border:0.5pt solid #999}",
-    "td{padding:4pt 6pt;font-size:9pt;border:0.5pt solid #ccc;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}",
-    "tr:nth-child(even) td{background:#f0f0f0}",
-    /* Fotos */
-    "img{max-width:100%;height:auto;display:block;margin:0 auto}",
-    ".foto-tab{width:100%;border-collapse:collapse;margin:8pt 0}",
-    ".foto-tab td{border:none;padding:4pt;text-align:center;vertical-align:top;width:50%}",
-    ".foto-tab img{width:100%;max-height:55mm;object-fit:cover;border:1pt solid #ddd}",
-    ".foto-leg{font-family:Arial,sans-serif;font-size:8pt;font-weight:bold;text-align:center;margin-top:3pt;color:#444}",
-    ".foto-geo{font-family:Arial,sans-serif;font-size:7pt;color:#888;text-align:center}",
-    /* Ocultar UI */
-    "button,textarea,input,select,nav{display:none!important}",
-    "svg.icon-svg{display:none!important}",
-    /* Quebras */
-    "h2,h3,h4{page-break-after:avoid}",
-    ".prog-section{page-break-inside:avoid}",
-  ].join("");
-
-  // Clonar para não alterar o DOM
-  var clone = el.cloneNode(true);
-
-  // Substituir cabeçalho flex por tabela compatível
-  var cabDiv = clone.firstElementChild;
-  if (cabDiv) {
-    var imgs = cabDiv.querySelectorAll("img");
-    var centroDiv = cabDiv.querySelector("div[style*='textAlign:center'], div[style*='text-align:center']");
-    var imgEsq = imgs[0] ? '<img src="'+imgs[0].src+'" style="height:40pt;width:auto;max-width:80pt;object-fit:contain"/>' : '<div style="width:80pt;height:40pt;background:#eee;display:inline-block"></div>';
-    var imgDir = imgs[1] ? '<img src="'+imgs[1].src+'" style="height:40pt;width:auto;max-width:80pt;object-fit:contain"/>' : '<div style="width:80pt;height:40pt;background:#eee;display:inline-block"></div>';
-    var centroHTML = centroDiv ? centroDiv.innerHTML : "";
-    cabDiv.outerHTML = '<table class="word-cab"><tr>' +
-      '<td style="width:110pt;text-align:left">'+imgEsq+'</td>' +
-      '<td class="cab-centro">'+centroHTML+'</td>' +
-      '<td style="width:110pt;text-align:right">'+imgDir+'</td>' +
-      '</tr></table>';
-  }
-
-  // Converter grids de fotos em tabelas
-  clone.querySelectorAll("div[style*='gridTemplateColumns']").forEach(function(grid) {
-    var items = grid.children;
-    var rows = "";
-    for (var i = 0; i < items.length; i += 2) {
-      var c1 = items[i], c2 = items[i+1];
-      var celula = function(cel) {
-        if (!cel) return '<td></td>';
-        var img = cel.querySelector("img");
-        var geo = cel.querySelector("div[style*='fontSize:8']");
-        var leg = cel.querySelector("div[style*='fontSize:10']");
-        return '<td style="width:50%;border:none;padding:4pt;text-align:center">' +
-          (img ? '<img src="'+img.src+'" style="width:100%;max-height:80mm;object-fit:cover;border:1pt solid #ddd"/>' : '') +
-          (geo ? '<div class="foto-geo">📍 '+geo.textContent+'</div>' : '') +
-          (leg ? '<div class="foto-leg">'+leg.textContent+'</div>' : '') +
-          '</td>';
-      };
-      rows += '<tr>'+celula(c1)+celula(c2)+'</tr>';
-    }
-    grid.outerHTML = '<table class="foto-tab"><tbody>'+rows+'</tbody></table>';
-  });
-
-  var conteudo = clone.innerHTML;
-  var html = "\ufeff<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>" +
-    "<head><meta charset='utf-8'><meta name=ProgId content=Word.Document>" +
-    "<style>"+estilos+"</style></head>" +
-    "<body style='margin:0;padding:0'>"+conteudo+"</body></html>";
-  var b = new Blob([html], {type:"application/vnd.ms-word;charset=utf-8"});
+  var b = new Blob(["<html><body>" + el.innerHTML + "</body></html>"], {type:"application/msword"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
-  a.href = u; a.download = "Relatorio_"+mes+"_"+ano+".doc"; a.click();
-  setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
+  a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
+  URL.revokeObjectURL(u);
 }
 function dlPDF() {
-  var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  function gerarPDF() {
-    var opt = {
-      margin: [15,15,15,15],
-      filename: "Relatorio_MMA_Field.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false, removeContainer: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    };
-    var toHide = el.querySelectorAll("button, input, select, textarea");
-    var hidden = [];
-    toHide.forEach(function(e) { hidden.push({el:e, d:e.style.display}); e.style.display = "none"; });
-    var os = el.style.cssText;
-    el.style.boxShadow = "none";
-    el.style.border = "none";
-    el.style.borderRadius = "0";
-    window.html2pdf().set(opt).from(el).save().then(function() {
-      el.style.cssText = os;
-      hidden.forEach(function(h) { h.el.style.display = h.d; });
-    });
-  }
-  if (window.html2pdf) {
-    gerarPDF();
-  } else {
-    var s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-    s.onload = gerarPDF;
-    document.head.appendChild(s);
-  }
+  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
+  var s = document.createElement("style");
+  s.id = "pprt";
+  s.textContent =
+    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
+    "@media print" + ob +
+      "body *" + ob + "visibility:hidden!important" + cb +
+      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
+      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
+      "h2,h3" + ob + "page-break-after:avoid" + cb +
+      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
+      "table" + ob + "page-break-inside:avoid" + cb +
+    cb;
+  document.head.appendChild(s);
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
+  }, 600);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -466,10 +285,12 @@ export default function App() {
   const [carregandoAuth, setCarregandoAuth] = useState(true);
 
   useEffect(() => {
+    // Verificar sessão existente
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setCarregandoAuth(false);
     });
+    // Escutar mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -490,10 +311,10 @@ export default function App() {
   }
 
   if (!user) {
-    return <><AuthScreen onLogin={setUser} /><BannerInstalar /></>;
+    return <AuthScreen onLogin={setUser} />;
   }
 
-  return <><AppPrincipal user={user} onLogout={handleLogout} /><BannerInstalar /></>;
+  return <AppPrincipal user={user} onLogout={handleLogout} />;
 }
 
 // ─────────────────────────────────────────────
@@ -536,11 +357,6 @@ function AppPrincipal({ user, onLogout }) {
   const [ger, setGer]       = useState(false);
   const [cfg, setCfg]       = useState(true);
   const [intro, setIntro]   = useState(ei?.intro || INTRO_DEFAULT);
-  const [ident, setIdent]   = useState(ei?.ident || {
-    empr_nome:"", empr_cnpj:"", empr_end:"", empr_tel:"", empr_rep:"", empr_contato:"", empr_email:"",
-    cons_nome:"", cons_cnpj:"", cons_end:"", cons_tel:"", cons_rep:"", cons_contato:"", cons_email:""
-  });
-  const [equipe, setEquipe] = useState(ei?.equipe || []);
   const [historico, setHistorico] = useState(() => {
     try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
   });
@@ -551,13 +367,13 @@ function AppPrincipal({ user, onLogout }) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
       try {
-        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,ident,equipe};
+        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
       } catch(e) {}
     }, 1500);
-  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,ident,equipe]);
+  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro]);
   const salvarRelatorio = () => {
     var rel = {
       id: Date.now(), mes, ano, nrel,
@@ -565,7 +381,7 @@ function AppPrincipal({ user, onLogout }) {
       empresa: campos.find(c=>c.id==="f1")?.val||"",
       empreendimento: campos.find(c=>c.id==="f3")?.val||"",
       data: new Date().toLocaleDateString("pt-BR"),
-      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,ident,equipe}
+      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro}
     };
     var nh = [rel,...historico];
     setHistorico(nh);
@@ -591,21 +407,15 @@ function AppPrincipal({ user, onLogout }) {
   };
   const baixarRelatorio = (rel) => {
     carregarRelatorio(rel);
-    setTimeout(function() {
-      setAba("relatorio");
-      setTimeout(function() { dlWord(rel.mes, rel.ano); }, 1500);
-    }, 600);
+    setTimeout(function() { setAba("relatorio"); setTimeout(function() { dlWord(rel.mes, rel.ano); }, 800); }, 500);
   };
   const novoRelatorio = () => {
     if (!window.confirm("Iniciar novo relatório?")) return;
     setFotos({}); setDados({}); setInv([]); setCor(HC); setLCons(null); setLEmpr(null);
     setCampos([{id:"f1",lb:"Empresa Executora",val:"",ed:false},{id:"f2",lb:"Empreendedor",val:"",ed:false},{id:"f3",lb:"Nome do Empreendimento",val:"",ed:false},{id:"f4",lb:"Estado (UF)",val:"",ed:false},{id:"f5",lb:"Responsável Técnico",val:"",ed:false}]);
     setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id));
-    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT);
-    setIdent({empr_nome:"",empr_cnpj:"",empr_end:"",empr_tel:"",empr_rep:"",empr_contato:"",empr_email:"",cons_nome:"",cons_cnpj:"",cons_end:"",cons_tel:"",cons_rep:"",cons_contato:"",cons_email:""});
-    setEquipe([]); setAba("fotos");
+    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT); setAba("fotos");
   };
-  const isMobile = useIsMobile();
   const todos  = [...PRG,...pCust];
   const ativos = todos.filter(p=>pAtiv.includes(p.id));
   const getL   = id => nomes[id]||todos.find(p=>p.id===id)?.lb||id;
@@ -665,11 +475,11 @@ function AppPrincipal({ user, onLogout }) {
   };
   const Cab = () => (
     <div style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-      {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+      {lCons?<img src={lCons} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
       <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}>
         <strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}
       </div>
-      {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain"}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+      {lEmpr?<img src={lEmpr} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
     </div>
   );
   const renderGrafico = (gr, height, forReport) => {
@@ -707,13 +517,13 @@ function AppPrincipal({ user, onLogout }) {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             {msgSalvo&&<span style={{fontSize:11,color:"#a8e6c0",fontStyle:"italic"}}>{msgSalvo}</span>}
-            <span style={{fontSize:11,color:"rgba(255,255,255,0.6)",display:isMobile?"none":"inline"}}>👤 {user.email}</span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>👤 {user.email}</span>
             <button onClick={salvarRelatorio} style={{background:"#2d6a4f",color:"#fff",border:"2px solid #a8e6c0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>💾 Salvar Relatório</button>
             <button onClick={novoRelatorio} style={{background:"transparent",color:"#fff",border:"2px solid rgba(255,255,255,0.4)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>+ Novo</button>
             <button onClick={onLogout} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
           </div>
         </div>
-        <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:isMobile?4:18,flexWrap:"wrap"}}>
+        <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:18}}>
           {ABS.map(t=>(
             <button key={t.id} onClick={()=>setAba(t.id)} style={{background:aba===t.id?"#eef1ee":"transparent",color:aba===t.id?HC:"rgba(255,255,255,0.85)",border:"none",padding:"9px 20px",borderRadius:"8px 8px 0 0",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:aba===t.id?"bold":"normal"}}>
               {t.lb}
@@ -726,7 +536,7 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="fotos"&&(
           <div>
             <h2 style={{color:HC,marginBottom:18}}>📷 Registro Fotográfico</h2>
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"380px 1fr",gap:18,alignItems:"start"}}>
+            <div style={{display:"grid",gridTemplateColumns:"380px 1fr",gap:18,alignItems:"start"}}>
               <div style={CD}>
                 <h3 style={{color:"#2d6a4f",marginBottom:14,fontSize:14}}>Nova Foto</h3>
                 <label style={LB}>Data</label>
@@ -1079,70 +889,6 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
               )}
             </div>
-            {/* IDENTIFICAÇÃO DO EMPREENDEDOR E CONSULTORA */}
-            <div style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <h4 style={{color:HC,fontSize:13,margin:0}}>🏢 Identificação do Empreendedor</h4>
-                <button onClick={()=>setIdent(id=>({...id,empr_campos:[...(id.empr_campos||[]),{k:"ec"+Date.now(),lb:"Novo Campo",val:""}]}))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-                {[["empr_nome","Empreendedor"],["empr_cnpj","CNPJ"],["empr_end","Endereço"],["empr_tel","Telefone"],["empr_rep","Representante Legal"],["empr_email","E-mail"]].filter(([k])=>!((ident.empr_excluidos||[]).includes(k))).map(([k,lb])=>(
-                  <div key={k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
-                    <div style={{flex:1}}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
-                    <button onClick={()=>setIdent(id=>({...id,empr_excluidos:[...(id.empr_excluidos||[]),k]}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}} title="Excluir campo">×</button>
-                  </div>
-                ))}
-                {(ident.empr_campos||[]).map((c,ci)=>(
-                  <div key={c.k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
-                    <div style={{flex:1}}>
-                      <input value={c.lb} onChange={e=>setIdent(id=>({...id,empr_campos:id.empr_campos.map((x,i)=>i===ci?{...x,lb:e.target.value}:x)}))} style={{...SI,fontSize:9,padding:"2px 5px",marginBottom:3,fontWeight:"bold",color:"#2d6a4f"}}/>
-                      <input value={c.val} onChange={e=>setIdent(id=>({...id,empr_campos:id.empr_campos.map((x,i)=>i===ci?{...x,val:e.target.value}:x)}))} style={{...SI,fontSize:11}}/>
-                    </div>
-                    <button onClick={()=>setIdent(id=>({...id,empr_campos:id.empr_campos.filter((_,i)=>i!==ci)}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}}>×</button>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,marginTop:16,borderTop:"1px solid #e2ebe5",paddingTop:14}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:13}}>🔬</span>
-                  <input value={ident.cons_titulo||"Identificação da Empresa Consultora"} onChange={e=>setIdent(id=>({...id,cons_titulo:e.target.value}))} style={{fontSize:12,fontWeight:"bold",color:HC,border:"1px dashed #c8ddd2",padding:"3px 8px",width:300,borderRadius:5,fontFamily:"Georgia,serif",background:"transparent"}} title="Clique para editar"/>
-                </div>
-                <button onClick={()=>setIdent(id=>({...id,cons_campos:[...(id.cons_campos||[]),{k:"cc"+Date.now(),lb:"Novo Campo",val:""}]}))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {[["cons_nome","Empresa"],["cons_cnpj","CNPJ"],["cons_end","Endereço"],["cons_tel","Telefone"],["cons_rep","Representante Legal"],["cons_email","E-mail"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).map(([k,lb])=>(
-                  <div key={k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
-                    <div style={{flex:1}}><label style={LB}>{lb}</label><input value={ident[k]||""} onChange={e=>setIdent(id=>({...id,[k]:e.target.value}))} style={{...SI,fontSize:11}}/></div>
-                    <button onClick={()=>setIdent(id=>({...id,cons_excluidos:[...(id.cons_excluidos||[]),k]}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}} title="Excluir campo">×</button>
-                  </div>
-                ))}
-                {(ident.cons_campos||[]).map((c,ci)=>(
-                  <div key={c.k} style={{display:"flex",gap:4,alignItems:"flex-end"}}>
-                    <div style={{flex:1}}>
-                      <input value={c.lb} onChange={e=>setIdent(id=>({...id,cons_campos:id.cons_campos.map((x,i)=>i===ci?{...x,lb:e.target.value}:x)}))} style={{...SI,fontSize:9,padding:"2px 5px",marginBottom:3,fontWeight:"bold",color:"#2d6a4f"}}/>
-                      <input value={c.val} onChange={e=>setIdent(id=>({...id,cons_campos:id.cons_campos.map((x,i)=>i===ci?{...x,val:e.target.value}:x)}))} style={{...SI,fontSize:11}}/>
-                    </div>
-                    <button onClick={()=>setIdent(id=>({...id,cons_campos:id.cons_campos.filter((_,i)=>i!==ci)}))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"6px 8px",cursor:"pointer",fontSize:12,marginBottom:1}}>×</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* EQUIPE TÉCNICA */}
-            <div style={{...CD,border:"1px solid #c8ddd2",marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <h4 style={{color:HC,fontSize:13,margin:0}}>👥 Equipe Técnica</h4>
-                <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11,fontWeight:"bold"}}>+ Adicionar Membro</button>
-              </div>
-              {equipe.length===0&&<div style={{fontSize:11,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:"16px 0"}}>Nenhum membro cadastrado.</div>}
-              {equipe.map((m,mi)=>(
-                <div key={m.id} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr auto",gap:8,marginBottom:8,alignItems:"end"}}>
-                  <div><label style={LB}>Nome</label><input value={m.nome} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,nome:e.target.value}:x))} style={{...SI,fontSize:11}}/></div>
-                  <div><label style={LB}>Função</label><input value={m.funcao} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,funcao:e.target.value}:x))} style={{...SI,fontSize:11}}/></div>
-                  <div><label style={LB}>Registro Profissional</label><input value={m.registro} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,registro:e.target.value}:x))} style={{...SI,fontSize:11}}/></div>
-                  <button onClick={()=>setEquipe(eq=>eq.filter((_,i)=>i!==mi))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:6,padding:"7px 10px",cursor:"pointer",fontSize:13,marginBottom:1}}>×</button>
-                </div>
-              ))}
-            </div>
             <div id="extra-card" style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
               <div style={{fontSize:13,fontWeight:"bold",color:"#2d6a4f",marginBottom:8}}>✨ Adicionar Programa Extra com IA</div>
               <div style={{display:"flex",gap:8}}>
@@ -1156,117 +902,30 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="relatorio"&&(
           <div>
             <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
-            <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",border:"1px solid #dde5db",fontSize:13}}>
+            <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
               <Cab/>
-              <div style={{padding:"20px 32px"}}>
-                {/* CAPA */}
-                <div id="capa-rel" style={{textAlign:"center",pageBreakAfter:"always",minHeight:"70vh",display:"flex",flexDirection:"column",justifyContent:"space-between",paddingBottom:0}}>
-                  <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-                    <div style={{fontSize:12,color:"#555",marginBottom:24,fontStyle:"italic"}}>{(ident.cons_nome||emp||"Empresa Executora")} apresenta a {(ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"MMA Field")} o documento:</div>
-                    <div style={{fontSize:15,fontWeight:"bold",color:cor,lineHeight:1.9}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}</div>
-                  </div>
-                  <div style={{fontSize:13,color:"#444",paddingTop:14,marginTop:20,textAlign:"center",letterSpacing:1}}>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
+              <div style={{padding:"28px 40px"}}>
+                <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{emp||"[Empresa Executora]"} apresenta a {campos.find(c=>c.id==="f2")?.val||"[Empreendedor]"} o documento:</div>
+                  <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
+                  {campos.find(c=>c.id==="f5")?.val&&<div style={{fontSize:12,color:"#555"}}>{campos.find(c=>c.id==="f5").val}<br/><strong>{emp}</strong></div>}
                 </div>
-                {/* SUMÁRIO */}
+                <div style={{marginBottom:20}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
+                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
-                <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:16,textAlign:"left"}}>SUMÁRIO</h2>
-                  <div style={{fontSize:12}}>
-                    {[["1.","IDENTIFICAÇÃO DO EMPREENDIMENTO"],["2.","IDENTIFICAÇÃO DA EQUIPE TÉCNICA"],["3.","INTRODUÇÃO"],["4.","PROGRAMAS EM EXECUÇÃO"],["5.","GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS"]].map(([n,t])=>(
-                      <div key={n} style={{display:"flex",gap:12,padding:"5px 0",borderBottom:"1px solid #f0f0f0"}}>
-                        <span style={{color:cor,fontWeight:"bold",width:24,flexShrink:0}}>{n}</span>
-                        <span style={{fontWeight:"bold",flex:1}}>{t}</span>
-                      </div>
-                    ))}
-                    {ativos.map((p,i)=>(
-                      <div key={p.id} style={{display:"flex",gap:12,padding:"3px 0 3px 36px",borderBottom:"1px solid #f8f8f8"}}>
-                        <span style={{color:"#aaa",flexShrink:0}}>5.{i+1}</span>
-                        <span style={{color:"#555",flex:1}}>{getL(p.id)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* PÁG 3 - IDENTIFICAÇÃO */}
-                </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
-                <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",marginTop:16}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
-                  <h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 1 – Identificação do Empreendedor</h4>
-                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:12}}><tbody>
-                    {[["empr_nome","Empreendedor",ident.empr_nome||campos.find(c=>c.id==="f2")?.val||"—"],["empr_cnpj","CNPJ",ident.empr_cnpj||"—"],["empr_end","Endereço",ident.empr_end||"—"],["empr_tel","Telefone",ident.empr_tel||"—"],["empr_rep","Representante Legal",ident.empr_rep||campos.find(c=>c.id==="f5")?.val||"—"],["empr_email","E-mail",ident.empr_email||"—"]].filter(([k])=>!((ident.empr_excluidos||[]).includes(k))).concat((ident.empr_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
-                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200,fontSize:12}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontSize:12}}>{vl}</td></tr>
-                    ))}
-                  </tbody></table>
-                  <h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 2 – {ident.cons_titulo||"Identificação da Empresa"}</h4>
-                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:12}}><tbody>
-                    {[["cons_nome","Empresa",ident.cons_nome||emp||"—"],["cons_cnpj","CNPJ",ident.cons_cnpj||"—"],["cons_end","Endereço",ident.cons_end||"—"],["cons_tel","Telefone",ident.cons_tel||"—"],["cons_rep","Representante Legal",ident.cons_rep||"—"],["cons_email","E-mail",ident.cons_email||"—"]].filter(([k])=>!((ident.cons_excluidos||[]).includes(k))).concat((ident.cons_campos||[]).map(c=>[c.k,c.lb,c.val||"—"])).map(([,lb,vl],i)=>(
-                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200,fontSize:12}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontSize:12}}>{vl}</td></tr>
-                    ))}
-                  </tbody></table>
-                  {(nEmp||campos.find(c=>c.id==="f4")?.val)&&<><h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 3 – Identificação do Empreendimento</h4>
-                  <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:12}}><tbody>
-                    {[["Nome do Empreendimento",nEmp||"—"],["Estado (UF)",campos.find(c=>c.id==="f4")?.val||"—"],...campos.filter(c=>!["f1","f2","f3","f4","f5"].includes(c.id)).map(c=>[c.lb,c.val||"—"])].map(([lb,vl],i)=>(
-                      <tr key={lb}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200,fontSize:12}}>{lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontSize:12}}>{vl}</td></tr>
-                    ))}
-                  </tbody></table></>}
-                </div>
-                {/* PÁG 4 - EQUIPE TÉCNICA */}
-                </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
-                <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",marginTop:16}}>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA</h2>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                    <thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead>
-                    <tbody>{equipe.length===0?<tr><td colSpan={3} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Nenhum membro cadastrado</td></tr>:equipe.map((m,i)=><tr key={m.id}><td style={{...(i%2?TA:TD),fontSize:12}}>{m.nome||"—"}</td><td style={{...(i%2?TA:TD),fontSize:12}}>{m.funcao||"—"}</td><td style={{...(i%2?TA:TD),fontSize:12}}>{m.registro||"—"}</td></tr>)}</tbody>
-                  </table>
-                </div>
-                {/* PÁG 5 - INTRODUÇÃO */}
-                </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
-                <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left",marginTop:16}}>3. INTRODUÇÃO</h2>
-                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={6} style={{...SI,fontSize:13,lineHeight:1.9,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb",width:"100%"}}/>
-                </div>
-                </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
-                <div style={{padding:"20px 32px",marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>4. PROGRAMAS EM EXECUÇÃO</h2>
+                <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>{campos.map((f,i)=><tr key={f.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{f.lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{f.val||"—"}</td></tr>)}</tbody></table>
+                <div style={{marginBottom:20}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
-                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
-                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
-                </div>
-                <div style={{padding:"20px 32px"}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:18,textAlign:"left"}}>5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
+                <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:18,textAlign:"left"}}>3. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
                   var d=getD(p.id); var fp=getF(p.id);
                   var grafRel=(d.graficos||[]).filter(gr=>gr.addRel&&(gr.dados||[]).some(x=>x.l&&x.v));
                   return(
                     <div key={p.id} style={{marginBottom:32}}>
-                      <h3 style={{color:p.cor,fontSize:13,marginBottom:10,textAlign:"left",fontWeight:"bold"}}>{pi+1}. {getL(p.id).toUpperCase()}</h3>
+                      <h3 style={{color:cor,fontSize:13,borderLeft:"4px solid "+p.cor,paddingLeft:10,marginBottom:10,textAlign:"left"}}>{pi+1}. {getL(p.id).toUpperCase()}</h3>
                       {d.desc&&<p style={{fontSize:12,color:"#444",lineHeight:1.8,marginBottom:12,textAlign:"justify"}}>{d.desc}</p>}
                       {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:160,objectFit:"cover",objectPosition:"center",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
                       {grafRel.map((gr,gi)=>(
