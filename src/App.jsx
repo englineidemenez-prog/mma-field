@@ -246,218 +246,235 @@ function buildRelatorioHTML(dados_rel) {
   var {lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust} = dados_rel;
   var corP = cor||"#1a3d2b";
   var nEmp = empreendimento.nome||"[Empreendimento]";
-  var nCons = construtora.nome||"[Empresa]";
+  var nCons = construtora.nome||"[Empresa Executora]";
   var nEmpr = empreendedor.nome||"[Empreendedor]";
   var numR = nrel ? nrel+"º" : "1º";
+  var tecnico = equipe.length>0 ? equipe[0] : null;
 
-  // Cabeçalho HTML reutilizável em cada página via @page e running header
-  var cabHTML = `
-    <div class="cab">
-      <div class="cab-logo">${lCons ? `<img src="${lCons}" style="height:36px;max-width:90px;object-fit:contain;"/>` : `<div style="font-size:10pt;font-weight:bold;color:${corP};">${nCons}</div>`}</div>
+  // CABEÇALHO — modelo MRS: logo | título central | logo cliente
+  function cab() {
+    return `<div class="cab">
+      <div class="cab-esq">
+        ${lCons ? `<img src="${lCons}" class="cab-img"/>` : `<div class="cab-nome">${nCons}</div>`}
+      </div>
       <div class="cab-centro">
-        <div style="font-weight:bold;font-size:9pt;">${numR} RELATÓRIO – ${mes.toUpperCase()}/${ano}</div>
-        <div style="font-size:8pt;">GESTÃO E SUPERVISÃO AMBIENTAL</div>
-        <div style="font-size:8pt;">${nEmp}</div>
+        <div class="cab-titulo-proj">${nEmp}</div>
+        <div class="cab-subtitulo">${numR} RELATÓRIO – ${mes.toUpperCase()}/${ano}</div>
       </div>
-      <div class="cab-logo">${lEmpr ? `<img src="${lEmpr}" style="height:36px;max-width:90px;object-fit:contain;"/>` : ""}</div>
-    </div>`;
-
-  // Rodapé
-  var rodHTML = `<div class="rod"><span>${nCons}</span><span>${nEmp} – ${mes}/${ano}</span><span class="pg-num"></span></div>`;
-
-  // Capa
-  var capaHTML = `
-    <div class="pagina capa">
-      ${cabHTML}
-      <div class="capa-body">
-        <div class="capa-logos">
-          ${lCons ? `<img src="${lCons}" class="capa-logo"/>` : `<div class="capa-logo-txt">${nCons}</div>`}
-          ${lEmpr ? `<img src="${lEmpr}" class="capa-logo"/>` : ""}
-        </div>
-        <div class="capa-apresenta"><em>${nCons} apresenta a ${nEmpr} o documento:</em></div>
-        <div class="capa-titulo">RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</div>
-        <div class="capa-empreendimento">${nEmp.toUpperCase()}</div>
-        <div class="capa-periodo">PERÍODO DE ${mes.toUpperCase()}/${ano}</div>
+      <div class="cab-dir">
+        ${lEmpr ? `<img src="${lEmpr}" class="cab-img"/>` : `<div class="cab-nome cab-nome-dir">LOGO<br/>CLIENTE</div>`}
       </div>
-      ${rodHTML}
-    </div>`;
+    </div>
+    <div class="cab-linha"></div>`;
+  }
 
-  // Sumário
+  // RODAPÉ — modelo MRS: empresa | site | página
+  function rod(pg) {
+    return `<div class="rod">
+      <span>${nCons}</span>
+      <span>${nCons.toLowerCase().replace(/ /g,"")}.com.br</span>
+      <span>${pg||""}</span>
+    </div>`;
+  }
+
+  // CAPA — modelo MRS
+  var capaHTML = `<div class="pagina">
+    ${cab()}
+    <div class="capa-body">
+      <div class="capa-apresentacao">APRESENTAÇÃO</div>
+      <div class="capa-apresenta-txt">
+        <p>${nCons} apresenta a ${nEmpr} o documento intitulado:</p>
+      </div>
+      <div class="capa-spacer"></div>
+      <div class="capa-projeto">${nEmp}</div>
+      <div class="capa-spacer"></div>
+      <div class="capa-periodo">${mes} de ${ano}</div>
+      <div class="capa-spacer"></div>
+      ${tecnico ? `<div class="capa-tecnico">
+        <div>${tecnico.nome}</div>
+        <div style="font-weight:bold;">${nCons}</div>
+      </div>` : `<div class="capa-tecnico"><div style="font-weight:bold;">${nCons}</div></div>`}
+    </div>
+    ${rod(1)}
+  </div>`;
+
+  // SUMÁRIO — modelo MRS com pontilhado
   var itens_sumario = [
-    {n:"1", t:"IDENTIFICAÇÃO DO EMPREENDIMENTO"},
-    {n:"2", t:"INTRODUÇÃO"},
-    {n:"3", t:"PROGRAMAS EM EXECUÇÃO"},
-    ...ativos.map((p,i) => ({n:"3."+(i+1), t:p.lb, sub:true})),
-    {n:"4", t:"GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS"},
+    {n:"1", t:"IDENTIFICAÇÃO DO EMPREENDIMENTO", pg:"1"},
+    {n:"2", t:"IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL", pg:"1"},
+    {n:"3", t:"INTRODUÇÃO", pg:"5"},
+    ...ativos.map((p,i) => ({n:"3."+(i+1), t:p.lb, pg:"5", sub:true})),
+    {n:"4", t:"GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS", pg:"5"},
   ];
-  var sumarioHTML = `
-    <div class="pagina">
-      ${cabHTML}
-      <div class="pg-body">
-        <h1 class="sec-titulo">SUMÁRIO</h1>
-        <table class="sumario-tab">
-          ${itens_sumario.map(it=>`
-          <tr>
-            <td class="sum-n" style="${it.sub?"padding-left:20pt;color:#555;":""}">${it.n}</td>
-            <td class="sum-t" style="${it.sub?"color:#555;":""}">${it.t}</td>
-            <td class="sum-pg"></td>
-          </tr>`).join("")}
-        </table>
-      </div>
-      ${rodHTML}
-    </div>`;
+  var sumarioHTML = `<div class="pagina">
+    ${cab()}
+    <div class="pg-body">
+      <h1 class="sum-tit">SUMÁRIO</h1>
+      <table class="sum-tab">
+        ${itens_sumario.map((it,idx)=>`<tr>
+          <td class="sum-n${it.sub?" sum-sub":""}">${it.n}</td>
+          <td class="sum-t${it.sub?" sum-sub":""}">${it.t}</td>
+          <td class="sum-dots"></td>
+          <td class="sum-pg${it.sub?" sum-sub":""}">${it.pg}</td>
+        </tr>`).join("")}
+      </table>
+    </div>
+    ${rod(2)}
+  </div>`;
 
-  // Identificação
+  // IDENTIFICAÇÃO
   function quad(titulo, linhas) {
-    return `<div class="quad-titulo">${titulo}</div>
+    var rows = linhas.filter(r=>r[1]);
+    if (rows.length===0) return "";
+    return `<p class="quad-tit">${titulo}</p>
     <table class="quad-tab">
-      ${linhas.filter(r=>r[1]).map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
+      ${rows.map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]}</td></tr>`).join("")}
     </table>`;
   }
-  var identHTML = `
-    <div class="pagina">
-      ${cabHTML}
-      <div class="pg-body">
-        <h1 class="sec-num">1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>
-        ${quad("Quadro 1 – Identificação do Empreendedor",[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]])}
-        ${quad("Quadro 2 – Identificação da "+(construtora.label||"Empresa Construtora"),[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]])}
-        ${quad("Quadro 3 – Identificação do Empreendimento",[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]])}
-        ${equipe.length>0 ? `
-        <div class="quad-titulo">Quadro 4 – Equipe Técnica</div>
-        <table class="quad-tab">
-          <tr><th>Nome</th><th>Função</th><th>Registro Profissional</th></tr>
-          ${equipe.map((m,i)=>`<tr class="${i%2?"alt":""}"><td>${m.nome||"—"}</td><td>${m.funcao||"—"}</td><td>${m.registro||"N/A"}</td></tr>`).join("")}
-        </table>` : ""}
-      </div>
-      ${rodHTML}
-    </div>`;
 
-  // Introdução
-  var introHTML = `
-    <div class="pagina">
-      ${cabHTML}
-      <div class="pg-body">
-        <h1 class="sec-num">2. INTRODUÇÃO</h1>
-        <p class="pg-texto">${(intro||"").replace(/
+  var identHTML = `<div class="pagina">
+    ${cab()}
+    <div class="pg-body">
+      <h1 class="sec-num">1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>
+      ${quad("Quadro 1 – Identificação do Empreendedor",[
+        ["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],
+        ["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],
+        ["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]
+      ])}
+      ${quad("Quadro 2 – Identificação da "+(construtora.label||"Empresa Construtora"),[
+        ["Empresa",construtora.nome],["CNPJ",construtora.cnpj],
+        ["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]
+      ])}
+      ${quad("Quadro 3 – Identificação do Empreendimento",[
+        ["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]
+      ])}
+      ${equipe.length>0?`
+      <h1 class="sec-num" style="margin-top:14pt;">2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL</h1>
+      <table class="quad-tab">
+        <tr><th>Nome</th><th>Função</th><th>Registro Profissional</th></tr>
+        ${equipe.map((m,i)=>`<tr class="${i%2?"alt":""}"><td>${m.nome||"—"}</td><td>${m.funcao||"—"}</td><td>${m.registro||"N/A"}</td></tr>`).join("")}
+      </table>`:""}
+    </div>
+    ${rod(3)}
+  </div>`;
+
+  // INTRODUÇÃO
+  var introHTML = `<div class="pagina">
+    ${cab()}
+    <div class="pg-body">
+      <h1 class="sec-num">3. INTRODUÇÃO</h1>
+      <p class="pg-texto">${(intro||"").replace(/
 /g,"</p><p class='pg-texto'>")}</p>
-      </div>
-      ${rodHTML}
-    </div>`;
+    </div>
+    ${rod(4)}
+  </div>`;
 
-  // Programas em Execução
-  var pgmExecHTML = `
-    <div class="pagina">
-      ${cabHTML}
-      <div class="pg-body">
-        <h1 class="sec-num">3. PROGRAMAS EM EXECUÇÃO</h1>
-        <table class="quad-tab">
-          <tr><th>Nº</th><th>Programa</th><th>Status</th></tr>
-          ${ativos.map((p,i)=>`<tr class="${i%2?"alt":""}"><td style="width:30pt;">${i+1}</td><td>${p.lb}</td><td style="color:${corP};font-weight:bold;">● Em Execução</td></tr>`).join("")}
-        </table>
-      </div>
-      ${rodHTML}
-    </div>`;
+  // PROGRAMAS EM EXECUÇÃO
+  var pgmExecHTML = `<div class="pagina">
+    ${cab()}
+    <div class="pg-body">
+      <h1 class="sec-num">4. PROGRAMAS EM EXECUÇÃO</h1>
+      <table class="quad-tab">
+        <tr><th style="width:40pt;">Nº</th><th>Programa</th><th style="width:100pt;">Status</th></tr>
+        ${ativos.map((p,i)=>`<tr class="${i%2?"alt":""}">
+          <td style="text-align:center;">${i+1}</td>
+          <td>${p.lb}</td>
+          <td style="color:${corP};font-weight:bold;">● Em Execução</td>
+        </tr>`).join("")}
+      </table>
+    </div>
+    ${rod(5)}
+  </div>`;
 
-  // Gestão e Supervisão — um bloco por programa
-  var gestaoHTML = ativos.map((prog, pi) => {
-    var pd = dados[prog.id] || {};
-    var pgFotos = (fotos[prog.id]||[]);
-    var pgGraficos = (pd.graficos||[]).filter(g=>(g.dados||[]).some(d=>d.l&&d.v));
-    var descricao = pd.descricao||"";
-    var texto = pd.texto||"";
+  // GESTÃO E SUPERVISÃO
+  var gestaoHTML = ativos.map((prog,pi) => {
+    var pd = dados[prog.id]||{};
+    var pgFotos = fotos[prog.id]||[];
+    var descricao = pd.descricao||pd.desc||"";
 
-    // Fotos em grid 2x2 com legenda
     var fotosHTML = "";
-    if (pgFotos.length > 0) {
-      fotosHTML = `<h3 class="sub-titulo">Registro Fotográfico</h3>
-      <div class="foto-grid">
-        ${pgFotos.map((f,fi)=>`
-        <div class="foto-item">
-          <img src="${f.src}" class="foto-img" alt="${f.leg||""}"/>
-          <div class="foto-leg">Foto ${fi+1}${f.leg ? " – "+f.leg : ""}</div>
-        </div>`).join("")}
-      </div>`;
+    if (pgFotos.length>0) {
+      var pares = [];
+      for (var i=0;i<pgFotos.length;i+=2) pares.push([pgFotos[i],pgFotos[i+1]]);
+      fotosHTML = `<h3 class="sub-tit">${pi+1}.1 Registro Fotográfico</h3>
+      <table class="foto-tab">
+        ${pares.map((par,ri)=>`<tr>
+          <td class="foto-cel"><img src="${par[0].src}" class="foto-img"/><div class="foto-leg">Foto ${ri*2+1}${par[0].leg?" – "+par[0].leg:""}</div></td>
+          ${par[1]?`<td class="foto-cel"><img src="${par[1].src}" class="foto-img"/><div class="foto-leg">Foto ${ri*2+2}${par[1].leg?" – "+par[1].leg:""}</div></td>`:`<td class="foto-cel"></td>`}
+        </tr>`).join("")}
+      </table>`;
     }
 
-    // Gráficos
-    var grafHTML = pgGraficos.length > 0 ? `<h3 class="sub-titulo">Dados e Indicadores</h3>
-    <div class="graf-area">[Os gráficos serão exibidos no sistema — exportar via PDF do navegador para incluí-los]</div>` : "";
-
-    return `
-    <div class="pagina">
-      ${cabHTML}
+    return `<div class="pagina">
+      ${cab()}
       <div class="pg-body">
-        <h1 class="sec-num">${pi===0?"4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS":""}</h1>
-        <h2 class="prog-titulo" style="border-left:4px solid ${prog.cor||corP};">${pi+1}. ${nomes[prog.id]||prog.lb}</h2>
-        ${descricao ? `<h3 class="sub-titulo">Descrição das Atividades</h3><p class="pg-texto">${descricao.replace(/
-/g,"</p><p class='pg-texto'>")}</p>` : ""}
-        ${texto ? `<p class="pg-texto">${texto.replace(/
-/g,"</p><p class='pg-texto'>")}</p>` : ""}
+        ${pi===0?`<h1 class="sec-num">5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h1>`:""}
+        <h2 class="prog-tit" style="border-left:5px solid ${prog.cor||corP};">${pi+1}. ${nomes[prog.id]||prog.lb}</h2>
+        ${descricao?`<h3 class="sub-tit">Descrição das Atividades</h3><p class="pg-texto">${descricao.replace(/
+/g,"</p><p class='pg-texto'>")}</p>`:""}
         ${fotosHTML}
-        ${grafHTML}
       </div>
-      ${rodHTML}
+      ${rod(6+pi)}
     </div>`;
   }).join("");
 
-  // CSS completo
+  // CSS modelo MRS
   var css = `
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:Georgia,serif;font-size:10pt;color:#222;background:#fff;}
-    .pagina{width:210mm;min-height:297mm;padding:0;margin:0 auto;position:relative;page-break-after:always;display:flex;flex-direction:column;}
-    .cab{display:flex;align-items:center;justify-content:space-between;padding:8pt 20mm;border-bottom:2px solid ${corP};background:#fafdfb;min-height:20mm;}
-    .cab-centro{text-align:center;flex:1;padding:0 10pt;}
-    .cab-logo{width:90px;text-align:center;}
-    .capa-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20mm 20mm 10mm;}
-    .capa-logos{display:flex;gap:30pt;align-items:center;justify-content:center;margin-bottom:40pt;}
-    .capa-logo{height:70px;max-width:140px;object-fit:contain;}
-    .capa-logo-txt{font-size:14pt;font-weight:bold;color:${corP};}
-    .capa-apresenta{font-style:italic;font-size:10pt;color:#555;margin-bottom:20pt;}
-    .capa-titulo{font-size:14pt;font-weight:bold;color:${corP};text-align:center;line-height:1.5;margin-bottom:12pt;}
-    .capa-empreendimento{font-size:13pt;font-weight:bold;text-align:center;margin-bottom:8pt;}
-    .capa-periodo{font-size:10pt;color:#555;text-align:center;margin-top:30pt;}
-    .pg-body{flex:1;padding:10mm 20mm 5mm;}
-    .rod{display:flex;justify-content:space-between;padding:5pt 20mm;border-top:1px solid #ccc;font-size:7pt;color:#888;}
-    .sec-titulo{font-size:13pt;color:${corP};margin-bottom:16pt;font-weight:bold;}
-    .sec-num{font-size:12pt;color:${corP};margin-bottom:12pt;font-weight:bold;padding-bottom:4pt;border-bottom:1px solid ${corP};}
-    .prog-titulo{font-size:11pt;font-weight:bold;color:#222;margin:12pt 0 8pt;padding:6pt 10pt;background:#f5fdf7;}
-    .sub-titulo{font-size:10pt;font-weight:bold;color:${corP};margin:10pt 0 6pt;}
-    .pg-texto{font-size:10pt;line-height:1.7;color:#333;margin-bottom:8pt;text-align:justify;}
-    .sumario-tab{width:100%;border-collapse:collapse;}
-    .sumario-tab tr{border-bottom:1px dotted #ccc;}
-    .sum-n{width:30pt;padding:5pt 0;font-weight:bold;color:${corP};}
-    .sum-t{padding:5pt 0;flex:1;}
-    .sum-pg{width:20pt;text-align:right;color:#aaa;}
-    .quad-titulo{font-size:10pt;font-weight:bold;color:#333;margin:10pt 0 4pt;}
-    .quad-tab{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:10pt;}
-    .quad-tab th{background:${corP};color:#fff;padding:5pt 8pt;text-align:left;}
-    .quad-tab td{padding:4pt 8pt;border-bottom:1px solid #eee;}
-    .quad-tab .qk{font-weight:bold;color:${corP};width:120pt;}
-    .quad-tab .alt td,.quad-tab tr.alt td{background:#f8fdf9;}
-    .foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt;margin:8pt 0;}
-    .foto-item{display:flex;flex-direction:column;align-items:center;}
-    .foto-img{width:100%;height:110pt;object-fit:cover;border:1px solid #ddd;border-radius:3pt;}
+    body{font-family:Arial,sans-serif;font-size:10pt;color:#222;background:#f0f0f0;}
+    .pagina{width:210mm;min-height:297mm;margin:0 auto 10pt;background:#fff;display:flex;flex-direction:column;page-break-after:always;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+    .cab{display:flex;align-items:center;padding:8pt 15mm 6pt;min-height:18mm;}
+    .cab-esq{width:90pt;display:flex;align-items:center;}
+    .cab-centro{flex:1;text-align:center;padding:0 8pt;}
+    .cab-dir{width:90pt;display:flex;align-items:center;justify-content:flex-end;}
+    .cab-img{max-height:32pt;max-width:80pt;object-fit:contain;}
+    .cab-nome{font-size:8pt;font-weight:bold;color:${corP};line-height:1.3;}
+    .cab-nome-dir{text-align:right;color:#aaa;font-size:7pt;font-weight:normal;}
+    .cab-titulo-proj{font-size:9pt;font-weight:bold;color:#333;text-transform:uppercase;}
+    .cab-subtitulo{font-size:8pt;color:#555;margin-top:2pt;}
+    .cab-linha{height:2pt;background:${corP};margin:0 15mm;}
+    .capa-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:15mm 20mm 10mm;}
+    .capa-apresentacao{font-size:13pt;font-weight:bold;color:#333;text-align:center;margin-bottom:16pt;letter-spacing:1pt;}
+    .capa-apresenta-txt{font-size:10pt;color:#555;text-align:center;margin-bottom:10pt;}
+    .capa-spacer{flex:1;min-height:20pt;}
+    .capa-projeto{font-size:13pt;font-weight:bold;text-align:center;color:#222;border-bottom:1pt solid #ccc;padding-bottom:10pt;width:100%;}
+    .capa-periodo{font-size:10pt;color:#555;text-align:center;}
+    .capa-tecnico{font-size:10pt;text-align:center;line-height:1.8;color:#333;}
+    .rod{display:flex;justify-content:space-between;padding:5pt 15mm;border-top:1pt solid #ddd;font-size:7pt;color:#888;margin-top:auto;}
+    .pg-body{flex:1;padding:8mm 15mm 4mm;}
+    .sum-tit{font-size:12pt;font-weight:bold;color:#333;margin-bottom:14pt;text-transform:uppercase;}
+    .sum-tab{width:100%;border-collapse:collapse;font-size:10pt;}
+    .sum-tab tr{height:20pt;}
+    .sum-n{width:30pt;font-weight:bold;vertical-align:middle;padding:2pt 0;}
+    .sum-t{vertical-align:middle;padding:2pt 4pt;}
+    .sum-dots{background-image:radial-gradient(circle,#aaa 1px,transparent 1px);background-size:4pt 100%;background-repeat:repeat-x;background-position:0 60%;}
+    .sum-pg{width:20pt;text-align:right;vertical-align:middle;}
+    .sum-sub{font-style:italic;color:#555;font-size:9pt;}
+    .sec-num{font-size:11pt;font-weight:bold;color:${corP};margin-bottom:10pt;padding-bottom:4pt;border-bottom:1pt solid ${corP};text-transform:uppercase;}
+    .prog-tit{font-size:10pt;font-weight:bold;color:#222;margin:10pt 0 6pt;padding:5pt 10pt;background:#f5f5f5;}
+    .sub-tit{font-size:10pt;font-weight:bold;color:${corP};margin:8pt 0 5pt;}
+    .pg-texto{font-size:10pt;line-height:1.7;color:#333;margin-bottom:6pt;text-align:justify;}
+    .quad-tit{font-size:10pt;font-weight:bold;color:#333;margin:8pt 0 3pt;}
+    .quad-tab{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:8pt;}
+    .quad-tab th{background:${corP};color:#fff;padding:4pt 8pt;text-align:left;font-weight:bold;}
+    .quad-tab td{padding:4pt 8pt;border:1pt solid #e0e0e0;}
+    .quad-tab tr.alt td{background:#f8f8f8;}
+    .qk{font-weight:bold;color:${corP};width:110pt;}
+    .foto-tab{width:100%;border-collapse:separate;border-spacing:8pt;}
+    .foto-cel{width:50%;vertical-align:top;text-align:center;}
+    .foto-img{width:100%;height:100pt;object-fit:cover;border:1pt solid #ddd;}
     .foto-leg{font-size:8pt;color:#555;text-align:center;margin-top:3pt;font-style:italic;}
-    .graf-area{background:#f5fdf7;border:1px solid #c8ddd2;border-radius:4pt;padding:10pt;text-align:center;color:#666;font-size:9pt;margin:8pt 0;}
     @media print{
-      body{margin:0;}
-      .pagina{margin:0;page-break-after:always;}
-      .foto-img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      body{background:#fff;}
+      .pagina{box-shadow:none;margin:0;page-break-after:always;}
+      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
     }`;
 
-  var html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-  <title>Relatório MMA Field</title>
-  <style>${css}</style>
-  </head><body>
-  ${capaHTML}
-  ${sumarioHTML}
-  ${identHTML}
-  ${introHTML}
-  ${pgmExecHTML}
-  ${gestaoHTML}
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Relatório – ${nEmp} – ${mes}/${ano}</title>
+  <style>${css}</style></head><body>
+  ${capaHTML}${sumarioHTML}${identHTML}${introHTML}${pgmExecHTML}${gestaoHTML}
   </body></html>`;
-
-  return html;
 }
 
 function dlWord(mes, ano, dados_rel) {
