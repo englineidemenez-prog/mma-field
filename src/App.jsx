@@ -422,95 +422,36 @@ function dlWord(mes, ano) {
   setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
 }
 function dlPDF() {
-  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
-  var s = document.createElement("style");
-  s.id = "pprt";
-  s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:2cm 2cm 2cm 2cm" + cb +
-    "@media print" + ob +
-      // Esconder tudo exceto reldoc
-      "body" + ob + "margin:0!important;padding:0!important;background:#fff!important" + cb +
-      "body > *:not(#pprt-wrap)" + ob + "display:none!important" + cb +
-      "#reldoc" + ob +
-        "display:block!important;visibility:visible!important;" +
-        "width:100%!important;max-width:100%!important;" +
-        "box-shadow:none!important;border:none!important;" +
-        "border-radius:0!important;padding:0!important;" +
-        "margin:0!important;background:#fff!important;font-size:10pt!important" +
-      cb +
-      "#reldoc *" + ob + "visibility:visible!important" + cb +
-      // Cabeçalho - logos corretos
-      "#reldoc > div:first-child" + ob +
-        "display:flex!important;flex-direction:row!important;" +
-        "align-items:center!important;justify-content:space-between!important;" +
-        "padding:6pt 0!important;border-bottom:2pt solid #1a3d2b!important;margin-bottom:10pt!important" +
-      cb +
-      "#reldoc > div:first-child img" + ob +
-        "height:50pt!important;width:auto!important;max-width:none!important;" +
-        "object-fit:contain!important" +
-      cb +
-      // Proteger logos dos cabeçalhos internos
-      ".cab-int img" + ob +
-        "height:60pt!important;width:auto!important;max-width:140pt!important;" +
-        "object-fit:contain!important;flex-shrink:0!important" +
-      cb +
-      // Imagens de fotos (não logos) - usar seletor mais específico
-      "#reldoc img:not(.cab-int img):not(#reldoc > div:first-child img)" + ob +
-        "max-width:100%!important;max-height:55mm!important;" +
-        "width:100%!important;height:auto!important;object-fit:cover!important" +
-      cb +
-      // Gráficos Recharts - garantir visibilidade
-      ".recharts-wrapper" + ob +
-        "display:block!important;overflow:visible!important;width:100%!important" +
-      cb +
-      ".recharts-wrapper svg" + ob +
-        "display:block!important;overflow:visible!important;width:100%!important" +
-      cb +
-      ".recharts-wrapper text,.recharts-label,.recharts-cartesian-axis-tick-value" + ob +
-        "display:block!important;visibility:visible!important;font-size:8pt!important" +
-      cb +
-      // Tabelas
-      "table" + ob + "width:100%!important;border-collapse:collapse!important;font-size:9pt!important" + cb +
-      "th" + ob + "background:#4d4d4d!important;color:#fff!important;padding:3pt 5pt!important;font-size:8pt!important" + cb +
-      "td" + ob + "padding:3pt 5pt!important;font-size:8pt!important;border:0.5pt solid #ccc!important" + cb +
-      // Fotos grid
-      "#reldoc div[style*='gridTemplateColumns']" + ob +
-        "display:grid!important;grid-template-columns:1fr 1fr!important;gap:5mm!important" +
-      cb +
-      // Esconder elementos de UI
-      "button,input,select,nav,header,label,textarea" + ob + "display:none!important" + cb +
-      // Quebras de página
-      "#capa-rel" + ob + "page-break-after:always!important" + cb +
-      "h2,h3,h4" + ob + "page-break-after:avoid!important" + cb +
-    cb;
-
-  // Mover reldoc para body temporariamente para print
-  var reldoc = document.getElementById("reldoc");
-  var wrap = document.createElement("div");
-  wrap.id = "pprt-wrap";
-  wrap.style.cssText = "position:static;width:100%;background:#fff";
-  var clone = reldoc.cloneNode(true);
-  // Remover elementos de UI do clone
-  clone.querySelectorAll("button,input,select,label,textarea").forEach(function(el){ el.remove(); });
-  // Garantir que recharts wrappers sejam visíveis
-  clone.querySelectorAll(".recharts-wrapper").forEach(function(el){
-    el.style.overflow = "visible";
-    el.style.display = "block";
-  });
-  clone.querySelectorAll(".recharts-wrapper svg").forEach(function(el){
-    el.style.overflow = "visible";
-  });
-  wrap.appendChild(clone);
-  document.body.appendChild(wrap);
-
-  document.head.appendChild(s);
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() {
-      var x = document.getElementById("pprt"); if (x) x.remove();
-      var w = document.getElementById("pprt-wrap"); if (w) w.remove();
-    }, 4000);
-  }, 1200);
+  var el = document.getElementById("reldoc");
+  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
+  function gerarPDF() {
+    var opt = {
+      margin: [15,15,15,15],
+      filename: "Relatorio_MMA_Field.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false, removeContainer: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    };
+    var toHide = el.querySelectorAll("button, input, select, textarea");
+    var hidden = [];
+    toHide.forEach(function(e) { hidden.push({el:e, d:e.style.display}); e.style.display = "none"; });
+    var os = el.style.cssText;
+    el.style.boxShadow = "none";
+    el.style.border = "none";
+    el.style.borderRadius = "0";
+    window.html2pdf().set(opt).from(el).save().then(function() {
+      el.style.cssText = os;
+      hidden.forEach(function(h) { h.el.style.display = h.d; });
+    });
+  }
+  if (window.html2pdf) {
+    gerarPDF();
+  } else {
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    s.onload = gerarPDF;
+    document.head.appendChild(s);
+  }
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -1228,7 +1169,11 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* SUMÁRIO */}
                 </div>
-                <Cab/>
+                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
+                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
+                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                </div>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:16,textAlign:"left"}}>SUMÁRIO</h2>
                   <div style={{fontSize:12}}>
@@ -1248,7 +1193,11 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* PÁG 3 - IDENTIFICAÇÃO */}
                 </div>
-                <Cab/>
+                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
+                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
+                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                </div>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",marginTop:16}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
                   <h4 style={{color:"#555",fontSize:12,marginBottom:8}}>Quadro 1 – Identificação do Empreendedor</h4>
@@ -1272,7 +1221,11 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* PÁG 4 - EQUIPE TÉCNICA */}
                 </div>
-                <Cab/>
+                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
+                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
+                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                </div>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",marginTop:16}}>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
@@ -1282,18 +1235,30 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
                 {/* PÁG 5 - INTRODUÇÃO */}
                 </div>
-                <Cab/>
+                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
+                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
+                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                </div>
                 <div style={{padding:"20px 32px",pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left",marginTop:16}}>3. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={6} style={{...SI,fontSize:13,lineHeight:1.9,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb",width:"100%"}}/>
                 </div>
                 </div>
-                <Cab/>
+                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
+                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
+                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                </div>
                 <div style={{padding:"20px 32px",marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>4. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-                <Cab/>
+                <div className="cab-int" style={{borderBottom:"2px solid "+HC,padding:"8px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fafdfb"}}>
+                  {lCons?<img src={lCons} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                  <div style={{textAlign:"center",fontSize:9,color:"#444",lineHeight:1.7}}><strong>{numR} RELATÓRIO – {mes.toUpperCase()}/{ano}</strong><br/>GESTÃO E SUPERVISÃO AMBIENTAL<br/>{nEmp||"—"}</div>
+                  {lEmpr?<img src={lEmpr} alt="" style={{height:60,objectFit:"contain",width:"auto",maxWidth:140}}/>:<div style={{width:110,height:60,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
+                </div>
                 <div style={{padding:"20px 32px"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:18,textAlign:"left"}}>5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
@@ -1357,4 +1322,3 @@ function AppPrincipal({ user, onLogout }) {
     </div>
   );
 }
-
