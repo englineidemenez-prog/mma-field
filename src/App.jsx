@@ -253,46 +253,51 @@ function dlWord(mes, ano) {
 }
 function dlPDF() {
   var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  function loadScript(src, cb) {
-    if (window.html2pdf) { cb(); return; }
-    var s = document.createElement("script");
-    s.src = src; s.onload = cb;
-    document.head.appendChild(s);
-  }
-  loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js", function() {
-    var cabEl = document.getElementById("cab-pdf");
-    var cabHTML = cabEl ? cabEl.innerHTML : "";
-    var cabH = cabEl ? cabEl.offsetHeight : 55;
-    var inner = document.getElementById("reldoc-inner");
-    if (!inner) return;
-    var wrapper = document.createElement("div");
-    wrapper.style.cssText = "background:#fff;width:170mm;font-family:Georgia,serif;";
-    wrapper.innerHTML = inner.innerHTML;
-    var opt = {
-      margin: [cabH + 8, 0, 15, 0],
-      filename: "Relatorio_MMA_Field.pdf",
-      image: { type:"jpeg", quality:0.97 },
-      html2canvas: { scale:2, useCORS:true, logging:false, width:641 },
-      jsPDF: { unit:"mm", format:"a4", orientation:"portrait" },
-      pagebreak: { mode:["css","legacy"], before:[".pg-break"], avoid:["table","img",".no-break"] }
-    };
-    document.body.appendChild(wrapper);
-    html2pdf().set(opt).from(wrapper).toPdf().get("pdf").then(function(pdf) {
-      var total = pdf.internal.getNumberOfPages();
-      var pw = pdf.internal.pageSize.getWidth();
-      for (var i = 1; i <= total; i++) {
-        pdf.setPage(i);
-        pdf.setFillColor(250,253,251);
-        pdf.rect(0, 0, pw, (cabH+8)*0.352778, "F");
-        pdf.setDrawColor(26,61,43);
-        pdf.setLineWidth(0.5);
-        pdf.line(0, (cabH+8)*0.352778, pw, (cabH+8)*0.352778);
-      }
-    }).save().then(function() {
-      document.body.removeChild(wrapper);
-    });
-  });
+  if (!el) { alert("Abra a aba Relat\u00f3rio antes de baixar."); return; }
+  var ob = "{", cb = "}";
+  var s = document.createElement("style");
+  s.id = "pprt";
+  s.textContent = [
+    "@page { size:A4 portrait; margin:28mm 20mm 20mm 20mm }",
+    "@media print {",
+    "  body > *:not(#print-root) { display:none!important }",
+    "  #print-root { display:block!important; position:fixed; top:0; left:0; width:100% }",
+    "  #print-cab { position:fixed; top:0; left:0; right:0; height:25mm; background:#fafdfb; border-bottom:2px solid #1a3d2b; display:flex!important; align-items:center; justify-content:space-between; padding:0 20mm; z-index:9999 }",
+    "  #print-body { margin-top:0; }",
+    "  .pg-break { page-break-before:always }",
+    "  #capa-rel { page-break-after:always; min-height:240mm; display:flex; flex-direction:column; justify-content:center }",
+    "  h2,h3 { page-break-after:avoid }",
+    "  table { page-break-inside:avoid; width:100%!important }",
+    "  img { max-width:100%!important; page-break-inside:avoid }",
+    "  .foto-grid { display:grid!important; grid-template-columns:1fr 1fr; gap:8px }",
+    "  .foto-grid img { width:100%!important; height:130px!important; object-fit:cover!important }",
+    "  .no-print { display:none!important }",
+    "}"
+  ].join("\n");
+  document.head.appendChild(s);
+  var cabEl = document.getElementById("cab-pdf");
+  var inner = document.getElementById("reldoc-inner");
+  if (!cabEl || !inner) { window.print(); setTimeout(function(){ var x=document.getElementById("pprt");if(x)x.remove(); },3000); return; }
+  var root = document.createElement("div");
+  root.id = "print-root";
+  root.style.display = "none";
+  var cab = document.createElement("div");
+  cab.id = "print-cab";
+  cab.innerHTML = cabEl.innerHTML;
+  var body = document.createElement("div");
+  body.id = "print-body";
+  body.style.cssText = "padding:0;font-family:Georgia,serif;font-size:11pt;";
+  body.innerHTML = inner.innerHTML;
+  root.appendChild(cab);
+  root.appendChild(body);
+  document.body.appendChild(root);
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() {
+      var x = document.getElementById("pprt"); if(x) x.remove();
+      var r = document.getElementById("print-root"); if(r) r.remove();
+    }, 3000);
+  }, 400);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
