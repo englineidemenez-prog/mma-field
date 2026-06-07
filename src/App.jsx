@@ -256,15 +256,20 @@ function dlPDF() {
   var s = document.createElement("style");
   s.id = "pprt";
   s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
+    "@page" + ob + "size:A4 portrait;margin:0" + cb +
     "@media print" + ob +
       "body *" + ob + "visibility:hidden!important" + cb +
       "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
-      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
-      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
+      "#reldoc" + ob + "position:absolute;left:0;top:0;width:210mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
+      "#reldoc-inner" + ob + "padding:0 2cm 1.5cm 2cm!important" + cb +
+      "#cab-pdf" + ob + "position:running(header);width:100%" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:260mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important;padding-top:3cm!important" + cb +
+      "#sumario-rel" + ob + "page-break-after:always!important" + cb +
+      "#ident-rel" + ob + "page-break-after:always!important" + cb +
       "h2,h3" + ob + "page-break-after:avoid" + cb +
-      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
+      "img" + ob + "max-width:100%!important;height:auto!important;page-break-inside:avoid" + cb +
       "table" + ob + "page-break-inside:avoid" + cb +
+      ".foto-grid img" + ob + "width:100%!important;height:140px!important;object-fit:cover!important" + cb +
     cb;
   document.head.appendChild(s);
   setTimeout(function() {
@@ -910,19 +915,27 @@ function AppPrincipal({ user, onLogout }) {
           <div>
             <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
-              <Cab/>
-              <div style={{padding:"28px 40px"}}>
+              <div id="cab-pdf"><Cab/></div>
+              <div id="reldoc-inner" style={{padding:"28px 40px"}}>
                 <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
                   <div style={{fontSize:12,color:"#555",marginBottom:12}}>{construtora.nome||emp||"[Empresa Executora]"} apresenta a {empreendedor.nome||"[Empreendedor]"} o documento:</div>
                   <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{(empreendimento.nome||nEmp)&&<><br/>{(empreendimento.nome||nEmp).toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
                   {equipe.length>0&&<div style={{fontSize:12,color:"#555"}}>{equipe.map(m=>m.nome).join(", ")}<br/><strong>{construtora.nome||emp}</strong></div>}
                 </div>
-                <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
-                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
+                <div id="sumario-rel" style={{marginBottom:20,pageBreakAfter:"always"}}>
+                  <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",fontWeight:"bold"}}>SUMÁRIO</h2>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><tbody>
+                    {[["1. INTRODUÇÃO",""],["2. IDENTIFICAÇÃO DO EMPREENDIMENTO",""],["3. PROGRAMAS EM EXECUÇÃO",""],...ativos.map((p,pi)=>["   3."+(pi+1)+" "+getL(p.id),""]),["4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS",""]].map((item,i)=>(
+                      <tr key={i}><td style={{padding:"4px 0",fontSize:11,color:i===0||i===1||i===2||i===3+ativos.length?"#333":"#555",fontWeight:i<3||i===3+ativos.length?"bold":"normal",paddingLeft:item[0].startsWith("   ")?"20px":"0"}}>{item[0]}</td><td style={{padding:"4px 0",textAlign:"right",fontSize:11,color:"#999",borderBottom:"1px dotted #ccc"}}></td></tr>
+                    ))}
+                  </tbody></table>
                 </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
+                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>1. INTRODUÇÃO</h2>
+                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
+                </div>
+                <div id="ident-rel" style={{marginBottom:20}}>
+                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>2. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
                   <div style={{marginBottom:10}}>
                     <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 1 – Identificação do Empreendedor</div>
                     <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
@@ -951,10 +964,10 @@ function AppPrincipal({ user, onLogout }) {
                   </div>
                 </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
+                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>3. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
                 </div>
-                <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:18,textAlign:"left"}}>3. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
+                <h2 style={{color:cor,fontSize:13,marginBottom:18,textAlign:"left"}}>4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h2>
                 {ativos.map((p,pi)=>{
                   var d=getD(p.id); var fp=getF(p.id);
                   var grafRel=(d.graficos||[]).filter(gr=>gr.addRel&&(gr.dados||[]).some(x=>x.l&&x.v));
@@ -962,7 +975,7 @@ function AppPrincipal({ user, onLogout }) {
                     <div key={p.id} style={{marginBottom:32}}>
                       <h3 style={{color:cor,fontSize:13,borderLeft:"4px solid "+p.cor,paddingLeft:10,marginBottom:10,textAlign:"left"}}>{pi+1}. {getL(p.id).toUpperCase()}</h3>
                       {d.desc&&<p style={{fontSize:12,color:"#444",lineHeight:1.8,marginBottom:12,textAlign:"justify"}}>{d.desc}</p>}
-                      {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:160,objectFit:"cover",objectPosition:"center",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
+                      {fp.length>0&&<div style={{marginBottom:12}}><h4 style={{fontSize:11,color:"#333",marginBottom:7,textAlign:"left"}}>{pi+1}.1 Registro Fotográfico</h4><div className="foto-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{fp.map((f,fi)=><div key={f.id} style={{border:"1px solid #ddd",borderRadius:8,overflow:"hidden"}}><img src={f.src} alt={f.leg} style={{width:"100%",height:160,objectFit:"cover",objectPosition:"center",display:"block"}}/><div style={{padding:"5px 9px",background:"#fafafa",fontSize:10,textAlign:"center"}}>{f.geo&&<div style={{fontSize:8,color:"#888"}}>📍 {f.geo}</div>}<div>Foto {fi+1}{f.leg?" – "+f.leg:""}</div></div></div>)}</div></div>}
                       {grafRel.map((gr,gi)=>(
                         <div key={gi} style={{marginBottom:16}}>
                           <h4 style={{fontSize:11,color:"#333",marginBottom:5,textAlign:"left"}}>{gr.titulo||"Gráfico "+(gi+1)}</h4>
@@ -974,7 +987,8 @@ function AppPrincipal({ user, onLogout }) {
                   );
                 })}
                 {extras.map((pe,pi)=><div key={pe.id} style={{marginBottom:28}}><h3 style={{color:cor,fontSize:13,borderLeft:"4px solid #2d6a4f",paddingLeft:10,marginBottom:10,textAlign:"left"}}>{ativos.length+pi+1}. {pe.nome.toUpperCase()}</h3><p style={{fontSize:12,color:"#444",lineHeight:1.8}}>{pe.intro}</p></div>)}
-                <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
+                <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{construtora.nome||emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
+              </div>
               </div>
             </div>
           </div>
