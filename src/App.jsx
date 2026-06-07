@@ -1138,12 +1138,12 @@ function AppPrincipal({ user, onLogout }) {
                       <div><label style={LB}>Nome do Empreendimento</label><input value={empreendimento.nome||""} onChange={e=>setEmpreendimento(x=>({...x,nome:e.target.value}))} style={SI}/></div>
                       <div><label style={LB}>Estado (UF)</label><input value={empreendimento.uf||""} onChange={e=>setEmpreendimento(x=>({...x,uf:e.target.value}))} style={SI}/></div>
                     </div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
-                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px"}}>
+                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
+                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#fff",color:"#2d6a4f",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
                     </div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
-                      <thead><tr><th style={{...TH,background:"#2d6a4f"}}>Nome</th><th style={{...TH,background:"#2d6a4f"}}>Função</th><th style={{...TH,background:"#2d6a4f"}}>Registro Profissional</th><th style={{...TH,background:"#2d6a4f",width:30}}></th></tr></thead>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4,border:"1px solid #2d6a4f"}}>
+                      <thead><tr><th style={{...TH,background:"#1a3d2b"}}>Nome</th><th style={{...TH,background:"#1a3d2b"}}>Função</th><th style={{...TH,background:"#1a3d2b"}}>Registro Profissional</th><th style={{...TH,background:"#1a3d2b",width:30}}></th></tr></thead>
                       <tbody>
                         {equipe.length===0&&<tr><td colSpan={4} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Clique em "+ Membro" para adicionar</td></tr>}
                         {equipe.map((m,mi)=>(
