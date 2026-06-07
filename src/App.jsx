@@ -242,62 +242,241 @@ function AuthScreen({ onLogin }) {
 // ─────────────────────────────────────────────
 // FUNÇÕES AUXILIARES
 // ─────────────────────────────────────────────
-function dlWord(mes, ano) {
-  var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
-  var b = new Blob(["<html><body>" + el.innerHTML + "</body></html>"], {type:"application/msword"});
+function buildRelatorioHTML(dados_rel) {
+  var {lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust} = dados_rel;
+  var corP = cor||"#1a3d2b";
+  var nEmp = empreendimento.nome||"[Empreendimento]";
+  var nCons = construtora.nome||"[Empresa]";
+  var nEmpr = empreendedor.nome||"[Empreendedor]";
+  var numR = nrel ? nrel+"º" : "1º";
+
+  // Cabeçalho HTML reutilizável em cada página via @page e running header
+  var cabHTML = `
+    <div class="cab">
+      <div class="cab-logo">${lCons ? `<img src="${lCons}" style="height:36px;max-width:90px;object-fit:contain;"/>` : `<div style="font-size:10pt;font-weight:bold;color:${corP};">${nCons}</div>`}</div>
+      <div class="cab-centro">
+        <div style="font-weight:bold;font-size:9pt;">${numR} RELATÓRIO – ${mes.toUpperCase()}/${ano}</div>
+        <div style="font-size:8pt;">GESTÃO E SUPERVISÃO AMBIENTAL</div>
+        <div style="font-size:8pt;">${nEmp}</div>
+      </div>
+      <div class="cab-logo">${lEmpr ? `<img src="${lEmpr}" style="height:36px;max-width:90px;object-fit:contain;"/>` : ""}</div>
+    </div>`;
+
+  // Rodapé
+  var rodHTML = `<div class="rod"><span>${nCons}</span><span>${nEmp} – ${mes}/${ano}</span><span class="pg-num"></span></div>`;
+
+  // Capa
+  var capaHTML = `
+    <div class="pagina capa">
+      ${cabHTML}
+      <div class="capa-body">
+        <div class="capa-logos">
+          ${lCons ? `<img src="${lCons}" class="capa-logo"/>` : `<div class="capa-logo-txt">${nCons}</div>`}
+          ${lEmpr ? `<img src="${lEmpr}" class="capa-logo"/>` : ""}
+        </div>
+        <div class="capa-apresenta"><em>${nCons} apresenta a ${nEmpr} o documento:</em></div>
+        <div class="capa-titulo">RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</div>
+        <div class="capa-empreendimento">${nEmp.toUpperCase()}</div>
+        <div class="capa-periodo">PERÍODO DE ${mes.toUpperCase()}/${ano}</div>
+      </div>
+      ${rodHTML}
+    </div>`;
+
+  // Sumário
+  var itens_sumario = [
+    {n:"1", t:"IDENTIFICAÇÃO DO EMPREENDIMENTO"},
+    {n:"2", t:"INTRODUÇÃO"},
+    {n:"3", t:"PROGRAMAS EM EXECUÇÃO"},
+    ...ativos.map((p,i) => ({n:"3."+(i+1), t:p.lb, sub:true})),
+    {n:"4", t:"GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS"},
+  ];
+  var sumarioHTML = `
+    <div class="pagina">
+      ${cabHTML}
+      <div class="pg-body">
+        <h1 class="sec-titulo">SUMÁRIO</h1>
+        <table class="sumario-tab">
+          ${itens_sumario.map(it=>`
+          <tr>
+            <td class="sum-n" style="${it.sub?"padding-left:20pt;color:#555;":""}">${it.n}</td>
+            <td class="sum-t" style="${it.sub?"color:#555;":""}">${it.t}</td>
+            <td class="sum-pg"></td>
+          </tr>`).join("")}
+        </table>
+      </div>
+      ${rodHTML}
+    </div>`;
+
+  // Identificação
+  function quad(titulo, linhas) {
+    return `<div class="quad-titulo">${titulo}</div>
+    <table class="quad-tab">
+      ${linhas.filter(r=>r[1]).map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
+    </table>`;
+  }
+  var identHTML = `
+    <div class="pagina">
+      ${cabHTML}
+      <div class="pg-body">
+        <h1 class="sec-num">1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>
+        ${quad("Quadro 1 – Identificação do Empreendedor",[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]])}
+        ${quad("Quadro 2 – Identificação da "+(construtora.label||"Empresa Construtora"),[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]])}
+        ${quad("Quadro 3 – Identificação do Empreendimento",[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]])}
+        ${equipe.length>0 ? `
+        <div class="quad-titulo">Quadro 4 – Equipe Técnica</div>
+        <table class="quad-tab">
+          <tr><th>Nome</th><th>Função</th><th>Registro Profissional</th></tr>
+          ${equipe.map((m,i)=>`<tr class="${i%2?"alt":""}"><td>${m.nome||"—"}</td><td>${m.funcao||"—"}</td><td>${m.registro||"N/A"}</td></tr>`).join("")}
+        </table>` : ""}
+      </div>
+      ${rodHTML}
+    </div>`;
+
+  // Introdução
+  var introHTML = `
+    <div class="pagina">
+      ${cabHTML}
+      <div class="pg-body">
+        <h1 class="sec-num">2. INTRODUÇÃO</h1>
+        <p class="pg-texto">${(intro||"").replace(/
+/g,"</p><p class='pg-texto'>")}</p>
+      </div>
+      ${rodHTML}
+    </div>`;
+
+  // Programas em Execução
+  var pgmExecHTML = `
+    <div class="pagina">
+      ${cabHTML}
+      <div class="pg-body">
+        <h1 class="sec-num">3. PROGRAMAS EM EXECUÇÃO</h1>
+        <table class="quad-tab">
+          <tr><th>Nº</th><th>Programa</th><th>Status</th></tr>
+          ${ativos.map((p,i)=>`<tr class="${i%2?"alt":""}"><td style="width:30pt;">${i+1}</td><td>${p.lb}</td><td style="color:${corP};font-weight:bold;">● Em Execução</td></tr>`).join("")}
+        </table>
+      </div>
+      ${rodHTML}
+    </div>`;
+
+  // Gestão e Supervisão — um bloco por programa
+  var gestaoHTML = ativos.map((prog, pi) => {
+    var pd = dados[prog.id] || {};
+    var pgFotos = (fotos[prog.id]||[]);
+    var pgGraficos = (pd.graficos||[]).filter(g=>(g.dados||[]).some(d=>d.l&&d.v));
+    var descricao = pd.descricao||"";
+    var texto = pd.texto||"";
+
+    // Fotos em grid 2x2 com legenda
+    var fotosHTML = "";
+    if (pgFotos.length > 0) {
+      fotosHTML = `<h3 class="sub-titulo">Registro Fotográfico</h3>
+      <div class="foto-grid">
+        ${pgFotos.map((f,fi)=>`
+        <div class="foto-item">
+          <img src="${f.src}" class="foto-img" alt="${f.leg||""}"/>
+          <div class="foto-leg">Foto ${fi+1}${f.leg ? " – "+f.leg : ""}</div>
+        </div>`).join("")}
+      </div>`;
+    }
+
+    // Gráficos
+    var grafHTML = pgGraficos.length > 0 ? `<h3 class="sub-titulo">Dados e Indicadores</h3>
+    <div class="graf-area">[Os gráficos serão exibidos no sistema — exportar via PDF do navegador para incluí-los]</div>` : "";
+
+    return `
+    <div class="pagina">
+      ${cabHTML}
+      <div class="pg-body">
+        <h1 class="sec-num">${pi===0?"4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS":""}</h1>
+        <h2 class="prog-titulo" style="border-left:4px solid ${prog.cor||corP};">${pi+1}. ${nomes[prog.id]||prog.lb}</h2>
+        ${descricao ? `<h3 class="sub-titulo">Descrição das Atividades</h3><p class="pg-texto">${descricao.replace(/
+/g,"</p><p class='pg-texto'>")}</p>` : ""}
+        ${texto ? `<p class="pg-texto">${texto.replace(/
+/g,"</p><p class='pg-texto'>")}</p>` : ""}
+        ${fotosHTML}
+        ${grafHTML}
+      </div>
+      ${rodHTML}
+    </div>`;
+  }).join("");
+
+  // CSS completo
+  var css = `
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:Georgia,serif;font-size:10pt;color:#222;background:#fff;}
+    .pagina{width:210mm;min-height:297mm;padding:0;margin:0 auto;position:relative;page-break-after:always;display:flex;flex-direction:column;}
+    .cab{display:flex;align-items:center;justify-content:space-between;padding:8pt 20mm;border-bottom:2px solid ${corP};background:#fafdfb;min-height:20mm;}
+    .cab-centro{text-align:center;flex:1;padding:0 10pt;}
+    .cab-logo{width:90px;text-align:center;}
+    .capa-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20mm 20mm 10mm;}
+    .capa-logos{display:flex;gap:30pt;align-items:center;justify-content:center;margin-bottom:40pt;}
+    .capa-logo{height:70px;max-width:140px;object-fit:contain;}
+    .capa-logo-txt{font-size:14pt;font-weight:bold;color:${corP};}
+    .capa-apresenta{font-style:italic;font-size:10pt;color:#555;margin-bottom:20pt;}
+    .capa-titulo{font-size:14pt;font-weight:bold;color:${corP};text-align:center;line-height:1.5;margin-bottom:12pt;}
+    .capa-empreendimento{font-size:13pt;font-weight:bold;text-align:center;margin-bottom:8pt;}
+    .capa-periodo{font-size:10pt;color:#555;text-align:center;margin-top:30pt;}
+    .pg-body{flex:1;padding:10mm 20mm 5mm;}
+    .rod{display:flex;justify-content:space-between;padding:5pt 20mm;border-top:1px solid #ccc;font-size:7pt;color:#888;}
+    .sec-titulo{font-size:13pt;color:${corP};margin-bottom:16pt;font-weight:bold;}
+    .sec-num{font-size:12pt;color:${corP};margin-bottom:12pt;font-weight:bold;padding-bottom:4pt;border-bottom:1px solid ${corP};}
+    .prog-titulo{font-size:11pt;font-weight:bold;color:#222;margin:12pt 0 8pt;padding:6pt 10pt;background:#f5fdf7;}
+    .sub-titulo{font-size:10pt;font-weight:bold;color:${corP};margin:10pt 0 6pt;}
+    .pg-texto{font-size:10pt;line-height:1.7;color:#333;margin-bottom:8pt;text-align:justify;}
+    .sumario-tab{width:100%;border-collapse:collapse;}
+    .sumario-tab tr{border-bottom:1px dotted #ccc;}
+    .sum-n{width:30pt;padding:5pt 0;font-weight:bold;color:${corP};}
+    .sum-t{padding:5pt 0;flex:1;}
+    .sum-pg{width:20pt;text-align:right;color:#aaa;}
+    .quad-titulo{font-size:10pt;font-weight:bold;color:#333;margin:10pt 0 4pt;}
+    .quad-tab{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:10pt;}
+    .quad-tab th{background:${corP};color:#fff;padding:5pt 8pt;text-align:left;}
+    .quad-tab td{padding:4pt 8pt;border-bottom:1px solid #eee;}
+    .quad-tab .qk{font-weight:bold;color:${corP};width:120pt;}
+    .quad-tab .alt td,.quad-tab tr.alt td{background:#f8fdf9;}
+    .foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt;margin:8pt 0;}
+    .foto-item{display:flex;flex-direction:column;align-items:center;}
+    .foto-img{width:100%;height:110pt;object-fit:cover;border:1px solid #ddd;border-radius:3pt;}
+    .foto-leg{font-size:8pt;color:#555;text-align:center;margin-top:3pt;font-style:italic;}
+    .graf-area{background:#f5fdf7;border:1px solid #c8ddd2;border-radius:4pt;padding:10pt;text-align:center;color:#666;font-size:9pt;margin:8pt 0;}
+    @media print{
+      body{margin:0;}
+      .pagina{margin:0;page-break-after:always;}
+      .foto-img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    }`;
+
+  var html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Relatório MMA Field</title>
+  <style>${css}</style>
+  </head><body>
+  ${capaHTML}
+  ${sumarioHTML}
+  ${identHTML}
+  ${introHTML}
+  ${pgmExecHTML}
+  ${gestaoHTML}
+  </body></html>`;
+
+  return html;
+}
+
+function dlWord(mes, ano, dados_rel) {
+  var html = buildRelatorioHTML(dados_rel);
+  var b = new Blob([html], {type:"application/msword"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
-  a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
+  a.href = u; a.download = "Relatorio_"+mes+"_"+ano+".doc"; a.click();
   URL.revokeObjectURL(u);
 }
-function dlPDF() {
-  var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relat\u00f3rio antes de baixar."); return; }
-  var ob = "{", cb = "}";
-  var s = document.createElement("style");
-  s.id = "pprt";
-  s.textContent = [
-    "@page { size:A4 portrait; margin:28mm 20mm 20mm 20mm }",
-    "@media print {",
-    "  body > *:not(#print-root) { display:none!important }",
-    "  #print-root { display:block!important; position:fixed; top:0; left:0; width:100% }",
-    "  #print-cab { position:fixed; top:0; left:0; right:0; height:25mm; background:#fafdfb; border-bottom:2px solid #1a3d2b; display:flex!important; align-items:center; justify-content:space-between; padding:0 20mm; z-index:9999 }",
-    "  #print-body { margin-top:0; }",
-    "  .pg-break { page-break-before:always }",
-    "  #capa-rel { page-break-after:always; min-height:240mm; display:flex; flex-direction:column; justify-content:center }",
-    "  h2,h3 { page-break-after:avoid }",
-    "  table { page-break-inside:avoid; width:100%!important }",
-    "  img { max-width:100%!important; page-break-inside:avoid }",
-    "  .foto-grid { display:grid!important; grid-template-columns:1fr 1fr; gap:8px }",
-    "  .foto-grid img { width:100%!important; height:130px!important; object-fit:cover!important }",
-    "  .no-print { display:none!important }",
-    "}"
-  ].join("\n");
-  document.head.appendChild(s);
-  var cabEl = document.getElementById("cab-pdf");
-  var inner = document.getElementById("reldoc-inner");
-  if (!cabEl || !inner) { window.print(); setTimeout(function(){ var x=document.getElementById("pprt");if(x)x.remove(); },3000); return; }
-  var root = document.createElement("div");
-  root.id = "print-root";
-  root.style.display = "none";
-  var cab = document.createElement("div");
-  cab.id = "print-cab";
-  cab.innerHTML = cabEl.innerHTML;
-  var body = document.createElement("div");
-  body.id = "print-body";
-  body.style.cssText = "padding:0;font-family:Georgia,serif;font-size:11pt;";
-  body.innerHTML = inner.innerHTML;
-  root.appendChild(cab);
-  root.appendChild(body);
-  document.body.appendChild(root);
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() {
-      var x = document.getElementById("pprt"); if(x) x.remove();
-      var r = document.getElementById("print-root"); if(r) r.remove();
-    }, 3000);
-  }, 400);
+function dlPDF(dados_rel) {
+  var html = buildRelatorioHTML(dados_rel);
+  var win = window.open("","_blank","width=900,height=700");
+  if (!win) { alert("Permita pop-ups para gerar o PDF."); return; }
+  win.document.write(html);
+  win.document.close();
+  win.onload = function() {
+    setTimeout(function() { win.print(); }, 800);
+  };
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -485,7 +664,8 @@ function AppPrincipal({ user, onLogout }) {
   };
   const baixarRelatorio = (rel) => {
     carregarRelatorio(rel);
-    setTimeout(function() { setAba("relatorio"); setTimeout(function() { dlWord(rel.mes, rel.ano); }, 800); }, 500);
+    var dr = {lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel:rel.estado?.nrel||nrel,mes:rel.mes,ano:rel.ano,intro:rel.estado?.intro||intro,ativos,dados:rel.estado?.dados||dados,fotos:rel.estado?.fotos||fotos,nomes,cor,pCust};
+    dlWord(rel.mes, rel.ano, dr);
   };
   const novoRelatorio = () => {
     if (!window.confirm("Iniciar novo relatório?")) return;
@@ -980,7 +1160,13 @@ function AppPrincipal({ user, onLogout }) {
         {/* RELATORIO */}
         {aba==="relatorio"&&(
           <div>
-            <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <h2 style={{color:HC,margin:0}}>📄 Relatório Mensal</h2>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>{var dr={lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust};dlWord(mes,ano,dr);}} style={{background:"#5a4fcf",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📥 Baixar Word</button>
+                <button onClick={()=>{var dr={lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
+              </div>
+            </div>
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
               <div id="cab-pdf"><Cab/></div>
               <div id="reldoc-inner" style={{padding:"28px 40px"}}>
@@ -1084,7 +1270,7 @@ function AppPrincipal({ user, onLogout }) {
                     <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
                       <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📂 Abrir</button>
                       <button onClick={()=>baixarRelatorio(rel)} style={{background:"#5a4fcf",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📥 Baixar Word</button>
-                      <button onClick={()=>{carregarRelatorio(rel);setTimeout(function(){dlPDF();},1000);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
+                      <button onClick={()=>{var dr={lCons:rel.estado?.lCons||lCons,lEmpr:rel.estado?.lEmpr||lEmpr,empreendedor:rel.estado?.empreendedor||empreendedor,construtora:rel.estado?.construtora||construtora,empreendimento:rel.estado?.empreendimento||empreendimento,equipe:rel.estado?.equipe||equipe,nrel:rel.estado?.nrel||nrel,mes:rel.mes,ano:rel.ano,intro:rel.estado?.intro||intro,ativos,dados:rel.estado?.dados||dados,fotos:rel.estado?.fotos||fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
                       <button onClick={()=>excluirRelatorio(rel.id)} style={{background:"none",border:"2px solid #b5451b",color:"#b5451b",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>🗑️ Excluir</button>
                     </div>
                   </div>
