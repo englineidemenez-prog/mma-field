@@ -327,6 +327,33 @@ export default function App() {
 // ─────────────────────────────────────────────
 function AppPrincipal({ user, onLogout }) {
   var ei = estadoInicial();
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("dados_usuario").select("estado").eq("user_id", user.id).single().then(({data}) => {
+      if (!data?.estado) return;
+      var e = data.estado;
+      if (e.fotos) setFotos(e.fotos);
+      if (e.dados) setDados(e.dados);
+      if (e.inv) setInv(e.inv);
+      if (e.cor) setCor(e.cor);
+      if (e.lCons) setLCons(e.lCons);
+      if (e.lEmpr) setLEmpr(e.lEmpr);
+      if (e.campos) setCampos(e.campos);
+      if (e.nrel) setNrel(e.nrel);
+      if (e.mes) setMes(e.mes);
+      if (e.ano) setAno(e.ano);
+      if (e.pAtiv) setPAtiv(e.pAtiv);
+      if (e.pCust) setPCust(e.pCust);
+      if (e.nomes) setNomes(e.nomes);
+      if (e.extras) setExtras(e.extras);
+      if (e.intro) setIntro(e.intro);
+      if (e.empreendedor) setEmpreendedor(e.empreendedor);
+      if (e.construtora) setConstrutora(e.construtora);
+      if (e.empreendimento) setEmpreendimento(e.empreendimento);
+      if (e.equipe) setEquipe(e.equipe);
+      localStorage.setItem(SAVE_KEY, JSON.stringify(e));
+    });
+  }, [user?.id]);
   const [aba, setAba]       = useState("fotos");
   const [fotos, setFotos]   = useState(ei?.fotos || {});
   const [psel, setPsel]     = useState("");
@@ -367,15 +394,27 @@ function AppPrincipal({ user, onLogout }) {
   const [historico, setHistorico] = useState(() => {
     try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
   });
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("historico_relatorios").select("*").eq("user_id", user.id).order("created_at", {ascending:false}).then(({data}) => {
+      if (!data || data.length === 0) return;
+      var rels = data.map(r => ({id:r.rel_id, titulo:r.titulo, mes:r.mes, ano:r.ano, empresa:r.empresa, empreendimento:r.empreendimento, data:r.data_salvo, estado:r.estado}));
+      setHistorico(rels);
+      try { localStorage.setItem(HIST_KEY, JSON.stringify(rels)); } catch(e) {}
+    });
+  }, [user?.id]);
   const [msgSalvo, setMsgSalvo] = useState("");
   const ref = useRef();
   const saveTimer = useRef(null);
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(function() {
+    saveTimer.current = setTimeout(async function() {
       try {
         var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
+        if (user) {
+          await supabase.from("dados_usuario").upsert({user_id:user.id, estado, updated_at:new Date().toISOString()}, {onConflict:"user_id"});
+        }
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
       } catch(e) {}
@@ -393,6 +432,12 @@ function AppPrincipal({ user, onLogout }) {
     var nh = [rel,...historico];
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
+    if (user) {
+      supabase.from("historico_relatorios").insert({
+        user_id:user.id, rel_id:rel.id, titulo:rel.titulo, mes:rel.mes, ano:rel.ano,
+        empresa:rel.empresa, empreendimento:rel.empreendimento, data_salvo:rel.data, estado:rel.estado
+      });
+    }
     alert("Relatório de "+mes+"/"+ano+" salvo no histórico!");
   };
   const carregarRelatorio = (rel) => {
