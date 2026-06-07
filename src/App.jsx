@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -333,6 +333,8 @@ function AppPrincipal({ user, onLogout }) {
   const [dados, setDados]   = useState(ei?.dados || {});
   const [pd, setPd]         = useState("pac");
   const [inv, setInv]       = useState(ei?.inv || []);
+  const [ldMTR, setLdMTR]   = useState(false);
+  const [erMTR, setErMTR]   = useState("");
   const [cor, setCor]       = useState(ei?.cor || HC);
   const [lCons, setLCons]   = useState(ei?.lCons || null);
   const [lEmpr, setLEmpr]   = useState(ei?.lEmpr || null);
@@ -445,7 +447,21 @@ function AppPrincipal({ user, onLogout }) {
     if(ref.current) ref.current.value="";
   };
   const remF = (pid,fid) => setFotos(f=>({...f,[pid]:(f[pid]||[]).filter(x=>x.id!==fid)}));
-  
+  const lerMTR = async arq => {
+    setLdMTR(true); setErMTR("");
+    try {
+      var b64 = await new Promise(function(res,rej){var r=new FileReader();r.onload=function(e){res(e.target.result.split(",")[1]);};r.onerror=function(){rej(new Error("Falha"));};r.readAsDataURL(arq);});
+      var pt = "Analise este MTR ou CDF. Retorne APENAS JSON com: tipo_doc, numero, data_emissao, classe, tipo_residuo, volume, unidade, transportador, destinador, tratamento";
+      var mc = arq.type==="application/pdf"?[{type:"document",source:{type:"base64",media_type:"application/pdf",data:b64}},{type:"text",text:pt}]:[{type:"image",source:{type:"base64",media_type:arq.type,data:b64}},{type:"text",text:pt}];
+      var rs = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,messages:[{role:"user",content:mc}]})});
+      var j = await rs.json();
+      var raw=(j.content||[]).map(function(c){return c.text||"";}).join("").trim();
+      var si=raw.indexOf("{"),ei=raw.lastIndexOf("}");
+      var p2=JSON.parse(si>=0?raw.slice(si,ei+1):raw);
+      setInv(function(prev){return [...prev,{id:Date.now(),ed:false,tipo_doc:p2.tipo_doc||"MTR",numero:p2.numero||"",data:p2.data_emissao||"",classe:p2.classe||"",tipo_residuo:p2.tipo_residuo||"",volume:p2.volume||"",unidade:p2.unidade||"t",transportador:p2.transportador||"",destinador:p2.destinador||"",tratamento:p2.tratamento||""}];});
+    } catch(e){setErMTR("Erro: "+e.message);}
+    setLdMTR(false);
+  };
   const addExtra = async () => {
     if(!novo.trim()) return; setGer(true);
     try {
@@ -608,7 +624,53 @@ function AppPrincipal({ user, onLogout }) {
                   </div>
                   {pd==="residuos"&&(
                     <div>
-                      
+                      <div style={{...CD,border:"2px solid #5a4fcf33",background:"linear-gradient(135deg,#faf9ff,#f3f0ff)"}}>
+                        <div style={{fontSize:13,fontWeight:"bold",color:"#5a4fcf",marginBottom:8}}>🤖 Leitura Automática de MTR / CDF</div>
+                        <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"16px",border:"2px dashed #5a4fcf88",borderRadius:12,cursor:"pointer",background:"#fff",maxWidth:380}}>
+                          <span style={{fontSize:28}}>📄</span>
+                          <span style={{fontWeight:"bold",color:"#5a4fcf",fontSize:12}}>Selecionar MTR ou CDF (PDF ou imagem)</span>
+                          <input type="file" accept=".pdf,image/*" multiple style={{display:"none"}} onChange={async e=>{for(var f of Array.from(e.target.files))await lerMTR(f);e.target.value="";}}/>
+                          {ldMTR&&<span style={{fontSize:11,color:"#5a4fcf"}}>⏳ Lendo documento...</span>}
+                        </label>
+                        {erMTR&&<div style={{marginTop:8,padding:"6px 10px",background:"#fff0f0",borderRadius:7,fontSize:11,color:"#b00"}}>{erMTR}</div>}
+                      </div>
+                      <div style={CD}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                          <h3 style={{color:"#5a4fcf",fontSize:13,margin:0}}>📋 Inventário de Resíduos</h3>
+                          <span style={{fontSize:11,color:"#888"}}>{inv.length} registro(s)</span>
+                        </div>
+                        <div style={{overflowX:"auto"}}>
+                          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:860}}>
+                            <thead><tr>{["Doc","Número","Data","Classe","Tipo","Volume","Unidade","Transportador","Destinador","Tratamento",""].map((h,i)=><th key={i} style={{...TH,background:"#5a4fcf",padding:"6px 7px",whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+                            <tbody>
+                              {inv.length===0&&<tr><td colSpan={11} style={{...TD,textAlign:"center",color:"#ccc",padding:"20px",fontStyle:"italic"}}>Nenhum registro</td></tr>}
+                              {inv.map((row,i)=>(
+                                <tr key={row.id}>
+                                  {row.ed?(
+                                    <>{["tipo_doc","numero","data","classe","tipo_residuo","volume"].map(f=>(
+                                      <td key={f} style={{...TD,background:"#faf9ff",padding:"3px 4px"}}><input value={row[f]||""} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,[f]:e.target.value}:r))} style={{width:"100%",minWidth:55,padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}/></td>
+                                    ))}
+                                    <td style={{...TD,background:"#faf9ff",padding:"3px 4px"}}>
+                                      <select value={row.unidade||"t"} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,unidade:e.target.value}:r))} style={{width:"100%",padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}>
+                                        <option value="kg">kg</option><option value="t">t</option><option value="m3">m³</option><option value="un">un</option>
+                                      </select>
+                                    </td>
+                                    {["transportador","destinador","tratamento"].map(f=>(
+                                      <td key={f} style={{...TD,background:"#faf9ff",padding:"3px 4px"}}><input value={row[f]||""} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,[f]:e.target.value}:r))} style={{width:"100%",minWidth:55,padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}/></td>
+                                    ))}
+                                    <td style={{...TD,background:"#faf9ff"}}><div style={{display:"flex",gap:3}}><button onClick={()=>setInv(prev=>prev.map((r,j)=>j===i?{...r,ed:false}:r))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>✓</button><button onClick={()=>setInv(prev=>prev.filter((_,j)=>j!==i))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"3px 5px",cursor:"pointer",fontSize:10}}>×</button></div></td></>
+                                  ):(
+                                    <>{[row.tipo_doc,row.numero,row.data,row.classe,row.tipo_residuo,row.volume||"—",row.unidade||"t",row.transportador,row.destinador,row.tratamento].map((v,ci)=>(
+                                      <td key={ci} style={{...(i%2?TA:TD),whiteSpace:"nowrap",maxWidth:130,overflow:"hidden",textOverflow:"ellipsis"}}>{v||"—"}</td>
+                                    ))}
+                                    <td style={i%2?TA:TD}><div style={{display:"flex",gap:3}}><button onClick={()=>setInv(prev=>prev.map((r,j)=>j===i?{...r,ed:true}:r))} style={{background:"none",border:"1px solid #5a4fcf",color:"#5a4fcf",borderRadius:5,padding:"3px 6px",cursor:"pointer",fontSize:10}}>✏️</button><button onClick={()=>setInv(prev=>prev.filter((_,j)=>j!==i))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"3px 5px",cursor:"pointer",fontSize:10}}>×</button></div></td></>
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                       {inv.length>0&&(()=>{
                         var pt={}; inv.forEach(r=>{var t=r.tipo_residuo||"Outros";pt[t]=(pt[t]||0)+(parseFloat(r.volume)||0);});
                         var tG=Object.values(pt).reduce((a,b)=>a+b,0);
