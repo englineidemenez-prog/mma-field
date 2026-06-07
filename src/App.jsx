@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -252,22 +252,26 @@ function dlWord(mes, ano) {
   URL.revokeObjectURL(u);
 }
 function dlPDF() {
-  var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relatorio antes de baixar."); return; }
-  function gerarPDF() {
-    var opt = { margin:[0,0,0,0], filename:"Relatorio_MMA_Field.pdf", image:{type:"jpeg",quality:0.98}, html2canvas:{scale:2,useCORS:true,allowTaint:true,logging:false}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} };
-    var toHide = el.querySelectorAll("button, input[type=file], select, textarea");
-    var hidden = []; toHide.forEach(function(e){hidden.push({el:e,d:e.style.display});e.style.display="none";});
-    var os = el.style.cssText; el.style.cssText = "background:#fff;width:210mm;box-shadow:none;border:none;border-radius:0;font-family:Georgia,serif";
-    window.html2pdf().set(opt).from(el).save().then(function(){ el.style.cssText=os; hidden.forEach(function(h){h.el.style.display=h.d;}); });
-  }
-  if (window.html2pdf) { gerarPDF(); } else {
-    var s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-    s.onload = gerarPDF; document.head.appendChild(s);
-  }
+  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
+  var s = document.createElement("style");
+  s.id = "pprt";
+  s.textContent =
+    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
+    "@media print" + ob +
+      "body *" + ob + "visibility:hidden!important" + cb +
+      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
+      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
+      "h2,h3" + ob + "page-break-after:avoid" + cb +
+      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
+      "table" + ob + "page-break-inside:avoid" + cb +
+    cb;
+  document.head.appendChild(s);
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
+  }, 600);
 }
-
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
   return null;
