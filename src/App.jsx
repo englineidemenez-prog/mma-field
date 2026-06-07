@@ -252,30 +252,47 @@ function dlWord(mes, ano) {
   URL.revokeObjectURL(u);
 }
 function dlPDF() {
-  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
-  var s = document.createElement("style");
-  s.id = "pprt";
-  s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:0" + cb +
-    "@media print" + ob +
-      "body *" + ob + "visibility:hidden!important" + cb +
-      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
-      "#reldoc" + ob + "position:absolute;left:0;top:0;width:210mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
-      "#reldoc-inner" + ob + "padding:0 2cm 1.5cm 2cm!important" + cb +
-      "#cab-pdf" + ob + "position:running(header);width:100%" + cb +
-      "#capa-rel" + ob + "page-break-after:always!important;min-height:260mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important;padding-top:3cm!important" + cb +
-      "#sumario-rel" + ob + "page-break-after:always!important" + cb +
-      "#ident-rel" + ob + "page-break-after:always!important" + cb +
-      "h2,h3" + ob + "page-break-after:avoid" + cb +
-      "img" + ob + "max-width:100%!important;height:auto!important;page-break-inside:avoid" + cb +
-      "table" + ob + "page-break-inside:avoid" + cb +
-      ".foto-grid img" + ob + "width:100%!important;height:140px!important;object-fit:cover!important" + cb +
-    cb;
-  document.head.appendChild(s);
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
-  }, 600);
+  var el = document.getElementById("reldoc");
+  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
+  function loadScript(src, cb) {
+    if (window.html2pdf) { cb(); return; }
+    var s = document.createElement("script");
+    s.src = src; s.onload = cb;
+    document.head.appendChild(s);
+  }
+  loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js", function() {
+    var cabEl = document.getElementById("cab-pdf");
+    var cabHTML = cabEl ? cabEl.innerHTML : "";
+    var cabH = cabEl ? cabEl.offsetHeight : 55;
+    var inner = document.getElementById("reldoc-inner");
+    if (!inner) return;
+    var wrapper = document.createElement("div");
+    wrapper.style.cssText = "background:#fff;width:170mm;font-family:Georgia,serif;";
+    wrapper.innerHTML = inner.innerHTML;
+    var opt = {
+      margin: [cabH + 8, 0, 15, 0],
+      filename: "Relatorio_MMA_Field.pdf",
+      image: { type:"jpeg", quality:0.97 },
+      html2canvas: { scale:2, useCORS:true, logging:false, width:641 },
+      jsPDF: { unit:"mm", format:"a4", orientation:"portrait" },
+      pagebreak: { mode:["css","legacy"], before:[".pg-break"], avoid:["table","img",".no-break"] }
+    };
+    document.body.appendChild(wrapper);
+    html2pdf().set(opt).from(wrapper).toPdf().get("pdf").then(function(pdf) {
+      var total = pdf.internal.getNumberOfPages();
+      var pw = pdf.internal.pageSize.getWidth();
+      for (var i = 1; i <= total; i++) {
+        pdf.setPage(i);
+        pdf.setFillColor(250,253,251);
+        pdf.rect(0, 0, pw, (cabH+8)*0.352778, "F");
+        pdf.setDrawColor(26,61,43);
+        pdf.setLineWidth(0.5);
+        pdf.line(0, (cabH+8)*0.352778, pw, (cabH+8)*0.352778);
+      }
+    }).save().then(function() {
+      document.body.removeChild(wrapper);
+    });
+  });
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -967,7 +984,7 @@ function AppPrincipal({ user, onLogout }) {
                   <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{(empreendimento.nome||nEmp)&&<><br/>{(empreendimento.nome||nEmp).toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
                   {equipe.length>0&&<div style={{fontSize:12,color:"#555"}}>{equipe.map(m=>m.nome).join(", ")}<br/><strong>{construtora.nome||emp}</strong></div>}
                 </div>
-                <div id="sumario-rel" style={{marginBottom:20,pageBreakAfter:"always"}}>
+                <div id="sumario-rel" className="pg-break" style={{marginBottom:20,pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:14,textAlign:"left",fontWeight:"bold"}}>SUMÁRIO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><tbody>
                     {[["1. INTRODUÇÃO",""],["2. IDENTIFICAÇÃO DO EMPREENDIMENTO",""],["3. PROGRAMAS EM EXECUÇÃO",""],...ativos.map((p,pi)=>["   3."+(pi+1)+" "+getL(p.id),""]),["4. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS",""]].map((item,i)=>(
@@ -979,7 +996,7 @@ function AppPrincipal({ user, onLogout }) {
                   <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>1. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
-                <div id="ident-rel" style={{marginBottom:20}}>
+                <div id="ident-rel" className="pg-break" style={{marginBottom:20,pageBreakAfter:"always"}}>
                   <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>2. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
                   <div style={{marginBottom:10}}>
                     <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 1 – Identificação do Empreendedor</div>
