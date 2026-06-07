@@ -332,31 +332,45 @@ function buildRelatorioHTML(dados_rel) {
     </table>`;
   }
 
+  // Página 1 — Identificação do Empreendedor + Construtora + Empreendimento
   var identHTML = `<div class="pagina">
     ${cab()}
     <div class="pg-body">
       <h1 class="sec-num">1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>
-      ${quad("Quadro 1 – Identificação do Empreendedor",[
-        ["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],
-        ["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],
-        ["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]
-      ])}
-      ${quad("Quadro 2 – Identificação da "+(construtora.label||"Empresa Construtora"),[
-        ["Empresa",construtora.nome],["CNPJ",construtora.cnpj],
-        ["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]
-      ])}
-      ${quad("Quadro 3 – Identificação do Empreendimento",[
-        ["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]
-      ])}
-      ${equipe.length>0?`
-      <h1 class="sec-num" style="margin-top:14pt;">2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL</h1>
+
+      <p class="quad-tit">Quadro 1 – Identificação do Empreendedor</p>
+      <table class="quad-tab" style="margin-bottom:14pt;">
+        <tr><th style="width:140pt;">Campo</th><th>Informação</th></tr>
+        ${[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]].map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
+      </table>
+
+      <p class="quad-tit">Quadro 2 – Identificação da ${construtora.label||"Empresa Construtora"}</p>
+      <table class="quad-tab" style="margin-bottom:14pt;">
+        <tr><th style="width:140pt;">Campo</th><th>Informação</th></tr>
+        ${[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]].map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
+      </table>
+
+      <p class="quad-tit">Quadro 3 – Identificação do Empreendimento</p>
+      <table class="quad-tab" style="margin-bottom:14pt;">
+        <tr><th style="width:140pt;">Campo</th><th>Informação</th></tr>
+        ${[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]].map((r,i)=>`<tr class="${i%2?"alt":""}"><td class="qk">${r[0]}</td><td class="qv">${r[1]||"—"}</td></tr>`).join("")}
+      </table>
+    </div>
+    ${rod(3)}
+  </div>
+
+  ${equipe.length>0?`<div class="pagina">
+    ${cab()}
+    <div class="pg-body">
+      <h1 class="sec-num">2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL</h1>
+      <p class="quad-tit">Quadro 4 – Equipe Técnica – Responsáveis Técnicos</p>
       <table class="quad-tab">
         <tr><th>Nome</th><th>Função</th><th>Registro Profissional</th></tr>
         ${equipe.map((m,i)=>`<tr class="${i%2?"alt":""}"><td>${m.nome||"—"}</td><td>${m.funcao||"—"}</td><td>${m.registro||"N/A"}</td></tr>`).join("")}
-      </table>`:""}
+      </table>
     </div>
-    ${rod(3)}
-  </div>`;
+    ${rod(4)}
+  </div>`:""}`;
 
   // INTRODUÇÃO
   var introHTML = `<div class="pagina">
