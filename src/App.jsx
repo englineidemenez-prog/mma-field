@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -29,6 +29,39 @@ const TD  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",vertica
 const TA  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",verticalAlign:"top",background:"#f8fdf9"};
 const SAVE_KEY = "mmafield_data";
 const HIST_KEY = "mmafield_historico";
+
+// ── Supabase helpers para sincronização na nuvem ──
+async function sbCarregarEstado(userId) {
+  try {
+    const { data } = await supabase.from("relatorio_estado").select("estado").eq("user_id", userId).order("updated_at",{ascending:false}).limit(1).single();
+    return data?.estado || null;
+  } catch(e) { return null; }
+}
+async function sbSalvarEstado(userId, estado) {
+  try {
+    const { data: ex } = await supabase.from("relatorio_estado").select("id").eq("user_id", userId).limit(1).single();
+    if (ex?.id) {
+      await supabase.from("relatorio_estado").update({ estado, updated_at: new Date().toISOString() }).eq("id", ex.id);
+    } else {
+      await supabase.from("relatorio_estado").insert({ user_id: userId, estado, updated_at: new Date().toISOString() });
+    }
+  } catch(e) {}
+}
+async function sbCarregarHistorico(userId) {
+  try {
+    const { data } = await supabase.from("relatorio_historico").select("*").eq("user_id", userId).order("created_at",{ascending:false});
+    return (data||[]).map(r => ({ ...r.dados, _sbId: r.id }));
+  } catch(e) { return []; }
+}
+async function sbSalvarNoHistorico(userId, rel) {
+  try {
+    const { data } = await supabase.from("relatorio_historico").insert({ user_id: userId, dados: rel, created_at: new Date().toISOString() }).select().single();
+    return data?.id;
+  } catch(e) { return null; }
+}
+async function sbExcluirDoHistorico(sbId) {
+  try { await supabase.from("relatorio_historico").delete().eq("id", sbId); } catch(e) {}
+}
 const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Programas Ambientais do Plano Básico Ambiental (PBA), em conformidade com as condicionantes da Licença de Operação (LO) nº _______, emitida pelo órgão ambiental competente. As atividades descritas neste documento foram desenvolvidas no período de referência, visando o monitoramento, controle e mitigação dos impactos ambientais associados ao empreendimento.";
 
 // ─────────────────────────────────────────────
@@ -333,8 +366,6 @@ function AppPrincipal({ user, onLogout }) {
   const [dados, setDados]   = useState(ei?.dados || {});
   const [pd, setPd]         = useState("pac");
   const [inv, setInv]       = useState(ei?.inv || []);
-  const [ldMTR, setLdMTR]   = useState(false);
-  const [erMTR, setErMTR]   = useState("");
   const [cor, setCor]       = useState(ei?.cor || HC);
   const [lCons, setLCons]   = useState(ei?.lCons || null);
   const [lEmpr, setLEmpr]   = useState(ei?.lEmpr || null);
@@ -345,6 +376,10 @@ function AppPrincipal({ user, onLogout }) {
     {id:"f4",lb:"Estado (UF)",val:"",ed:false},
     {id:"f5",lb:"Responsável Técnico",val:"",ed:false},
   ]);
+  const [empreendedor, setEmpreendedor] = useState(ei?.empreendedor || {nome:"",cnpj:"",endereco:"",telefone:"",rep_legal:"",email:""});
+  const [construtora, setConstrutora]   = useState(ei?.construtora || {label:"Empresa Construtora",nome:"",cnpj:"",endereco:"",telefone:"",email:""});
+  const [empreendimento, setEmpreendimento] = useState(ei?.empreendimento || {nome:"",uf:""});
+  const [equipe, setEquipe]             = useState(ei?.equipe || []);
   const [nrel, setNrel]     = useState(ei?.nrel || "");
   const [mes, setMes]       = useState(ei?.mes || "Janeiro");
   const [ano, setAno]       = useState(ei?.ano || "2026");
@@ -357,32 +392,75 @@ function AppPrincipal({ user, onLogout }) {
   const [ger, setGer]       = useState(false);
   const [cfg, setCfg]       = useState(true);
   const [intro, setIntro]   = useState(ei?.intro || INTRO_DEFAULT);
-  const [historico, setHistorico] = useState(() => {
-    try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
-  });
+  const [historico, setHistorico] = useState([]);
   const [msgSalvo, setMsgSalvo] = useState("");
+  const [carregandoDados, setCarregandoDados] = useState(true);
   const ref = useRef();
   const saveTimer = useRef(null);
+
+  // ── Carregar dados do Supabase ao entrar ──
   useEffect(() => {
+    async function carregarNuvem() {
+      setCarregandoDados(true);
+      const estadoNuvem = await sbCarregarEstado(user.id);
+      if (estadoNuvem) {
+        if (estadoNuvem.fotos)         setFotos(estadoNuvem.fotos);
+        if (estadoNuvem.dados)         setDados(estadoNuvem.dados);
+        if (estadoNuvem.inv)           setInv(estadoNuvem.inv);
+        if (estadoNuvem.cor)           setCor(estadoNuvem.cor);
+        if (estadoNuvem.lCons)         setLCons(estadoNuvem.lCons);
+        if (estadoNuvem.lEmpr)         setLEmpr(estadoNuvem.lEmpr);
+        if (estadoNuvem.campos)        setCampos(estadoNuvem.campos);
+        if (estadoNuvem.nrel)          setNrel(estadoNuvem.nrel);
+        if (estadoNuvem.mes)           setMes(estadoNuvem.mes);
+        if (estadoNuvem.ano)           setAno(estadoNuvem.ano);
+        if (estadoNuvem.pAtiv)         setPAtiv(estadoNuvem.pAtiv);
+        if (estadoNuvem.pCust)         setPCust(estadoNuvem.pCust);
+        if (estadoNuvem.nomes)         setNomes(estadoNuvem.nomes);
+        if (estadoNuvem.extras)        setExtras(estadoNuvem.extras);
+        if (estadoNuvem.intro)         setIntro(estadoNuvem.intro);
+        if (estadoNuvem.empreendedor)  setEmpreendedor(estadoNuvem.empreendedor);
+        if (estadoNuvem.construtora)   setConstrutora(estadoNuvem.construtora);
+        if (estadoNuvem.empreendimento) setEmpreendimento(estadoNuvem.empreendimento);
+        if (estadoNuvem.equipe)        setEquipe(estadoNuvem.equipe);
+      }
+      const histNuvem = await sbCarregarHistorico(user.id);
+      if (histNuvem.length > 0) {
+        setHistorico(histNuvem);
+      } else {
+        try { var h = localStorage.getItem(HIST_KEY); if (h) setHistorico(JSON.parse(h)); } catch(e) {}
+      }
+      setCarregandoDados(false);
+    }
+    carregarNuvem();
+  }, [user.id]);
+
+  // ── Auto-salvar no Supabase ──
+  useEffect(() => {
+    if (carregandoDados) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(function() {
+    saveTimer.current = setTimeout(async function() {
       try {
-        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro};
+        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
+        await sbSalvarEstado(user.id, estado);
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
       } catch(e) {}
     }, 1500);
-  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro]);
-  const salvarRelatorio = () => {
+  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe]);
+
+  const salvarRelatorio = async () => {
     var rel = {
       id: Date.now(), mes, ano, nrel,
       titulo: (nrel?nrel+"º ":"")+"Relatório – "+mes+"/"+ano,
       empresa: campos.find(c=>c.id==="f1")?.val||"",
       empreendimento: campos.find(c=>c.id==="f3")?.val||"",
       data: new Date().toLocaleDateString("pt-BR"),
-      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro}
+      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe}
     };
+    const sbId = await sbSalvarNoHistorico(user.id, rel);
+    if (sbId) rel._sbId = sbId;
     var nh = [rel,...historico];
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
@@ -396,11 +474,17 @@ function AppPrincipal({ user, onLogout }) {
     setAno(e.ano||"2026"); setPAtiv(e.pAtiv||PRG.map(p=>p.id));
     setPCust(e.pCust||[]); setNomes(e.nomes||{}); setExtras(e.extras||[]);
     setIntro(e.intro||INTRO_DEFAULT);
+    setEmpreendedor(e.empreendedor||{nome:"",cnpj:"",endereco:"",telefone:"",rep_legal:"",email:""});
+    setConstrutora(e.construtora||{label:"Empresa Construtora",nome:"",cnpj:"",endereco:"",telefone:"",email:""});
+    setEmpreendimento(e.empreendimento||{nome:"",uf:""});
+    setEquipe(e.equipe||[]);
     setAba("relatorio");
     alert("Relatório de "+rel.mes+"/"+rel.ano+" carregado!");
   };
-  const excluirRelatorio = (id) => {
+  const excluirRelatorio = async (id) => {
     if (!window.confirm("Excluir este relatório?")) return;
+    var rel = historico.find(r=>r.id===id);
+    if (rel?._sbId) await sbExcluirDoHistorico(rel._sbId);
     var nh = historico.filter(r=>r.id!==id);
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
@@ -414,7 +498,12 @@ function AppPrincipal({ user, onLogout }) {
     setFotos({}); setDados({}); setInv([]); setCor(HC); setLCons(null); setLEmpr(null);
     setCampos([{id:"f1",lb:"Empresa Executora",val:"",ed:false},{id:"f2",lb:"Empreendedor",val:"",ed:false},{id:"f3",lb:"Nome do Empreendimento",val:"",ed:false},{id:"f4",lb:"Estado (UF)",val:"",ed:false},{id:"f5",lb:"Responsável Técnico",val:"",ed:false}]);
     setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id));
-    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT); setAba("fotos");
+    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT);
+    setEmpreendedor({nome:"",cnpj:"",endereco:"",telefone:"",rep_legal:"",email:""});
+    setConstrutora({label:"Empresa Construtora",nome:"",cnpj:"",endereco:"",telefone:"",email:""});
+    setEmpreendimento({nome:"",uf:""});
+    setEquipe([]);
+    setAba("fotos");
   };
   const todos  = [...PRG,...pCust];
   const ativos = todos.filter(p=>pAtiv.includes(p.id));
@@ -447,21 +536,7 @@ function AppPrincipal({ user, onLogout }) {
     if(ref.current) ref.current.value="";
   };
   const remF = (pid,fid) => setFotos(f=>({...f,[pid]:(f[pid]||[]).filter(x=>x.id!==fid)}));
-  const lerMTR = async arq => {
-    setLdMTR(true); setErMTR("");
-    try {
-      var b64 = await new Promise(function(res,rej){var r=new FileReader();r.onload=function(e){res(e.target.result.split(",")[1]);};r.onerror=function(){rej(new Error("Falha"));};r.readAsDataURL(arq);});
-      var pt = "Analise este MTR ou CDF. Retorne APENAS JSON com: tipo_doc, numero, data_emissao, classe, tipo_residuo, volume, unidade, transportador, destinador, tratamento";
-      var mc = arq.type==="application/pdf"?[{type:"document",source:{type:"base64",media_type:"application/pdf",data:b64}},{type:"text",text:pt}]:[{type:"image",source:{type:"base64",media_type:arq.type,data:b64}},{type:"text",text:pt}];
-      var rs = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,messages:[{role:"user",content:mc}]})});
-      var j = await rs.json();
-      var raw=(j.content||[]).map(function(c){return c.text||"";}).join("").trim();
-      var si=raw.indexOf("{"),ei=raw.lastIndexOf("}");
-      var p2=JSON.parse(si>=0?raw.slice(si,ei+1):raw);
-      setInv(function(prev){return [...prev,{id:Date.now(),ed:false,tipo_doc:p2.tipo_doc||"MTR",numero:p2.numero||"",data:p2.data_emissao||"",classe:p2.classe||"",tipo_residuo:p2.tipo_residuo||"",volume:p2.volume||"",unidade:p2.unidade||"t",transportador:p2.transportador||"",destinador:p2.destinador||"",tratamento:p2.tratamento||""}];});
-    } catch(e){setErMTR("Erro: "+e.message);}
-    setLdMTR(false);
-  };
+  
   const addExtra = async () => {
     if(!novo.trim()) return; setGer(true);
     try {
@@ -486,27 +561,48 @@ function AppPrincipal({ user, onLogout }) {
     var gd2=(gr.dados||[]).filter(x=>x.l&&x.v);
     if(gd2.length===0) return null;
     var chartData = gd2.map(g=>({name:g.l,val:Number(g.v),fill:g.cor||gr.cor||"#2d6a4f"}));
+    var showLeg = gr.legenda !== false;
     return (
-      <ResponsiveContainer width="100%" height={height||200}>
-        {gr.tipo==="pizza"
-          ?<PieChart><Pie data={chartData.map(d=>({name:d.name,value:d.val}))} cx="50%" cy="50%" outerRadius={65} dataKey="value" label={({name,value,percent})=>name+": "+value+(gr.unidade?" "+gr.unidade:"")+" ("+(percent*100).toFixed(0)+"%)"}>{chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}</Pie><Tooltip formatter={(v,n)=>[v+(gr.unidade?" "+gr.unidade:""),n]}/></PieChart>
-          :<BarChart data={chartData} margin={{top:20,right:10,left:0,bottom:chartData.length>4?45:10}}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-            <XAxis dataKey="name" tick={{fontSize:9}} angle={chartData.length>4?-35:0} textAnchor={chartData.length>4?"end":"middle"} interval={0}/>
-            <YAxis tick={{fontSize:9}} unit={gr.unidade?" "+gr.unidade:""}/>
-            <Tooltip formatter={v=>[v+(gr.unidade?" "+gr.unidade:""),"Valor"]}/>
-            <Bar dataKey="val" radius={[4,4,0,0]} maxBarSize={60}>
-              {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
-              <LabelList dataKey="val" position="top" style={{fontSize:10,fontWeight:"bold"}} formatter={v=>v+(gr.unidade?" "+gr.unidade:"")}/>
-            </Bar>
-          </BarChart>}
-      </ResponsiveContainer>
+      <div>
+        <ResponsiveContainer width="100%" height={height||200}>
+          {gr.tipo==="pizza"
+            ?<PieChart>
+                <Pie data={chartData.map(d=>({name:d.name,value:d.val}))} cx="50%" cy="50%" outerRadius={65} dataKey="value"
+                  label={({name,value,percent})=>name+": "+value+(gr.unidade?" "+gr.unidade:"")+" ("+(percent*100).toFixed(0)+"%)"}
+                  labelLine={{stroke:"#000"}}
+                  style={{fontSize:10,fill:"#000",fontWeight:"bold"}}>
+                  {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
+                </Pie>
+                <Tooltip formatter={(v,n)=>[v+(gr.unidade?" "+gr.unidade:""),n]}/>
+              </PieChart>
+            :<BarChart data={chartData} margin={{top:20,right:10,left:0,bottom:chartData.length>4?45:10}}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false}/>
+              <XAxis dataKey="name" tick={{fontSize:9,fill:"#000"}} angle={chartData.length>4?-35:0} textAnchor={chartData.length>4?"end":"middle"} interval={0}/>
+              <YAxis tick={{fontSize:9,fill:"#000"}} unit={gr.unidade?" "+gr.unidade:""}/>
+              <Tooltip formatter={v=>[v+(gr.unidade?" "+gr.unidade:""),"Valor"]}/>
+              <Bar dataKey="val" radius={[4,4,0,0]} maxBarSize={60}>
+                {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
+                <LabelList dataKey="val" position="top" style={{fontSize:10,fontWeight:"bold",fill:"#000"}} formatter={v=>v+(gr.unidade?" "+gr.unidade:"")}/>
+              </Bar>
+            </BarChart>}
+        </ResponsiveContainer>
+        {showLeg&&(
+          <div style={{marginTop:8,display:"flex",flexWrap:"wrap",gap:"4px 12px",justifyContent:"center"}}>
+            {chartData.map((d,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:5,fontSize:10,color:"#000"}}>
+                <div style={{width:12,height:12,borderRadius:3,background:d.fill,flexShrink:0}}/>
+                <span>{d.name}{gr.unidade?" ("+gr.unidade+")":""}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     );
   };
   const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"config",lb:"⚙️ Configurar"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"}];
   return (
     <div style={{minHeight:"100vh",background:"#eef1ee",fontFamily:"Georgia,serif"}}>
-      <header style={{background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",boxShadow:"0 3px 16px rgba(0,0,0,0.25)"}}>
+      <header style={{background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",boxShadow:"0 3px 16px rgba(0,0,0,0.25)",position:"fixed",top:0,left:0,right:0,zIndex:100}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <span style={{fontSize:26}}>🌿</span>
@@ -531,7 +627,12 @@ function AppPrincipal({ user, onLogout }) {
           ))}
         </nav>
       </header>
-      <main style={{maxWidth:1100,margin:"0 auto",padding:"20px"}}>
+      <main style={{maxWidth:1100,margin:"0 auto",padding:"20px",paddingTop:"110px"}}>
+        {carregandoDados && (
+          <div style={{textAlign:"center",padding:"40px",color:"#2d6a4f",fontSize:14}}>
+            🌿 Carregando seus dados da nuvem...
+          </div>
+        )}
         {/* FOTOS */}
         {aba==="fotos"&&(
           <div>
@@ -624,53 +725,7 @@ function AppPrincipal({ user, onLogout }) {
                   </div>
                   {pd==="residuos"&&(
                     <div>
-                      <div style={{...CD,border:"2px solid #5a4fcf33",background:"linear-gradient(135deg,#faf9ff,#f3f0ff)"}}>
-                        <div style={{fontSize:13,fontWeight:"bold",color:"#5a4fcf",marginBottom:8}}>🤖 Leitura Automática de MTR / CDF</div>
-                        <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"16px",border:"2px dashed #5a4fcf88",borderRadius:12,cursor:"pointer",background:"#fff",maxWidth:380}}>
-                          <span style={{fontSize:28}}>📄</span>
-                          <span style={{fontWeight:"bold",color:"#5a4fcf",fontSize:12}}>Selecionar MTR ou CDF (PDF ou imagem)</span>
-                          <input type="file" accept=".pdf,image/*" multiple style={{display:"none"}} onChange={async e=>{for(var f of Array.from(e.target.files))await lerMTR(f);e.target.value="";}}/>
-                          {ldMTR&&<span style={{fontSize:11,color:"#5a4fcf"}}>⏳ Lendo documento...</span>}
-                        </label>
-                        {erMTR&&<div style={{marginTop:8,padding:"6px 10px",background:"#fff0f0",borderRadius:7,fontSize:11,color:"#b00"}}>{erMTR}</div>}
-                      </div>
-                      <div style={CD}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                          <h3 style={{color:"#5a4fcf",fontSize:13,margin:0}}>📋 Inventário de Resíduos</h3>
-                          <span style={{fontSize:11,color:"#888"}}>{inv.length} registro(s)</span>
-                        </div>
-                        <div style={{overflowX:"auto"}}>
-                          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:860}}>
-                            <thead><tr>{["Doc","Número","Data","Classe","Tipo","Volume","Unidade","Transportador","Destinador","Tratamento",""].map((h,i)=><th key={i} style={{...TH,background:"#5a4fcf",padding:"6px 7px",whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
-                            <tbody>
-                              {inv.length===0&&<tr><td colSpan={11} style={{...TD,textAlign:"center",color:"#ccc",padding:"20px",fontStyle:"italic"}}>Nenhum registro</td></tr>}
-                              {inv.map((row,i)=>(
-                                <tr key={row.id}>
-                                  {row.ed?(
-                                    <>{["tipo_doc","numero","data","classe","tipo_residuo","volume"].map(f=>(
-                                      <td key={f} style={{...TD,background:"#faf9ff",padding:"3px 4px"}}><input value={row[f]||""} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,[f]:e.target.value}:r))} style={{width:"100%",minWidth:55,padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}/></td>
-                                    ))}
-                                    <td style={{...TD,background:"#faf9ff",padding:"3px 4px"}}>
-                                      <select value={row.unidade||"t"} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,unidade:e.target.value}:r))} style={{width:"100%",padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}>
-                                        <option value="kg">kg</option><option value="t">t</option><option value="m3">m³</option><option value="un">un</option>
-                                      </select>
-                                    </td>
-                                    {["transportador","destinador","tratamento"].map(f=>(
-                                      <td key={f} style={{...TD,background:"#faf9ff",padding:"3px 4px"}}><input value={row[f]||""} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,[f]:e.target.value}:r))} style={{width:"100%",minWidth:55,padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}/></td>
-                                    ))}
-                                    <td style={{...TD,background:"#faf9ff"}}><div style={{display:"flex",gap:3}}><button onClick={()=>setInv(prev=>prev.map((r,j)=>j===i?{...r,ed:false}:r))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>✓</button><button onClick={()=>setInv(prev=>prev.filter((_,j)=>j!==i))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"3px 5px",cursor:"pointer",fontSize:10}}>×</button></div></td></>
-                                  ):(
-                                    <>{[row.tipo_doc,row.numero,row.data,row.classe,row.tipo_residuo,row.volume||"—",row.unidade||"t",row.transportador,row.destinador,row.tratamento].map((v,ci)=>(
-                                      <td key={ci} style={{...(i%2?TA:TD),whiteSpace:"nowrap",maxWidth:130,overflow:"hidden",textOverflow:"ellipsis"}}>{v||"—"}</td>
-                                    ))}
-                                    <td style={i%2?TA:TD}><div style={{display:"flex",gap:3}}><button onClick={()=>setInv(prev=>prev.map((r,j)=>j===i?{...r,ed:true}:r))} style={{background:"none",border:"1px solid #5a4fcf",color:"#5a4fcf",borderRadius:5,padding:"3px 6px",cursor:"pointer",fontSize:10}}>✏️</button><button onClick={()=>setInv(prev=>prev.filter((_,j)=>j!==i))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"3px 5px",cursor:"pointer",fontSize:10}}>×</button></div></td></>
-                                  )}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+                      
                       {inv.length>0&&(()=>{
                         var pt={}; inv.forEach(r=>{var t=r.tipo_residuo||"Outros";pt[t]=(pt[t]||0)+(parseFloat(r.volume)||0);});
                         var tG=Object.values(pt).reduce((a,b)=>a+b,0);
@@ -775,9 +830,13 @@ function AppPrincipal({ user, onLogout }) {
                             <input value={gr.titulo||""} onChange={e=>setGr({titulo:e.target.value})} placeholder="Título do gráfico" style={{...SI,flex:1,fontWeight:"bold",fontSize:13}}/>
                             <button onClick={remGr} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:7,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>Remover</button>
                           </div>
-                          <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap"}}>
+                          <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap",alignItems:"flex-end"}}>
                             <div><label style={LB}>Tipo</label><select value={gr.tipo||"barra"} onChange={e=>setGr({tipo:e.target.value})} style={{...SI,width:110}}><option value="barra">Barras</option><option value="pizza">Pizza</option></select></div>
                             <div><label style={LB}>Unidade de Medida</label><select value={gr.unidade||""} onChange={e=>setGr({unidade:e.target.value})} style={{...SI,width:140}}><option value="">Sem unidade</option><option value="t">Tonelada (t)</option><option value="kg">kg</option><option value="m">Metro (m)</option><option value="m2">m²</option><option value="m3">m³</option><option value="L">Litros (L)</option><option value="un">Unidade (un)</option><option value="%">Percentual (%)</option></select></div>
+                            <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 12px",background:"#f5fdf7",borderRadius:8,border:"1px solid #c8ddd2",cursor:"pointer"}} onClick={()=>setGr({legenda:gr.legenda===false?true:false})}>
+                              <input type="checkbox" checked={gr.legenda!==false} onChange={()=>setGr({legenda:gr.legenda===false?true:false})} style={{width:14,height:14,accentColor:p.cor,cursor:"pointer"}}/>
+                              <span style={{fontSize:11,color:"#5a6b60",fontWeight:"bold",userSelect:"none"}}>Exibir Legenda</span>
+                            </div>
                           </div>
                           <div style={{marginBottom:10}}>
                             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -859,13 +918,44 @@ function AppPrincipal({ user, onLogout }) {
                     </div>
                   </div>
                   <div style={{borderTop:"1px solid #e2ebe5",paddingTop:12,marginBottom:12}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>🪪 Identificação</h4>
-                      <button onClick={()=>setCampos(c=>[...c,{id:"fc"+Date.now(),lb:"Novo Campo",val:"",ed:true}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
+                    <h4 style={{color:"#2d6a4f",fontSize:12,marginBottom:10}}>🏢 Identificação do Empreendedor</h4>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+                      {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["rep_legal","Representante Legal"],["email","E-mail"]].map(([k,lb])=>(
+                        <div key={k}><label style={LB}>{lb}</label><input value={empreendedor[k]||""} onChange={e=>setEmpreendedor(x=>({...x,[k]:e.target.value}))} style={SI}/></div>
+                      ))}
                     </div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                      {campos.map(f=>(<div key={f.id} style={{display:"flex",gap:6,alignItems:"center",padding:"5px 8px",background:"#fafdfb",borderRadius:7,border:"1px solid #e2ebe5"}}><div style={{width:160,cursor:"pointer",flexShrink:0}} onClick={()=>updC(f.id,{ed:!f.ed})}>{f.ed?<input autoFocus value={f.lb} onChange={e=>updC(f.id,{lb:e.target.value})} onBlur={()=>updC(f.id,{ed:false})} onKeyDown={e=>{if(e.key==="Enter"||e.key==="Escape")updC(f.id,{ed:false});}} style={{...SI,fontSize:10,padding:"2px 5px",border:"1px solid #2d6a4f"}}/>:<div style={{fontSize:10,fontWeight:"bold",color:"#2d6a4f"}}>{f.lb} <span style={{opacity:0.4,fontSize:9}}>✏️</span></div>}</div><input value={f.val} onChange={e=>updC(f.id,{val:e.target.value})} style={{...SI,flex:1,fontSize:11,padding:"4px 7px"}}/><button onClick={()=>setCampos(c=>c.filter(x=>x.id!==f.id))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"3px 6px",cursor:"pointer",fontSize:11}}>×</button></div>))}
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>🏗️</h4>
+                      <input value={construtora.label||"Empresa Construtora"} onChange={e=>setConstrutora(x=>({...x,label:e.target.value}))} placeholder="Empresa Construtora / Consultoria..." style={{...SI,fontWeight:"bold",fontSize:12,width:280}} title="Clique para editar o nome deste quadro"/>
                     </div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+                      {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["email","E-mail"]].map(([k,lb])=>(
+                        <div key={k}><label style={LB}>{lb}</label><input value={construtora[k]||""} onChange={e=>setConstrutora(x=>({...x,[k]:e.target.value}))} style={SI}/></div>
+                      ))}
+                    </div>
+                    <h4 style={{color:"#2d6a4f",fontSize:12,marginBottom:6}}>📍 Identificação do Empreendimento</h4>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+                      <div><label style={LB}>Nome do Empreendimento</label><input value={empreendimento.nome||""} onChange={e=>setEmpreendimento(x=>({...x,nome:e.target.value}))} style={SI}/></div>
+                      <div><label style={LB}>Estado (UF)</label><input value={empreendimento.uf||""} onChange={e=>setEmpreendimento(x=>({...x,uf:e.target.value}))} style={SI}/></div>
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
+                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
+                    </div>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
+                      <thead><tr><th style={{...TH,background:"#2d6a4f"}}>Nome</th><th style={{...TH,background:"#2d6a4f"}}>Função</th><th style={{...TH,background:"#2d6a4f"}}>Registro Profissional</th><th style={{...TH,background:"#2d6a4f",width:30}}></th></tr></thead>
+                      <tbody>
+                        {equipe.length===0&&<tr><td colSpan={4} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Clique em "+ Membro" para adicionar</td></tr>}
+                        {equipe.map((m,mi)=>(
+                          <tr key={m.id} style={{background:mi%2?"#f8fdf9":"#fff"}}>
+                            <td style={TD}><input value={m.nome||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,nome:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
+                            <td style={TD}><input value={m.funcao||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,funcao:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
+                            <td style={TD}><input value={m.registro||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,registro:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
+                            <td style={TD}><button onClick={()=>setEquipe(eq=>eq.filter((_,i)=>i!==mi))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"2px 7px",cursor:"pointer",fontSize:11}}>×</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                   <div style={{borderTop:"1px solid #e2ebe5",paddingTop:12}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -906,15 +996,43 @@ function AppPrincipal({ user, onLogout }) {
               <Cab/>
               <div style={{padding:"28px 40px"}}>
                 <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{emp||"[Empresa Executora]"} apresenta a {campos.find(c=>c.id==="f2")?.val||"[Empreendedor]"} o documento:</div>
-                  <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
-                  {campos.find(c=>c.id==="f5")?.val&&<div style={{fontSize:12,color:"#555"}}>{campos.find(c=>c.id==="f5").val}<br/><strong>{emp}</strong></div>}
+                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{construtora.nome||emp||"[Empresa Executora]"} apresenta a {empreendedor.nome||"[Empreendedor]"} o documento:</div>
+                  <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{(empreendimento.nome||nEmp)&&<><br/>{(empreendimento.nome||nEmp).toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
+                  {equipe.length>0&&<div style={{fontSize:12,color:"#555"}}>{equipe.map(m=>m.nome).join(", ")}<br/><strong>{construtora.nome||emp}</strong></div>}
                 </div>
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
                   <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
-                <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>{campos.map((f,i)=><tr key={f.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{f.lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{f.val||"—"}</td></tr>)}</tbody></table>
+                <div style={{marginBottom:20}}>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
+                  <div style={{marginBottom:10}}>
+                    <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 1 – Identificação do Empreendedor</div>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
+                      {[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]].filter(r=>r[1]).map((r,i)=>(
+                        <tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]||"—"}</td></tr>
+                      ))}
+                    </tbody></table>
+                    <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 2 – Identificação da {construtora.label||"Empresa Construtora"}</div>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
+                      {[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]].filter(r=>r[1]).map((r,i)=>(
+                        <tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]||"—"}</td></tr>
+                      ))}
+                    </tbody></table>
+                    <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 3 – Identificação do Empreendimento</div>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
+                      {[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]].filter(r=>r[1]).map((r,i)=>(
+                        <tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]||"—"}</td></tr>
+                      ))}
+                    </tbody></table>
+                    {equipe.length>0&&<>
+                      <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 4 – Identificação da Equipe Técnica</div>
+                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead><tbody>
+                        {equipe.map((m,i)=><tr key={m.id}><td style={i%2?TA:TD}>{m.nome||"—"}</td><td style={i%2?TA:TD}>{m.funcao||"—"}</td><td style={i%2?TA:TD}>{m.registro||"N/A"}</td></tr>)}
+                      </tbody></table>
+                    </>}
+                  </div>
+                </div>
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
