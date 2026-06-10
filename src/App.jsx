@@ -29,39 +29,6 @@ const TD  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",vertica
 const TA  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",verticalAlign:"top",background:"#f8fdf9"};
 const SAVE_KEY = "mmafield_data";
 const HIST_KEY = "mmafield_historico";
-
-// ── Supabase helpers para sincronização na nuvem ──
-async function sbCarregarEstado(userId) {
-  try {
-    const { data } = await supabase.from("relatorio_estado").select("estado").eq("user_id", userId).order("updated_at",{ascending:false}).limit(1).single();
-    return data?.estado || null;
-  } catch(e) { return null; }
-}
-async function sbSalvarEstado(userId, estado) {
-  try {
-    const { data: ex } = await supabase.from("relatorio_estado").select("id").eq("user_id", userId).limit(1).single();
-    if (ex?.id) {
-      await supabase.from("relatorio_estado").update({ estado, updated_at: new Date().toISOString() }).eq("id", ex.id);
-    } else {
-      await supabase.from("relatorio_estado").insert({ user_id: userId, estado, updated_at: new Date().toISOString() });
-    }
-  } catch(e) {}
-}
-async function sbCarregarHistorico(userId) {
-  try {
-    const { data } = await supabase.from("relatorio_historico").select("*").eq("user_id", userId).order("created_at",{ascending:false});
-    return (data||[]).map(r => ({ ...r.dados, _sbId: r.id }));
-  } catch(e) { return []; }
-}
-async function sbSalvarNoHistorico(userId, rel) {
-  try {
-    const { data } = await supabase.from("relatorio_historico").insert({ user_id: userId, dados: rel, created_at: new Date().toISOString() }).select().single();
-    return data?.id;
-  } catch(e) { return null; }
-}
-async function sbExcluirDoHistorico(sbId) {
-  try { await supabase.from("relatorio_historico").delete().eq("id", sbId); } catch(e) {}
-}
 const INTRO_DEFAULT = "O presente relatório é referente ao atendimento dos Programas Ambientais do Plano Básico Ambiental (PBA), em conformidade com as condicionantes da Licença de Operação (LO) nº _______, emitida pelo órgão ambiental competente. As atividades descritas neste documento foram desenvolvidas no período de referência, visando o monitoramento, controle e mitigação dos impactos ambientais associados ao empreendimento.";
 
 // ─────────────────────────────────────────────
@@ -275,35 +242,362 @@ function AuthScreen({ onLogin }) {
 // ─────────────────────────────────────────────
 // FUNÇÕES AUXILIARES
 // ─────────────────────────────────────────────
+function buildRelHTML(dr) {
+  var C=dr.cor||"#1a3d2b";
+  var nEmp=(dr.empreendimento&&dr.empreendimento.nome)||"[Empreendimento]";
+  var nCons=(dr.construtora&&dr.construtora.nome)||"[Empresa Executora]";
+  var nEmpr=(dr.empreendedor&&dr.empreendedor.nome)||"[Empreendedor]";
+  var numR=dr.nrel?dr.nrel+"º":"1º";
+  var mes=dr.mes||"";
+  var ano=dr.ano||"";
+  var intro=dr.intro||"";
+  var ativos=dr.ativos||[];
+  var dados=dr.dados||{};
+  var fotos=dr.fotos||{};
+  var nomes=dr.nomes||{};
+  var empr=dr.empreendedor||{};
+  var cons=dr.construtora||{};
+  var empt=dr.empreendimento||{};
+  var equipe=dr.equipe||[];
+  var lC=dr.lCons||"";
+  var lE=dr.lEmpr||"";
+
+  function esc(s){return s?String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"):""}
+
+  var css = "body{font-family:Arial,sans-serif;font-size:10pt;color:#222;background:#eee;margin:0}"
+    + ".pg{width:210mm;min-height:297mm;margin:0 auto 8pt;background:#fff;display:flex;flex-direction:column;page-break-after:always}"
+    + ".cab{display:flex;align-items:center;padding:6pt 15mm;min-height:16mm}"
+    + ".cle{width:80pt;display:flex;align-items:center}"
+    + ".cct{flex:1;text-align:center;padding:0 6pt}"
+    + ".cri{width:80pt;display:flex;align-items:center;justify-content:flex-end}"
+    + ".cimg{max-height:30pt;max-width:75pt;object-fit:contain}"
+    + ".cnm{font-size:8pt;font-weight:bold;color:"+C+"}"
+    + ".ctp{font-size:9pt;font-weight:bold;text-transform:uppercase}"
+    + ".csb{font-size:8pt;color:#555;margin-top:2pt}"
+    + ".cln{height:2pt;background:"+C+";margin:0 15mm}"
+    + ".bod{flex:1;padding:8mm 15mm 4mm}"
+    + ".rod{display:flex;justify-content:space-between;padding:5pt 15mm;border-top:1pt solid #ddd;font-size:7pt;color:#888;margin-top:auto}"
+    + ".cap{flex:1;display:flex;flex-direction:column;align-items:center;padding:12mm 20mm 8mm}"
+    + ".ctit{font-size:14pt;font-weight:bold;letter-spacing:1pt;margin-bottom:14pt}"
+    + ".cptx{font-size:10pt;color:#555;text-align:center;margin-bottom:8pt}"
+    + ".csp{flex:1;min-height:16pt}"
+    + ".cpj{font-size:13pt;font-weight:bold;text-align:center;padding-bottom:8pt;width:100%}"
+    + ".cper{font-size:10pt;color:#555;text-align:center;margin-top:8pt}"
+    + ".ctec{font-size:10pt;text-align:center;line-height:1.8}"
+    + ".clgs{display:flex;gap:24pt;align-items:center;justify-content:center;margin-bottom:12pt}"
+    + ".clg{max-height:60px;max-width:120px;object-fit:contain}"
+    + ".stit{font-size:12pt;font-weight:bold;margin-bottom:12pt;text-transform:uppercase}"
+    + ".stab{width:100%;border-collapse:collapse;font-size:10pt}"
+    + ".stab tr{height:18pt}"
+    + ".sn{width:28pt;font-weight:bold;vertical-align:middle;padding:2pt 0}"
+    + ".st{vertical-align:middle;padding:2pt 4pt}"
+    + ".sd{background-image:radial-gradient(circle,#999 1px,transparent 1px);background-size:4pt 100%;background-repeat:repeat-x;background-position:0 55%}"
+    + ".sp{width:18pt;text-align:right;vertical-align:middle;color:#999}"
+    + ".ssb{font-style:italic;color:#555;font-size:9pt}"
+    + ".sec{font-size:11pt;font-weight:bold;color:"+C+";margin-bottom:8pt;padding-bottom:3pt;text-transform:uppercase}"
+    + ".ptit{font-size:10pt;font-weight:bold;margin:8pt 0 5pt;padding:4pt 8pt;background:#f5f5f5}"
+    + ".sub{font-size:10pt;font-weight:bold;color:"+C+";margin:7pt 0 4pt}"
+    + ".txt{font-size:10pt;line-height:1.7;color:#333;margin-bottom:5pt;text-align:justify}"
+    + ".qtit{font-size:10pt;font-weight:bold;margin:7pt 0 3pt}"
+    + ".qtab{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:7pt}"
+    + ".qtab th{background:"+C+";color:#fff;padding:3pt 7pt;text-align:left}"
+    + ".qtab td{padding:3pt 7pt;border:1pt solid #ddd}"
+    + ".qtab tr.alt td{background:#f8f8f8}"
+    + ".qk{font-weight:bold;color:"+C+";width:110pt}"
+    + ".ftab{width:100%;border-collapse:separate;border-spacing:6pt}"
+    + ".fcel{width:50%;vertical-align:top;text-align:center}"
+    + ".fimg{width:100%;height:95pt;object-fit:cover;border:1pt solid #ddd}"
+    + ".fleg{font-size:8pt;color:#555;text-align:center;margin-top:2pt;font-style:italic}"
+    + "@media print{@page{size:A4 portrait;margin:0}body{background:#fff;margin:0}.pg{box-shadow:none;margin:0;page-break-after:always;min-height:297mm;width:210mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}";
+
+  function cab() {
+    var le=lC?"<img src='"+lC+"' class='cimg'/>":"<div class='cnm'>"+esc(nCons)+"</div>";
+    var ri=lE?"<img src='"+lE+"' class='cimg'/>":"";
+    return "<div class='cab'>"
+      +"<div class='cle'>"+le+"</div>"
+      +"<div class='cct'><div class='ctp'>"+esc(nEmp)+"</div><div class='csb'>"+numR+" RELATÓRIO – "+esc(mes)+"/"+esc(ano)+"</div></div>"
+      +"<div class='cri'>"+ri+"</div>"
+      +"</div><div class='cln'></div>";
+  }
+
+  function rod(n) {
+    return "<div class='rod'><span>"+esc(nCons)+"</span><span>"+esc(nEmp)+" - "+esc(mes)+"/"+esc(ano)+"</span><span>"+n+"</span></div>";
+  }
+
+  function quad(titulo, linhas) {
+    var rows=linhas.filter(function(r){return r[1];});
+    if(!rows.length) return "";
+    var trs=rows.map(function(r,i){
+      return "<tr class='"+(i%2?"alt":"")+"'><td class='qk'>"+esc(r[0])+"</td><td>"+esc(r[1])+"</td></tr>";
+    }).join("");
+    return "<p class='qtit'>"+esc(titulo)+"</p>"
+      +"<table class='qtab'><tr><th style='width:130pt'>Campo</th><th>Informação</th></tr>"+trs+"</table>";
+  }
+
+  // CAPA
+  var tec=equipe.length>0?equipe[0]:null;
+  var tecHTML=tec?"<div>"+esc(tec.nome)+"</div><div style='font-weight:bold'>"+esc(nCons)+"</div>":"<div style='font-weight:bold'>"+esc(nCons)+"</div>";
+  var capa="<div class='pg'>"+cab()
+    +"<div class='cap'>"
+    +"<div class='ctit'>APRESENTAÇÃO</div>"
+    +"<div class='cptx'>"+esc(nCons)+" apresenta a "+esc(nEmpr)+" o documento intitulado:</div>"
+    +"<div class='csp'></div>"
+    +"<div class='cpj'>"+esc(nEmp)+"</div>"
+    +"<div class='cper'>"+esc(mes)+" de "+esc(ano)+"</div>"
+    +"<div class='csp'></div>"
+    +"<div class='ctec'>"+tecHTML+"</div>"
+    +"</div>"
+    +rod(1)+"</div>";
+
+  // SUMÁRIO
+  var sitens=[
+    {n:"1",t:"IDENTIFICAÇÃO DO EMPREENDIMENTO",s:false},
+    {n:"2",t:"IDENTIFICAÇÃO DA EQUIPE TÉCNICA",s:false},
+    {n:"3",t:"INTRODUÇÃO",s:false}
+  ];
+  ativos.forEach(function(p,i){sitens.push({n:"3."+(i+1),t:p.lb,s:true});});
+  sitens.push({n:"4",t:"GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS",s:false});
+  var strs=sitens.map(function(it){
+    var c=it.s?" class='ssb'":"";
+    return "<tr><td class='sn'"+c+">"+it.n+"</td><td class='st'"+c+">"+esc(it.t)+"</td><td class='sd'></td><td class='sp'"+c+"></td></tr>";
+  }).join("");
+  var sumario="<div class='pg'>"+cab()
+    +"<div class='bod'><h1 class='stit'>SUMÁRIO</h1>"
+    +"<table class='stab'>"+strs+"</table>"
+    +"</div>"+rod(2)+"</div>";
+
+  // IDENTIFICACAO
+  var ident="<div class='pg'>"+cab()+"<div class='bod'>"
+    +"<h1 class='sec'>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>"
+    +quad("Quadro 1 – Identificação do Empreendedor",[
+      ["Empreendedor",empr.nome],["CNPJ",empr.cnpj],
+      ["Endereco",empr.endereco],["Telefone",empr.telefone],
+      ["Representante Legal",empr.rep_legal],["E-mail",empr.email]
+    ])
+    +quad("Quadro 2 – Identificação da "+(cons.label||"Empresa Construtora"),[
+      ["Empresa",cons.nome],["CNPJ",cons.cnpj],
+      ["Endereco",cons.endereco],["Telefone",cons.telefone],["E-mail",cons.email]
+    ])
+    +quad("Quadro 3 – Identificação do Empreendimento",[
+      ["Nome do Empreendimento",empt.nome],["Estado (UF)",empt.uf]
+    ])
+    +"</div>"+rod(3)+"</div>";
+
+  // EQUIPE
+  var equipeHTML="";
+  if(equipe.length>0){
+    var etrs=equipe.map(function(m,i){
+      return "<tr class='"+(i%2?"alt":"")+"'><td>"+esc(m.nome)+"</td><td>"+esc(m.função)+"</td><td>"+esc(m.registro||"N/A")+"</td></tr>";
+    }).join("");
+    equipeHTML="<div class='pg'>"+cab()+"<div class='bod'>"
+      +"<h1 class='sec'>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL</h1>"
+      +"<table class='qtab'><tr><th>Nome</th><th>Função</th><th>Registro</th></tr>"+etrs+"</table>"
+      +"</div>"+rod(4)+"</div>";
+  }
+
+  // INTRODUÇÃO
+  var iparas=intro.split("\n").filter(function(p){return p.trim();}).map(function(p){return "<p class='txt'>"+esc(p)+"</p>";}).join("");
+  var introducao="<div class='pg'>"+cab()+"<div class='bod'>"
+    +"<h1 class='sec'>3. INTRODUÇÃO</h1>"+iparas
+    +"</div>"+rod(5)+"</div>";
+
+  // PROGRAMAS
+  var prows=ativos.map(function(p,i){
+    return "<tr class='"+(i%2?"alt":"")+"'>"
+      +"<td style='text-align:center;width:30pt'>"+(i+1)+"</td>"
+      +"<td>"+esc(p.lb)+"</td>"
+      +"<td style='color:"+C+";font-weight:bold'>Em Execucao</td>"
+      +"</tr>";
+  }).join("");
+  var programas="<div class='pg'>"+cab()+"<div class='bod'>"
+    +"<h1 class='sec'>4. PROGRAMAS EM EXECUÇÃO</h1>"
+    +"<table class='qtab'><tr><th style='width:30pt'>No</th><th>Programa</th><th style='width:90pt'>Status</th></tr>"+prows+"</table>"
+    +"</div>"+rod(6)+"</div>";
+
+  // GESTAO
+  var gestaoConteudo=ativos.map(function(prog,pi){
+    var pd=dados[prog.id]||{};
+    var pf=fotos[prog.id]||[];
+    var desc=pd.descricao||pd.desc||"";
+    var secTit=pi===0?"<h1 class='sec'>5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h1>":"";
+    var dHTML=desc?("<h3 class='sub'>Descrição das Atividades</h3>"+desc.split("\n").filter(function(p){return p.trim();}).map(function(p){return "<p class='txt'>"+esc(p)+"</p>";}).join("")):"";
+    var pares=[];
+    for(var i=0;i<pf.length;i+=2) pares.push([pf[i],pf[i+1]||null]);
+    var ftrs=pares.map(function(par,ri){
+      var t1="<td class='fcel'><img src='"+par[0].src+"' class='fimg'/><div class='fleg'>Foto "+(ri*2+1)+(par[0].leg?" - "+esc(par[0].leg):"")+"</div></td>";
+      var t2=par[1]?"<td class='fcel'><img src='"+par[1].src+"' class='fimg'/><div class='fleg'>Foto "+(ri*2+2)+(par[1].leg?" - "+esc(par[1].leg):"")+"</div></td>":"<td class='fcel'></td>";
+      return "<tr>"+t1+t2+"</tr>";
+    }).join("");
+    var fHTML=pf.length>0?("<h3 class='sub'>"+(pi+1)+".1 Registro Fotográfico</h3><table class='ftab'>"+ftrs+"</table>"):"";
+    var grafHTML="";
+    var pgGrafs=(pd.graficos||[]).filter(function(g){return g.addRel&&(g.dados||[]).some(function(d){return d.l&&d.v;});});
+    if(pgGrafs.length>0){
+      grafHTML="<h3 class='sub'>"+(pi+1)+".2 Dados e Indicadores</h3>";
+      grafHTML+=pgGrafs.map(function(gr,gi){
+        var gd=(gr.dados||[]).filter(function(d){return d.l&&d.v;});
+        // Calcular largura necessária para caber todos os rótulos
+        var W=Math.max(500, gd.length*80),H=240,padT=30,padB=50,padL=45,padR=15;
+        var barW=Math.min(50,Math.floor((W-padL-padR)/gd.length)-8);
+        var maxV=Math.max.apply(null,gd.map(function(d){return parseFloat(d.v)||0;}));
+        var cv=document.createElement("canvas");
+        cv.width=W;cv.height=H;
+        var ctx=cv.getContext("2d");
+        ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);
+        if(gr.tipo==="pizza"){
+          var W2=600,H2=320;
+          cv.width=W2;cv.height=H2;
+          ctx.fillStyle="#fff";ctx.fillRect(0,0,W2,H2);
+          var total=gd.reduce(function(a,d){return a+(parseFloat(d.v)||0);},0);
+          var angle=-Math.PI/2,cx=W2/2,cy=H2/2,r=100;
+          // Desenhar fatias
+          gd.forEach(function(d){
+            var slice=(parseFloat(d.v)||0)/total*Math.PI*2;
+            ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
+            ctx.fillStyle=d.cor||gr.cor||C;ctx.fill();
+            ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();
+            angle+=slice;
+          });
+          // Desenhar rótulos externos com linha
+          angle=-Math.PI/2;
+          gd.forEach(function(d){
+            var val=parseFloat(d.v)||0;
+            var slice=val/total*Math.PI*2;
+            var mid=angle+slice/2;
+            // Linha interna → externa
+            var x1=cx+Math.cos(mid)*(r+5);
+            var y1=cy+Math.sin(mid)*(r+5);
+            var x2=cx+Math.cos(mid)*(r+28);
+            var y2=cy+Math.sin(mid)*(r+28);
+            var x3=cx+Math.cos(mid)*(r+35);
+            var y3=cy+Math.sin(mid)*(r+35);
+            ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle="#666";ctx.lineWidth=1;ctx.stroke();
+            // Texto alinhado
+            var pct=((val/total)*100).toFixed(0)+"%";
+            var label=d.l+" ("+pct+")";
+            ctx.fillStyle="#000";ctx.font="bold 10px Arial";
+            ctx.textAlign=Math.cos(mid)>0?"left":"right";
+            ctx.fillText(label,x3,y3);
+            angle+=slice;
+          });
+        } else {
+          var gap=Math.floor((W-padL-padR)/gd.length);
+          ctx.strokeStyle="#eee";ctx.lineWidth=1;
+          for(var yi=0;yi<=4;yi++){
+            var yy=H-padB-(yi/4)*(H-padT-padB);
+            ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();
+            ctx.fillStyle="#333";ctx.font="10px Arial";ctx.textAlign="right";
+            ctx.fillText(((maxV*yi/4)||0).toFixed(0),padL-5,yy+4);
+          }
+          gd.forEach(function(d,i){
+            var val=parseFloat(d.v)||0;
+            var bh=maxV>0?(val/maxV)*(H-padT-padB):0;
+            var bx=padL+i*gap+(gap-barW)/2;
+            var by=H-padB-bh;
+            ctx.fillStyle=d.cor||gr.cor||C;
+            ctx.beginPath();
+            ctx.rect(bx,by,barW,bh);
+            ctx.fill();
+            ctx.fillStyle="#000";ctx.font="bold 10px Arial";ctx.textAlign="center";
+            ctx.fillText(val+(gr.unidade?" "+gr.unidade:""),bx+barW/2,by-5);
+            ctx.fillStyle="#000";ctx.font="10px Arial";
+            ctx.fillText(d.l,bx+barW/2,H-padB+18);
+          });
+        }
+        var imgSrc=cv.toDataURL("image/png");
+        return "<div style='margin-bottom:12pt;text-align:center'>"
+          +"<img src='"+imgSrc+"' style='width:90%;max-height:160pt;object-fit:contain;display:block;margin:0 auto;'/>"
+          +"<p style='font-size:9pt;font-style:italic;color:#555;margin-top:4pt'>Gráfico "+(gi+1)+(gr.titulo?" - "+esc(gr.titulo):"")+"</p>"
+          +(gr.texto?"<p class='txt' style='margin-top:4pt;font-style:italic'>"+esc(gr.texto)+"</p>":"")
+          +"</div>";
+      }).join("");
+    }
+    function buildTabHTML(items,secLabel){
+      if(!items||!items.length) return "";
+      var filtered=items.filter(function(t){return t.addRel;});
+      if(!filtered.length) return "";
+      var html="<h3 class='sub'>"+secLabel+"</h3>";
+      html+=filtered.map(function(tb,ti){
+        var heads=(tb.headers||[]).map(function(h){return "<th>"+esc(h)+"</th>";}).join("");
+        var rows=(tb.cells||[]).map(function(row,ri){
+          var cells=(row||[]).map(function(c){return "<td>"+esc(c)+"</td>";}).join("");
+          return "<tr class='"+(ri%2?"alt":"")+"'>"+cells+"</tr>";
+        }).join("");
+        return "<p class='qtit'>"+esc(tb.titulo||"Item "+(ti+1))+"</p>"
+          +"<table class='qtab'><tr>"+heads+"</tr>"+rows+"</table>";
+      }).join("");
+      return html;
+    }
+    var tabHTML=buildTabHTML(pd.tabelas,(pi+1)+".3 Tabelas");
+    var quadHTML=buildTabHTML(pd.quadros,(pi+1)+".4 Quadros");
+    return "<div style='margin-bottom:20pt'>"
+      +secTit
+      +"<h2 class='ptit' style='border-left:4px solid "+(prog.cor||C)+"'>"+(pi+1)+". "+esc(nomes[prog.id]||prog.lb)+"</h2>"
+      +dHTML+fHTML+grafHTML+tabHTML+quadHTML
+      +"</div>";
+  }).join("");
+
+
+  // Envolver gestao em uma unica pagina com cabecalho
+  var gestaoPage = gestaoConteudo.length>0
+    ? "<div class='pg'>"+cab()+"<div class='bod'>"+gestaoConteudo+"</div>"+rod(6)+"</div>"
+    : "";
+
+  // Seção de ANEXOS — todos os programas juntos no final
+  var todosAnexos=[];
+  var numGlobal=1;
+  ativos.forEach(function(prog){
+    var pd=dados[prog.id]||{};
+    (pd.anexos||[]).filter(function(a){return a.addRel;}).forEach(function(ax){
+      todosAnexos.push({ax:ax,prog:prog,numGlobal:numGlobal});
+      numGlobal++;
+    });
+  });
+
+  var anexosPage="";
+  if(todosAnexos.length>0){
+    var anexConteudo="<h1 class='sec'>6. ANEXOS</h1>";
+    anexConteudo+=todosAnexos.map(function(item){
+      var ax=item.ax; var prog=item.prog;
+      var r="<div style='margin-bottom:12pt;padding:8pt 12pt;border:1pt solid #ddd;border-radius:4pt;background:#fafafa'>";
+      r+="<p style='font-size:10pt;font-weight:bold;color:"+C+";margin-bottom:4pt'>Anexo "+item.numGlobal+(ax.titulo?" – "+esc(ax.titulo):"")+"</p>";
+      r+="<p style='font-size:8pt;color:#888;margin-bottom:4pt'>Programa: "+esc(nomes[prog.id]||prog.lb)+"</p>";
+      if(ax.descricao) r+="<p class='txt'>"+esc(ax.descricao)+"</p>";
+      if(ax.link) r+="<p style='font-size:9pt;margin-top:4pt'>🔗 <a href='"+esc(ax.link)+"' style='color:#0066cc'>"+esc(ax.link)+"</a></p>";
+      if(ax.arquivo) r+="<p style='font-size:9pt;margin-top:4pt'><a href='"+ax.arquivo.src+"' download='"+esc(ax.arquivo.nome)+"' style='color:#2d6a4f;text-decoration:none'>📄 "+esc(ax.arquivo.nome)+" <span style='color:#0066cc;font-size:8pt'>⬇ clique para baixar</span></a></p>";
+      r+="</div>";
+      return r;
+    }).join("");
+    anexosPage="<div class='pg'>"+cab()+"<div class='bod'>"+anexConteudo+"</div>"+rod(7)+"</div>";
+  }
+
+  return "<!DOCTYPE html><html lang='pt-BR'><head><meta charset='UTF-8'>"
+    +"<title>Relatório MMA Field</title>"
+    +"<style>"+css+"</style></head><body>"
+    +capa+sumario+ident+equipeHTML+introducao+programas+gestaoPage+anexosPage
+    +"</body></html>";
+}
+
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
+  if (!el) { alert("Abra a aba Relatorio antes de baixar."); return; }
   var b = new Blob(["<html><body>" + el.innerHTML + "</body></html>"], {type:"application/msword"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
   a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
   URL.revokeObjectURL(u);
 }
-function dlPDF() {
-  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
-  var s = document.createElement("style");
-  s.id = "pprt";
-  s.textContent =
-    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
-    "@media print" + ob +
-      "body *" + ob + "visibility:hidden!important" + cb +
-      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
-      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
-      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
-      "h2,h3" + ob + "page-break-after:avoid" + cb +
-      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
-      "table" + ob + "page-break-inside:avoid" + cb +
-    cb;
-  document.head.appendChild(s);
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
-  }, 600);
+
+function dlPDF(dr) {
+  var html = buildRelHTML(dr);
+  var blob = new Blob([html], {type:"text/html;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "Relatorio_MMA_Field.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},3000);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -392,75 +686,52 @@ function AppPrincipal({ user, onLogout }) {
   const [ger, setGer]       = useState(false);
   const [cfg, setCfg]       = useState(true);
   const [intro, setIntro]   = useState(ei?.intro || INTRO_DEFAULT);
-  const [historico, setHistorico] = useState([]);
+  const [historico, setHistorico] = useState(() => {
+    try {
+      var h = localStorage.getItem(HIST_KEY);
+      if (!h) return [];
+      var rels = JSON.parse(h);
+      var limite = new Date(); limite.setDate(limite.getDate() - 40);
+      return rels.filter(function(r){ return !r.dataISO || new Date(r.dataISO) > limite; });
+    } catch(e) { return []; }
+  });
   const [msgSalvo, setMsgSalvo] = useState("");
-  const [carregandoDados, setCarregandoDados] = useState(true);
   const ref = useRef();
   const saveTimer = useRef(null);
+  const ultimoSalvo = useRef(null);
 
-  // ── Carregar dados do Supabase ao entrar ──
+  // Aviso ao sair sem salvar
   useEffect(() => {
-    async function carregarNuvem() {
-      setCarregandoDados(true);
-      const estadoNuvem = await sbCarregarEstado(user.id);
-      if (estadoNuvem) {
-        if (estadoNuvem.fotos)         setFotos(estadoNuvem.fotos);
-        if (estadoNuvem.dados)         setDados(estadoNuvem.dados);
-        if (estadoNuvem.inv)           setInv(estadoNuvem.inv);
-        if (estadoNuvem.cor)           setCor(estadoNuvem.cor);
-        if (estadoNuvem.lCons)         setLCons(estadoNuvem.lCons);
-        if (estadoNuvem.lEmpr)         setLEmpr(estadoNuvem.lEmpr);
-        if (estadoNuvem.campos)        setCampos(estadoNuvem.campos);
-        if (estadoNuvem.nrel)          setNrel(estadoNuvem.nrel);
-        if (estadoNuvem.mes)           setMes(estadoNuvem.mes);
-        if (estadoNuvem.ano)           setAno(estadoNuvem.ano);
-        if (estadoNuvem.pAtiv)         setPAtiv(estadoNuvem.pAtiv);
-        if (estadoNuvem.pCust)         setPCust(estadoNuvem.pCust);
-        if (estadoNuvem.nomes)         setNomes(estadoNuvem.nomes);
-        if (estadoNuvem.extras)        setExtras(estadoNuvem.extras);
-        if (estadoNuvem.intro)         setIntro(estadoNuvem.intro);
-        if (estadoNuvem.empreendedor)  setEmpreendedor(estadoNuvem.empreendedor);
-        if (estadoNuvem.construtora)   setConstrutora(estadoNuvem.construtora);
-        if (estadoNuvem.empreendimento) setEmpreendimento(estadoNuvem.empreendimento);
-        if (estadoNuvem.equipe)        setEquipe(estadoNuvem.equipe);
-      }
-      const histNuvem = await sbCarregarHistorico(user.id);
-      if (histNuvem.length > 0) {
-        setHistorico(histNuvem);
-      } else {
-        try { var h = localStorage.getItem(HIST_KEY); if (h) setHistorico(JSON.parse(h)); } catch(e) {}
-      }
-      setCarregandoDados(false);
-    }
-    carregarNuvem();
-  }, [user.id]);
-
-  // ── Auto-salvar no Supabase ──
+    var handler = function(e) {
+      var msg = "Você tem alterações não salvas. Salve o relatório antes de sair.";
+      e.preventDefault();
+      e.returnValue = msg;
+      return msg;
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
   useEffect(() => {
-    if (carregandoDados) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async function() {
+    saveTimer.current = setTimeout(function() {
       try {
         var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
-        await sbSalvarEstado(user.id, estado);
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
       } catch(e) {}
     }, 1500);
-  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe]);
-
-  const salvarRelatorio = async () => {
+  }, [fotos,dados,inv,cor,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro]);
+  const salvarRelatorio = () => {
     var rel = {
       id: Date.now(), mes, ano, nrel,
       titulo: (nrel?nrel+"º ":"")+"Relatório – "+mes+"/"+ano,
       empresa: campos.find(c=>c.id==="f1")?.val||"",
       empreendimento: campos.find(c=>c.id==="f3")?.val||"",
-      data: new Date().toLocaleDateString("pt-BR"),
+      data: new Date().toLocaleDateString("pt-BR") + " " + new Date().toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"}),
+      dataISO: new Date().toISOString(),
       estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe}
     };
-    const sbId = await sbSalvarNoHistorico(user.id, rel);
-    if (sbId) rel._sbId = sbId;
     var nh = [rel,...historico];
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
@@ -481,10 +752,8 @@ function AppPrincipal({ user, onLogout }) {
     setAba("relatorio");
     alert("Relatório de "+rel.mes+"/"+rel.ano+" carregado!");
   };
-  const excluirRelatorio = async (id) => {
+  const excluirRelatorio = (id) => {
     if (!window.confirm("Excluir este relatório?")) return;
-    var rel = historico.find(r=>r.id===id);
-    if (rel?._sbId) await sbExcluirDoHistorico(rel._sbId);
     var nh = historico.filter(r=>r.id!==id);
     setHistorico(nh);
     try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
@@ -513,7 +782,7 @@ function AppPrincipal({ user, onLogout }) {
   const emp    = campos.find(c=>c.id==="f1")?.val||"";
   const updC   = (id,p) => setCampos(cs=>cs.map(c=>c.id===id?{...c,...p}:c));
   const setLogo= (fn,f) => { var r=new FileReader(); r.onload=e=>fn(e.target.result); r.readAsDataURL(f); };
-  const getD   = id => dados[id]||{desc:"",graficos:[],cor:PRG.find(p=>p.id===id)?.cor||"#2d6a4f"};
+  const getD   = id => dados[id]||{desc:"",graficos:[],tabelas:[],quadros:[],anexos:[],cor:PRG.find(p=>p.id===id)?.cor||"#2d6a4f"};
   const setD   = (id,p) => setDados(d=>({...d,[id]:{...getD(id),...p}}));
   const getF   = id => fotos[id]||[];
   const captGeo = () => {
@@ -557,7 +826,7 @@ function AppPrincipal({ user, onLogout }) {
       {lEmpr?<img src={lEmpr} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
     </div>
   );
-  const renderGrafico = (gr, height, forReport) => {
+  const renderGráfico = (gr, height, forReport) => {
     var gd2=(gr.dados||[]).filter(x=>x.l&&x.v);
     if(gd2.length===0) return null;
     var chartData = gd2.map(g=>({name:g.l,val:Number(g.v),fill:g.cor||gr.cor||"#2d6a4f"}));
@@ -602,7 +871,7 @@ function AppPrincipal({ user, onLogout }) {
   const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"config",lb:"⚙️ Configurar"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"}];
   return (
     <div style={{minHeight:"100vh",background:"#eef1ee",fontFamily:"Georgia,serif"}}>
-      <header style={{background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",boxShadow:"0 3px 16px rgba(0,0,0,0.25)",position:"fixed",top:0,left:0,right:0,zIndex:100}}>
+      <header style={{background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",boxShadow:"0 3px 16px rgba(0,0,0,0.25)"}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <span style={{fontSize:26}}>🌿</span>
@@ -616,7 +885,7 @@ function AppPrincipal({ user, onLogout }) {
             <span style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>👤 {user.email}</span>
             <button onClick={salvarRelatorio} style={{background:"#2d6a4f",color:"#fff",border:"2px solid #a8e6c0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>💾 Salvar Relatório</button>
             <button onClick={novoRelatorio} style={{background:"transparent",color:"#fff",border:"2px solid rgba(255,255,255,0.4)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>+ Novo</button>
-            <button onClick={onLogout} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
+            <button onClick={()=>{if(window.confirm("Tem certeza que deseja sair?\nSalve o relatório antes de sair para não perder dados."))onLogout();}} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
           </div>
         </div>
         <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:18}}>
@@ -627,12 +896,7 @@ function AppPrincipal({ user, onLogout }) {
           ))}
         </nav>
       </header>
-      <main style={{maxWidth:1100,margin:"0 auto",padding:"20px",paddingTop:"110px"}}>
-        {carregandoDados && (
-          <div style={{textAlign:"center",padding:"40px",color:"#2d6a4f",fontSize:14}}>
-            🌿 Carregando seus dados da nuvem...
-          </div>
-        )}
+      <main style={{maxWidth:1100,margin:"0 auto",padding:"20px"}}>
         {/* FOTOS */}
         {aba==="fotos"&&(
           <div>
@@ -648,26 +912,14 @@ function AppPrincipal({ user, onLogout }) {
                   {ativos.map(p=><option key={p.id} value={p.id}>{p.ic} {getL(p.id)}</option>)}
                 </select>
                 <label style={LB}>Foto</label>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:8}}>
-                  <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"14px 8px",border:"2px dashed #a8c5b5",borderRadius:10,cursor:"pointer",background:"#f8fdf9"}}>
-                    <span style={{fontSize:22}}>📷</span><span style={{fontSize:11,color:"#2d6a4f",fontWeight:"bold"}}>Câmera</span><span style={{fontSize:10,color:"#888"}}>Com GPS automático</span>
-                    <input ref={ref} type="file" accept="image/*" capture="environment" onChange={onFoto} style={{display:"none"}}/>
-                  </label>
-                  <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"14px 8px",border:"2px dashed #a8c5b5",borderRadius:10,cursor:"pointer",background:"#f8fdf9"}}>
-                    <span style={{fontSize:22}}>🖼️</span><span style={{fontSize:11,color:"#2d6a4f",fontWeight:"bold"}}>Galeria</span><span style={{fontSize:10,color:"#888"}}>Selecionar arquivo</span>
-                    <input type="file" accept="image/*" onChange={onFoto} style={{display:"none"}}/>
-                  </label>
-                </div>
+                <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"14px 8px",border:"2px dashed #a8c5b5",borderRadius:10,cursor:"pointer",background:"#f8fdf9",marginBottom:8}}>
+                  <span style={{fontSize:22}}>🖼️</span>
+                  <span style={{fontSize:11,color:"#2d6a4f",fontWeight:"bold"}}>Selecionar Foto</span>
+                  <span style={{fontSize:10,color:"#888"}}>Clique para escolher da galeria</span>
+                  <input ref={ref} type="file" accept="image/*" onChange={onFoto} style={{display:"none"}}/>
+                </label>
                 {prev&&<img src={prev} alt="" style={{width:"100%",height:150,objectFit:"cover",borderRadius:9,border:"2px solid #2d6a4f",marginBottom:10}}/>}
-                <div style={{marginBottom:10,padding:"9px 11px",borderRadius:8,border:"1px solid #c8ddd2",background:"#f5fdf7"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <div style={{fontSize:11,fontWeight:"bold",color:"#2d6a4f"}}>📍 Geolocalização</div>
-                    <button onClick={captGeo} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"3px 10px",cursor:"pointer",fontSize:10}}>Capturar GPS</button>
-                  </div>
-                  {gst&&<div style={{fontSize:10,color:"#666",marginTop:3}}>{gst}</div>}
-                  {geo&&<div style={{fontSize:10,color:"#2d6a4f",marginTop:4,background:"#e8f5ee",padding:"4px 8px",borderRadius:5}}>{geo}</div>}
-                  {!geo&&!gst&&<div style={{fontSize:10,color:"#aaa",marginTop:3}}>GPS capturado automaticamente ao tirar foto.</div>}
-                </div>
+
                 <label style={LB}>Legenda</label>
                 <input value={leg} onChange={e=>setLeg(e.target.value)} placeholder="Descreva a foto..." style={{...SI,marginBottom:14}}/>
                 <button onClick={addF} disabled={!prev||!psel} style={{background:!prev||!psel?"#ccc":"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:8,padding:"10px",width:"100%",fontSize:13,cursor:!prev||!psel?"not-allowed":"pointer",fontFamily:"Georgia,serif",fontWeight:"bold"}}>✓ Adicionar Foto</button>
@@ -857,8 +1109,11 @@ function AppPrincipal({ user, onLogout }) {
                             {(gr.dados||[]).length===0&&<div style={{fontSize:11,color:"#bbb",fontStyle:"italic"}}>Clique em "+ Adicionar Rótulo".</div>}
                           </div>
                           {gd2.length>0&&(
-                            <div style={{marginTop:8,padding:10,background:"#fff",borderRadius:8,border:"1px solid #e8e8e8"}}>
-                              {renderGrafico(gr, 200, false)}
+                            <div data-graf-id={gr.id} style={{marginTop:8,padding:10,background:"#fff",borderRadius:8,border:"1px solid #e8e8e8"}}>
+                              {renderGráfico(gr, 200, false)}
+                              <div style={{textAlign:"center",fontSize:10,color:"#888",marginTop:6,fontStyle:"italic"}}>
+                                Gráfico {(d.graficos||[]).indexOf(gr)+1}{gr.titulo?" – "+gr.titulo:""}
+                              </div>
                             </div>
                           )}
                           <div style={{marginTop:10}}>
@@ -869,6 +1124,183 @@ function AppPrincipal({ user, onLogout }) {
                             <div style={{fontSize:11,color:"#888"}}>{gr.addRel?"✅ Incluído no relatório":"⬜ Não incluído no relatório"}</div>
                             <button onClick={()=>setGr({addRel:!gr.addRel})} style={{background:gr.addRel?"#2d6a4f":p.cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
                               {gr.addRel?"✓ Adicionado ao Relatório":"+ Adicionar ao Relatório"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* TABELA */}
+                  <div style={CD}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                      <div>
+                        <h3 style={{color:p.cor,fontSize:13,margin:0}}>📋 Tabela</h3>
+                        <div style={{fontSize:10,color:"#888",marginTop:2}}>Dados numéricos e estatísticos.</div>
+                      </div>
+                      <button onClick={()=>{
+                        var cols=parseInt(window.prompt("Quantas colunas?","3")||"3");
+                        var rows=parseInt(window.prompt("Quantas linhas?","3")||"3");
+                        if(cols>0&&rows>0){
+                          var headers=Array.from({length:cols},function(_,i){return "Coluna "+(i+1);});
+                          var cells=Array.from({length:rows},function(){return Array(cols).fill("");});
+                          var t={id:Date.now(),titulo:"Nova Tabela",tipo:"tabela",headers:headers,cells:cells,addRel:false};
+                          set({tabelas:[...(d.tabelas||[]),t]});
+                        }
+                      }} style={{background:p.cor,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:"bold"}}>+ Adicionar Tabela</button>
+                    </div>
+                    {(d.tabelas||[]).length===0&&<div style={{textAlign:"center",padding:"20px",color:"#bbb",fontSize:12,border:"2px dashed #e0e0e0",borderRadius:10}}>Nenhuma tabela ainda. Clique em "+ Adicionar Tabela".</div>}
+                    {(d.tabelas||[]).map((tb,ti)=>{
+                      var setTb=patch=>{var arr=[...(d.tabelas||[])];arr[ti]={...arr[ti],...patch};set({tabelas:arr});};
+                      var remTb=()=>set({tabelas:(d.tabelas||[]).filter((_,j)=>j!==ti)});
+                      var corCab=p.cor;
+                      return(
+                        <div key={tb.id} style={{border:"2px solid "+(tb.addRel?cor+"88":cor+"33"),borderRadius:10,padding:14,marginBottom:14,background:tb.addRel?"#f5fdf7":"#fafdfb"}}>
+                          <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
+                            <input value={tb.titulo||""} onChange={e=>setTb({titulo:e.target.value})} placeholder="Título da tabela" style={{...SI,flex:1,fontWeight:"bold",fontSize:13}}/>
+                            <button onClick={remTb} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12}}>Remover</button>
+                          </div>
+                          <div style={{overflowX:"auto"}}>
+                            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                              <thead><tr>
+                                {(tb.headers||[]).map((h,hi)=>(
+                                  <th key={hi} style={{background:cor,color:"#fff",padding:"6px 8px",border:"1px solid #ddd"}}>
+                                    <input value={h} onChange={e=>{var hs=[...(tb.headers||[])];hs[hi]=e.target.value;setTb({headers:hs});}} style={{background:"transparent",border:"none",color:"#fff",fontWeight:"bold",fontSize:11,fontFamily:"Georgia,serif",width:"100%",outline:"none",textAlign:"center"}}/>
+                                  </th>
+                                ))}
+                              </tr></thead>
+                              <tbody>
+                                {(tb.cells||[]).map((row,ri)=>(
+                                  <tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>
+                                    {(row||[]).map((cell,ci)=>(
+                                      <td key={ci} style={{padding:"5px 8px",border:"1px solid #e0e0e0"}}>
+                                        <input value={cell||""} onChange={e=>{var cs=(tb.cells||[]).map(function(r){return [...r];});cs[ri][ci]=e.target.value;setTb({cells:cs});}} style={{width:"100%",border:"none",background:"transparent",fontSize:11,fontFamily:"Georgia,serif",outline:"none"}}/>
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                            <div style={{fontSize:11,color:"#888"}}>{tb.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
+                            <button onClick={()=>setTb({addRel:!tb.addRel})} style={{background:tb.addRel?"#2d6a4f":cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
+                              {tb.addRel?"✓ Salvo no Relatório":"💾 Salvar no Relatório"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* QUADRO */}
+                  <div style={CD}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                      <div>
+                        <h3 style={{color:p.cor,fontSize:13,margin:0}}>🟦 Quadro</h3>
+                        <div style={{fontSize:10,color:"#888",marginTop:2}}>Informações textuais e descritivas.</div>
+                      </div>
+                      <button onClick={()=>{
+                        var cols=parseInt(window.prompt("Quantas colunas?","3")||"3");
+                        var rows=parseInt(window.prompt("Quantas linhas?","3")||"3");
+                        if(cols>0&&rows>0){
+                          var headers=Array.from({length:cols},function(_,i){return "Coluna "+(i+1);});
+                          var cells=Array.from({length:rows},function(){return Array(cols).fill("");});
+                          var t={id:Date.now(),titulo:"Nova Quadro",tipo:"quadro",headers:headers,cells:cells,addRel:false};
+                          set({quadros:[...(d.quadros||[]),t]});
+                        }
+                      }} style={{background:p.cor,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:"bold"}}>+ Adicionar Quadro</button>
+                    </div>
+                    {(d.quadros||[]).length===0&&<div style={{textAlign:"center",padding:"20px",color:"#bbb",fontSize:12,border:"2px dashed #e0e0e0",borderRadius:10}}>Nenhuma quadro ainda. Clique em "+ Adicionar Quadro".</div>}
+                    {(d.quadros||[]).map((tb,ti)=>{
+                      var setTb=patch=>{var arr=[...(d.quadros||[])];arr[ti]={...arr[ti],...patch};set({quadros:arr});};
+                      var remTb=()=>set({quadros:(d.quadros||[]).filter((_,j)=>j!==ti)});
+                      var corCab="#1a3d2b";
+                      return(
+                        <div key={tb.id} style={{border:"2px solid "+(tb.addRel?cor+"88":cor+"33"),borderRadius:10,padding:14,marginBottom:14,background:tb.addRel?"#f5fdf7":"#fafdfb"}}>
+                          <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
+                            <input value={tb.titulo||""} onChange={e=>setTb({titulo:e.target.value})} placeholder="Título da quadro" style={{...SI,flex:1,fontWeight:"bold",fontSize:13}}/>
+                            <button onClick={remTb} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12}}>Remover</button>
+                          </div>
+                          <div style={{overflowX:"auto"}}>
+                            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                              <thead><tr>
+                                {(tb.headers||[]).map((h,hi)=>(
+                                  <th key={hi} style={{background:cor,color:"#fff",padding:"6px 8px",border:"1px solid #ddd"}}>
+                                    <input value={h} onChange={e=>{var hs=[...(tb.headers||[])];hs[hi]=e.target.value;setTb({headers:hs});}} style={{background:"transparent",border:"none",color:"#fff",fontWeight:"bold",fontSize:11,fontFamily:"Georgia,serif",width:"100%",outline:"none",textAlign:"center"}}/>
+                                  </th>
+                                ))}
+                              </tr></thead>
+                              <tbody>
+                                {(tb.cells||[]).map((row,ri)=>(
+                                  <tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>
+                                    {(row||[]).map((cell,ci)=>(
+                                      <td key={ci} style={{padding:"5px 8px",border:"1px solid #e0e0e0"}}>
+                                        <input value={cell||""} onChange={e=>{var cs=(tb.cells||[]).map(function(r){return [...r];});cs[ri][ci]=e.target.value;setTb({cells:cs});}} style={{width:"100%",border:"none",background:"transparent",fontSize:11,fontFamily:"Georgia,serif",outline:"none"}}/>
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                            <div style={{fontSize:11,color:"#888"}}>{tb.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
+                            <button onClick={()=>setTb({addRel:!tb.addRel})} style={{background:tb.addRel?"#2d6a4f":cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
+                              {tb.addRel?"✓ Salvo no Relatório":"💾 Salvar no Relatório"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* ANEXOS */}
+                  <div style={CD}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                      <h3 style={{color:p.cor,fontSize:13,margin:0}}>📎 Anexos</h3>
+                      <button onClick={()=>{
+                        var ax=[...(d.anexos||[])];
+                        var num=ax.length+1;
+                        ax.push({id:Date.now(),numero:num,titulo:"",descricao:"",link:"",arquivo:null,addRel:false});
+                        set({anexos:ax});
+                      }} style={{background:p.cor,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:"bold"}}>+ Adicionar Anexo</button>
+                    </div>
+                    {(d.anexos||[]).length===0&&<div style={{textAlign:"center",padding:"20px",color:"#bbb",fontSize:12,border:"2px dashed #e0e0e0",borderRadius:10}}>Nenhum anexo ainda. Clique em "+ Adicionar Anexo".</div>}
+                    {(d.anexos||[]).map((ax,ai)=>{
+                      var setAx=patch=>{var arr=[...(d.anexos||[])];arr[ai]={...arr[ai],...patch};set({anexos:arr});};
+                      var remAx=()=>{var arr=(d.anexos||[]).filter((_,j)=>j!==ai).map((a,i)=>({...a,numero:i+1}));set({anexos:arr});};
+                      return(
+                        <div key={ax.id} style={{border:"2px solid "+(ax.addRel?p.cor+"88":p.cor+"33"),borderRadius:10,padding:14,marginBottom:12,background:ax.addRel?"#f5fdf7":"#fafdfb"}}>
+                          <div style={{display:"flex",gap:8,marginBottom:8,alignItems:"center"}}>
+                            <div style={{background:p.cor,color:"#fff",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:"bold",flexShrink:0}}>Anexo {ax.numero}</div>
+                            <input value={ax.titulo||""} onChange={e=>setAx({titulo:e.target.value})} placeholder="Título do anexo..." style={{...SI,flex:1,fontWeight:"bold"}}/>
+                            <button onClick={remAx} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12,flexShrink:0}}>Remover</button>
+                          </div>
+                          <div style={{marginBottom:8}}>
+                            <label style={LB}>Descrição</label>
+                            <textarea value={ax.descricao||""} onChange={e=>setAx({descricao:e.target.value})} rows={2} placeholder="Descreva o conteúdo do anexo..." style={{...SI,resize:"vertical",fontSize:12}}/>
+                          </div>
+                          <div style={{marginBottom:8}}>
+                            <label style={LB}>Link da Pasta / Drive (opcional)</label>
+                            <input value={ax.link||""} onChange={e=>setAx({link:e.target.value})} placeholder="https://drive.google.com/..." style={SI}/>
+                          </div>
+                          <div style={{marginBottom:10}}>
+                            <label style={LB}>Arquivo PDF (opcional)</label>
+                            <input type="file" accept="application/pdf,image/*" onChange={e=>{
+                              var f=e.target.files[0];
+                              if(!f) return;
+                              var reader=new FileReader();
+                              reader.onload=ev=>setAx({arquivo:{nome:f.name,src:ev.target.result}});
+                              reader.readAsDataURL(f);
+                              e.target.value="";
+                            }} style={{...SI,padding:"5px",border:"2px dashed #a8c5b5",cursor:"pointer"}}/>
+                            {ax.arquivo&&<div style={{display:"flex",alignItems:"center",gap:8,marginTop:6,padding:"6px 10px",background:"#e8f5ee",borderRadius:6}}>
+                              <a href={ax.arquivo.src} download={ax.arquivo.nome} style={{fontSize:11,color:"#2d6a4f",textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>📄 {ax.arquivo.nome} <span style={{fontSize:10,color:"#0066cc"}}>⬇ baixar</span></a>
+                              <button onClick={()=>setAx({arquivo:null})} style={{background:"none",border:"none",color:"#b5451b",cursor:"pointer",fontSize:13,marginLeft:"auto"}}>×</button>
+                            </div>}
+                          </div>
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                            <div style={{fontSize:11,color:"#888"}}>{ax.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
+                            <button onClick={()=>setAx({addRel:!ax.addRel})} style={{background:ax.addRel?"#2d6a4f":p.cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
+                              {ax.addRel?"✓ Salvo no Relatório":"💾 Salvar no Relatório"}
                             </button>
                           </div>
                         </div>
@@ -918,29 +1350,76 @@ function AppPrincipal({ user, onLogout }) {
                     </div>
                   </div>
                   <div style={{borderTop:"1px solid #e2ebe5",paddingTop:12,marginBottom:12}}>
-                    <h4 style={{color:"#2d6a4f",fontSize:12,marginBottom:10}}>🏢 Identificação do Empreendedor</h4>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
-                      {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["rep_legal","Representante Legal"],["email","E-mail"]].map(([k,lb])=>(
-                        <div key={k}><label style={LB}>{lb}</label><input value={empreendedor[k]||""} onChange={e=>setEmpreendedor(x=>({...x,[k]:e.target.value}))} style={SI}/></div>
-                      ))}
+                    {/* INTRODUÇÃO */}
+                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px",marginBottom:0}}>
+                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>📝 Introdução do Relatório</h4>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>🏗️</h4>
-                      <input value={construtora.label||"Empresa Construtora"} onChange={e=>setConstrutora(x=>({...x,label:e.target.value}))} placeholder="Empresa Construtora / Consultoria..." style={{...SI,fontWeight:"bold",fontSize:12,width:280}} title="Clique para editar o nome deste quadro"/>
+                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
+                      <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} placeholder="Escreva a introdução do relatório..." style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical"}}/>
                     </div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
-                      {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["email","E-mail"]].map(([k,lb])=>(
-                        <div key={k}><label style={LB}>{lb}</label><input value={construtora[k]||""} onChange={e=>setConstrutora(x=>({...x,[k]:e.target.value}))} style={SI}/></div>
-                      ))}
+
+                    {/* EMPREENDEDOR */}
+                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px",marginBottom:0}}>
+                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>🏢 Identificação do Empreendedor</h4>
                     </div>
-                    <h4 style={{color:"#2d6a4f",fontSize:12,marginBottom:6}}>📍 Identificação do Empreendimento</h4>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
-                      <div><label style={LB}>Nome do Empreendimento</label><input value={empreendimento.nome||""} onChange={e=>setEmpreendimento(x=>({...x,nome:e.target.value}))} style={SI}/></div>
-                      <div><label style={LB}>Estado (UF)</label><input value={empreendimento.uf||""} onChange={e=>setEmpreendimento(x=>({...x,uf:e.target.value}))} style={SI}/></div>
+                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                        {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["rep_legal","Representante Legal"],["email","E-mail"]].map(([k,lb])=>(
+                          empreendedor["_hide_"+k] ? null :
+                          <div key={k} style={{position:"relative"}}>
+                            <label style={LB}>{lb}</label>
+                            <div style={{display:"flex",gap:4}}>
+                              <input value={empreendedor[k]||""} onChange={e=>setEmpreendedor(x=>({...x,[k]:e.target.value}))} style={{...SI,flex:1}}/>
+                              <button onClick={()=>setEmpreendedor(x=>({...x,["_hide_"+k]:true}))} title="Remover do relatório" style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"0 7px",cursor:"pointer",fontSize:13,flexShrink:0}}>×</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={()=>setEmpreendedor(x=>{var n={...x};["nome","cnpj","endereco","telefone","rep_legal","email"].forEach(k=>delete n["_hide_"+k]);return n;})} style={{marginTop:8,background:"none",border:"1px solid #c8ddd2",color:"#2d6a4f",borderRadius:6,padding:"3px 10px",cursor:"pointer",fontSize:10}}>↺ Restaurar campos ocultos</button>
+                    </div>
+
+                    {/* CONSTRUTORA */}
+                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
+                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>🏗️</h4>
+                      <input value={construtora.label||"Empresa Construtora"} onChange={e=>setConstrutora(x=>({...x,label:e.target.value}))} placeholder="Empresa Construtora / Consultoria..." style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.5)",color:"#fff",fontSize:12,fontWeight:"bold",fontFamily:"Georgia,serif",outline:"none",flex:1}} title="Clique para editar"/>
+                    </div>
+                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                        {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["email","E-mail"]].map(([k,lb])=>(
+                          construtora["_hide_"+k] ? null :
+                          <div key={k}>
+                            <label style={LB}>{lb}</label>
+                            <div style={{display:"flex",gap:4}}>
+                              <input value={construtora[k]||""} onChange={e=>setConstrutora(x=>({...x,[k]:e.target.value}))} style={{...SI,flex:1}}/>
+                              <button onClick={()=>setConstrutora(x=>({...x,["_hide_"+k]:true}))} title="Remover do relatório" style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"0 7px",cursor:"pointer",fontSize:13,flexShrink:0}}>×</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={()=>setConstrutora(x=>{var n={...x};["nome","cnpj","endereco","telefone","email"].forEach(k=>delete n["_hide_"+k]);return n;})} style={{marginTop:8,background:"none",border:"1px solid #c8ddd2",color:"#2d6a4f",borderRadius:6,padding:"3px 10px",cursor:"pointer",fontSize:10}}>↺ Restaurar campos ocultos</button>
+                    </div>
+
+                    {/* EMPREENDIMENTO */}
+                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px"}}>
+                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>📍 Identificação do Empreendimento</h4>
+                    </div>
+                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                        {[["nome","Nome do Empreendimento"],["uf","Estado (UF)"]].map(([k,lb])=>(
+                          empreendimento["_hide_"+k] ? null :
+                          <div key={k}>
+                            <label style={LB}>{lb}</label>
+                            <div style={{display:"flex",gap:4}}>
+                              <input value={empreendimento[k]||""} onChange={e=>setEmpreendimento(x=>({...x,[k]:e.target.value}))} style={{...SI,flex:1}}/>
+                              <button onClick={()=>setEmpreendimento(x=>({...x,["_hide_"+k]:true}))} title="Remover do relatório" style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"0 7px",cursor:"pointer",fontSize:13,flexShrink:0}}>×</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                       <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
-                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",funcao:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
+                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",função:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
                     </div>
                     <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
                       <thead><tr><th style={{...TH,background:"#2d6a4f"}}>Nome</th><th style={{...TH,background:"#2d6a4f"}}>Função</th><th style={{...TH,background:"#2d6a4f"}}>Registro Profissional</th><th style={{...TH,background:"#2d6a4f",width:30}}></th></tr></thead>
@@ -949,7 +1428,7 @@ function AppPrincipal({ user, onLogout }) {
                         {equipe.map((m,mi)=>(
                           <tr key={m.id} style={{background:mi%2?"#f8fdf9":"#fff"}}>
                             <td style={TD}><input value={m.nome||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,nome:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
-                            <td style={TD}><input value={m.funcao||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,funcao:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
+                            <td style={TD}><input value={m.função||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,função:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
                             <td style={TD}><input value={m.registro||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,registro:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
                             <td style={TD}><button onClick={()=>setEquipe(eq=>eq.filter((_,i)=>i!==mi))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"2px 7px",cursor:"pointer",fontSize:11}}>×</button></td>
                           </tr>
@@ -979,19 +1458,20 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
               )}
             </div>
-            <div id="extra-card" style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
-              <div style={{fontSize:13,fontWeight:"bold",color:"#2d6a4f",marginBottom:8}}>✨ Adicionar Programa Extra com IA</div>
-              <div style={{display:"flex",gap:8}}>
-                <input value={novo} onChange={e=>setNovo(e.target.value)} placeholder="Nome do programa..." style={{...SI,flex:1}} onKeyDown={e=>{if(e.key==="Enter"&&novo.trim())addExtra();}}/>
-                <button onClick={addExtra} disabled={!novo.trim()||ger} style={{background:!novo.trim()||ger?"#ccc":"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:8,padding:"9px 14px",cursor:!novo.trim()||ger?"not-allowed":"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold",whiteSpace:"nowrap"}}>{ger?"⏳ Gerando...":"✨ Adicionar"}</button>
-              </div>
+            <div style={{textAlign:"center",padding:"16px 0 8px"}}>
+              <button onClick={()=>setAba("relatorio")} style={{background:"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:10,padding:"12px 32px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:14,fontWeight:"bold",boxShadow:"0 4px 12px rgba(26,61,43,0.3)"}}>
+                ✅ Salvar e Ir para o Relatório
+              </button>
             </div>
           </div>
         )}
         {/* RELATORIO */}
         {aba==="relatorio"&&(
           <div>
-            <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <h2 style={{color:HC,margin:0}}>📄 Relatório Mensal</h2>
+              <button onClick={()=>{var dr={lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📄 Baixar PDF</button>
+            </div>
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
               <Cab/>
               <div style={{padding:"28px 40px"}}>
@@ -1001,37 +1481,36 @@ function AppPrincipal({ user, onLogout }) {
                   {equipe.length>0&&<div style={{fontSize:12,color:"#555"}}>{equipe.map(m=>m.nome).join(", ")}<br/><strong>{construtora.nome||emp}</strong></div>}
                 </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
-                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
+                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>1. INTRODUÇÃO</h2>
+                  <p style={{fontSize:12,color:"#444",lineHeight:1.8,whiteSpace:"pre-wrap"}}>{intro}</p>
                 </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
-                  <div style={{marginBottom:10}}>
-                    <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 1 – Identificação do Empreendedor</div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
-                      {[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]].filter(r=>r[1]).map((r,i)=>(
-                        <tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]||"—"}</td></tr>
-                      ))}
-                    </tbody></table>
-                    <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 2 – Identificação da {construtora.label||"Empresa Construtora"}</div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
-                      {[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]].filter(r=>r[1]).map((r,i)=>(
-                        <tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]||"—"}</td></tr>
-                      ))}
-                    </tbody></table>
-                    <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 3 – Identificação do Empreendimento</div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:8}}><tbody>
-                      {[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]].filter(r=>r[1]).map((r,i)=>(
-                        <tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]||"—"}</td></tr>
-                      ))}
-                    </tbody></table>
-                    {equipe.length>0&&<>
-                      <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>Quadro 4 – Identificação da Equipe Técnica</div>
-                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead><tbody>
-                        {equipe.map((m,i)=><tr key={m.id}><td style={i%2?TA:TD}>{m.nome||"—"}</td><td style={i%2?TA:TD}>{m.funcao||"—"}</td><td style={i%2?TA:TD}>{m.registro||"N/A"}</td></tr>)}
-                      </tbody></table>
-                    </>}
-                  </div>
+                  <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
+                  {[
+                    {titulo:"Quadro 1 – Identificação do Empreendedor", linhas:[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]]},
+                    {titulo:"Quadro 2 – Identificação da "+(construtora.label||"Empresa Construtora"), linhas:[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]]},
+                    {titulo:"Quadro 3 – Identificação do Empreendimento", linhas:[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]]}
+                  ].map((q,qi)=>{
+                    var rows=q.linhas.filter(r=>r[1]);
+                    if(!rows.length) return null;
+                    return(
+                      <div key={qi} style={{marginBottom:12}}>
+                        <div style={{fontSize:11,fontWeight:"bold",color:"#333",marginBottom:4}}>{q.titulo}</div>
+                        <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
+                          <thead><tr><th style={{...TH,background:cor,width:180}}>Campo</th><th style={{...TH,background:cor}}>Informação</th></tr></thead>
+                          <tbody>{rows.map((r,i)=><tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:"#333"}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]}</td></tr>)}</tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                  {equipe.length>0&&<div style={{marginBottom:12}}>
+                    <div style={{fontSize:11,fontWeight:"bold",color:"#333",marginBottom:4}}>Quadro 4 – Identificação da Equipe Técnica</div>
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                      <thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead>
+                      <tbody>{equipe.map((m,i)=><tr key={m.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{m.nome||"—"}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{m.funcao||"—"}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{m.registro||"N/A"}</td></tr>)}
+                      </tbody>
+                    </table>
+                  </div>}
                 </div>
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
@@ -1049,14 +1528,68 @@ function AppPrincipal({ user, onLogout }) {
                       {grafRel.map((gr,gi)=>(
                         <div key={gi} style={{marginBottom:16}}>
                           <h4 style={{fontSize:11,color:"#333",marginBottom:5,textAlign:"left"}}>{gr.titulo||"Gráfico "+(gi+1)}</h4>
-                          {renderGrafico(gr, 200, true)}
+                          {renderGráfico(gr, 200, true)}
                           {gr.texto&&<p style={{fontSize:11,color:"#444",lineHeight:1.7,marginTop:8,fontStyle:"italic",borderLeft:"3px solid "+p.cor,paddingLeft:10}}>{gr.texto}</p>}
+                        </div>
+                      ))}
+                      {(d.tabelas||[]).filter(tb=>tb.addRel).length>0&&(
+                        <div style={{marginBottom:16}}>
+                          <h4 style={{fontSize:11,color:"#333",marginBottom:8}}>Tabelas</h4>
+                          {(d.tabelas||[]).filter(tb=>tb.addRel).map((tb,ti)=>(
+                            <div key={ti} style={{marginBottom:12}}>
+                              <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>{tb.titulo||"Tabela "+(ti+1)}</div>
+                              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                                <thead><tr>{(tb.headers||[]).map((h,hi)=><th key={hi} style={{background:cor,color:"#fff",padding:"5px 8px",border:"1px solid #ddd",textAlign:"left"}}>{h}</th>)}</tr></thead>
+                                <tbody>{(tb.cells||[]).map((row,ri)=><tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>{(row||[]).map((c,ci)=><td key={ci} style={{padding:"4px 8px",border:"1px solid #eee"}}>{c}</td>)}</tr>)}</tbody>
+                              </table>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {(d.quadros||[]).filter(tb=>tb.addRel).length>0&&(
+                        <div style={{marginBottom:16}}>
+                          <h4 style={{fontSize:11,color:"#333",marginBottom:8}}>Quadros</h4>
+                          {(d.quadros||[]).filter(tb=>tb.addRel).map((tb,ti)=>(
+                            <div key={ti} style={{marginBottom:12}}>
+                              <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>{tb.titulo||"Quadro "+(ti+1)}</div>
+                              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                                <thead><tr>{(tb.headers||[]).map((h,hi)=><th key={hi} style={{background:cor,color:"#fff",padding:"5px 8px",border:"1px solid #ddd",textAlign:"left"}}>{h}</th>)}</tr></thead>
+                                <tbody>{(tb.cells||[]).map((row,ri)=><tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>{(row||[]).map((c,ci)=><td key={ci} style={{padding:"4px 8px",border:"1px solid #eee"}}>{c}</td>)}</tr>)}</tbody>
+                              </table>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    </div>
+                  );
+                })}
+
+                {(()=>{
+                  var todosAnx=[];
+                  var ng=1;
+                  ativos.forEach(p=>{
+                    var d2=getD(p.id);
+                    (d2.anexos||[]).filter(a=>a.addRel).forEach(ax=>{
+                      todosAnx.push({ax,prog:p,ng:ng++});
+                    });
+                  });
+                  if(!todosAnx.length) return null;
+                  return(
+                    <div style={{marginBottom:20}}>
+                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>6. ANEXOS</h2>
+                      {todosAnx.map((item,i)=>(
+                        <div key={i} style={{marginBottom:8,padding:"8px 12px",border:"1px solid #c8ddd2",borderRadius:7,background:"#fafdfb"}}>
+                          <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:2}}>Anexo {item.ng}{item.ax.titulo?" – "+item.ax.titulo:""}</div>
+                          <div style={{fontSize:10,color:"#888",marginBottom:3}}>Programa: {item.prog.lb}</div>
+                          {item.ax.descricao&&<p style={{fontSize:11,color:"#444",margin:"3px 0"}}>{item.ax.descricao}</p>}
+                          {item.ax.link&&<a href={item.ax.link} target="_blank" rel="noreferrer" style={{fontSize:10,color:"#0066cc",display:"block",marginTop:3}}>🔗 {item.ax.link}</a>}
+                          {item.ax.arquivo&&<a href={item.ax.arquivo.src} download={item.ax.arquivo.nome} style={{fontSize:10,color:"#2d6a4f",display:"block",marginTop:3,textDecoration:"none"}}>📄 {item.ax.arquivo.nome} <span style={{color:"#0066cc"}}>⬇ baixar</span></a>}
                         </div>
                       ))}
                     </div>
                   );
-                })}
-                {extras.map((pe,pi)=><div key={pe.id} style={{marginBottom:28}}><h3 style={{color:cor,fontSize:13,borderLeft:"4px solid #2d6a4f",paddingLeft:10,marginBottom:10,textAlign:"left"}}>{ativos.length+pi+1}. {pe.nome.toUpperCase()}</h3><p style={{fontSize:12,color:"#444",lineHeight:1.8}}>{pe.intro}</p></div>)}
+                })()}
                 <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
               </div>
             </div>
@@ -1066,7 +1599,14 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="historico"&&(
           <div>
             <h2 style={{color:HC,marginBottom:6}}>📁 Histórico e Download de Relatórios</h2>
-            <p style={{fontSize:12,color:"#888",marginBottom:20}}>Abra, baixe ou exclua relatórios salvos. Use o botão <strong>"💾 Salvar Relatório"</strong> no topo para guardar o relatório atual.</p>
+            <div style={{background:"#fff8e1",border:"1px solid #f0c040",borderRadius:8,padding:"10px 14px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
+              <span style={{fontSize:16}}>⚠️</span>
+              <div>
+                <div style={{fontSize:12,fontWeight:"bold",color:"#7d5a00",marginBottom:2}}>Relatórios ficam salvos por 40 dias</div>
+                <div style={{fontSize:11,color:"#7d5a00"}}>Baixe o PDF antes do prazo. Após 40 dias os relatórios são excluídos automaticamente da nuvem.</div>
+              </div>
+            </div>
+            <p style={{fontSize:12,color:"#888",marginBottom:16}}>Use o botão <strong>"💾 Salvar Relatório"</strong> no topo para guardar o relatório atual.</p>
             {historico.length===0?(
               <div style={{...CD,textAlign:"center",padding:"48px 20px",color:"#aaa"}}>
                 <div style={{fontSize:44,marginBottom:10}}>📁</div>
@@ -1081,12 +1621,15 @@ function AppPrincipal({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:"bold",color:HC,marginBottom:4}}>📄 {rel.titulo}</div>
                       {rel.empreendimento&&<div style={{fontSize:12,color:"#555",marginBottom:2}}>🏗️ {rel.empreendimento}</div>}
                       {rel.empresa&&<div style={{fontSize:11,color:"#888",marginBottom:2}}>🏢 {rel.empresa}</div>}
-                      <div style={{fontSize:10,color:"#aaa"}}>Salvo em {rel.data}</div>
+{(()=>{
+                        var dias=rel.dataISO?Math.max(0,40-Math.floor((new Date()-new Date(rel.dataISO))/(1000*60*60*24))):40;
+                        var cor=dias<=7?"#b5451b":dias<=15?"#b08000":"#aaa";
+                        return <div style={{fontSize:10,color:cor}}>💾 Salvo em {rel.data}{rel.dataISO?" · "+dias+" dias restantes":""}</div>;
+                      })()}
                     </div>
                     <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
-                      <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📂 Abrir</button>
-                      <button onClick={()=>baixarRelatorio(rel)} style={{background:"#5a4fcf",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📥 Baixar Word</button>
-                      <button onClick={()=>{carregarRelatorio(rel);setTimeout(function(){dlPDF();},1000);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
+                      <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>✏️ Abrir / Editar</button>
+                      <button onClick={()=>{var dr={lCons:rel.estado?.lCons||lCons,lEmpr:rel.estado?.lEmpr||lEmpr,empreendedor:rel.estado?.empreendedor||empreendedor,construtora:rel.estado?.construtora||construtora,empreendimento:rel.estado?.empreendimento||empreendimento,equipe:rel.estado?.equipe||equipe,nrel:rel.estado?.nrel||nrel,mes:rel.mes,ano:rel.ano,intro:rel.estado?.intro||intro,ativos,dados:rel.estado?.dados||dados,fotos:rel.estado?.fotos||fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📄 Baixar PDF</button>
                       <button onClick={()=>excluirRelatorio(rel.id)} style={{background:"none",border:"2px solid #b5451b",color:"#b5451b",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>🗑️ Excluir</button>
                     </div>
                   </div>
