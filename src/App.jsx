@@ -918,9 +918,9 @@ function AppPrincipal({ user, onLogout }) {
             ?<PieChart>
                 <Pie data={chartData} cx="50%" cy="50%" outerRadius={65} dataKey="val"
                   label={({name,value,percent})=>name+": "+value+(gr.unidade?" "+gr.unidade:"")+" ("+(percent*100).toFixed(0)+"%)"}
-                  labelLine={{stroke:"#000"}}
-                  style={{fontSize:10,fill:"#000",fontWeight:"bold"}}>
-                  {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
+                  labelLine={{stroke:"#555"}}
+                  labelStyle={{fontSize:10,fontWeight:"bold",fill:"#000"}}>
+                  {chartData.map((d,i)=><Cell key={i} fill={d.fill} stroke="#fff" strokeWidth={2}/>)}
                 </Pie>
                 <Tooltip formatter={(v,n)=>[v+(gr.unidade?" "+gr.unidade:""),n]}/>
               </PieChart>
