@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -242,362 +242,35 @@ function AuthScreen({ onLogin }) {
 // ─────────────────────────────────────────────
 // FUNÇÕES AUXILIARES
 // ─────────────────────────────────────────────
-function buildRelHTML(dr) {
-  var C=dr.cor||"#1a3d2b";
-  var nEmp=(dr.empreendimento&&dr.empreendimento.nome)||"[Empreendimento]";
-  var nCons=(dr.construtora&&dr.construtora.nome)||"[Empresa Executora]";
-  var nEmpr=(dr.empreendedor&&dr.empreendedor.nome)||"[Empreendedor]";
-  var numR=dr.nrel?dr.nrel+"º":"1º";
-  var mes=dr.mes||"";
-  var ano=dr.ano||"";
-  var intro=dr.intro||"";
-  var ativos=dr.ativos||[];
-  var dados=dr.dados||{};
-  var fotos=dr.fotos||{};
-  var nomes=dr.nomes||{};
-  var empr=dr.empreendedor||{};
-  var cons=dr.construtora||{};
-  var empt=dr.empreendimento||{};
-  var equipe=dr.equipe||[];
-  var lC=dr.lCons||"";
-  var lE=dr.lEmpr||"";
-
-  function esc(s){return s?String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"):""}
-
-  var css = "body{font-family:Arial,sans-serif;font-size:10pt;color:#222;background:#eee;margin:0}"
-    + ".pg{width:210mm;min-height:297mm;margin:0 auto 8pt;background:#fff;display:flex;flex-direction:column;page-break-after:always}"
-    + ".cab{display:flex;align-items:center;padding:6pt 15mm;min-height:16mm}"
-    + ".cle{width:80pt;display:flex;align-items:center}"
-    + ".cct{flex:1;text-align:center;padding:0 6pt}"
-    + ".cri{width:80pt;display:flex;align-items:center;justify-content:flex-end}"
-    + ".cimg{max-height:30pt;max-width:75pt;object-fit:contain}"
-    + ".cnm{font-size:8pt;font-weight:bold;color:"+C+"}"
-    + ".ctp{font-size:9pt;font-weight:bold;text-transform:uppercase}"
-    + ".csb{font-size:8pt;color:#555;margin-top:2pt}"
-    + ".cln{height:2pt;background:"+C+";margin:0 15mm}"
-    + ".bod{flex:1;padding:8mm 15mm 4mm}"
-    + ".rod{display:flex;justify-content:space-between;padding:5pt 15mm;border-top:1pt solid #ddd;font-size:7pt;color:#888;margin-top:auto}"
-    + ".cap{flex:1;display:flex;flex-direction:column;align-items:center;padding:12mm 20mm 8mm}"
-    + ".ctit{font-size:14pt;font-weight:bold;letter-spacing:1pt;margin-bottom:14pt}"
-    + ".cptx{font-size:10pt;color:#555;text-align:center;margin-bottom:8pt}"
-    + ".csp{flex:1;min-height:16pt}"
-    + ".cpj{font-size:13pt;font-weight:bold;text-align:center;padding-bottom:8pt;width:100%}"
-    + ".cper{font-size:10pt;color:#555;text-align:center;margin-top:8pt}"
-    + ".ctec{font-size:10pt;text-align:center;line-height:1.8}"
-    + ".clgs{display:flex;gap:24pt;align-items:center;justify-content:center;margin-bottom:12pt}"
-    + ".clg{max-height:60px;max-width:120px;object-fit:contain}"
-    + ".stit{font-size:12pt;font-weight:bold;margin-bottom:12pt;text-transform:uppercase}"
-    + ".stab{width:100%;border-collapse:collapse;font-size:10pt}"
-    + ".stab tr{height:18pt}"
-    + ".sn{width:28pt;font-weight:bold;vertical-align:middle;padding:2pt 0}"
-    + ".st{vertical-align:middle;padding:2pt 4pt}"
-    + ".sd{background-image:radial-gradient(circle,#999 1px,transparent 1px);background-size:4pt 100%;background-repeat:repeat-x;background-position:0 55%}"
-    + ".sp{width:18pt;text-align:right;vertical-align:middle;color:#999}"
-    + ".ssb{font-style:italic;color:#555;font-size:9pt}"
-    + ".sec{font-size:11pt;font-weight:bold;color:"+C+";margin-bottom:8pt;padding-bottom:3pt;text-transform:uppercase}"
-    + ".ptit{font-size:10pt;font-weight:bold;margin:8pt 0 5pt;padding:4pt 8pt;background:#f5f5f5}"
-    + ".sub{font-size:10pt;font-weight:bold;color:"+C+";margin:7pt 0 4pt}"
-    + ".txt{font-size:10pt;line-height:1.7;color:#333;margin-bottom:5pt;text-align:justify}"
-    + ".qtit{font-size:10pt;font-weight:bold;margin:7pt 0 3pt}"
-    + ".qtab{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:7pt}"
-    + ".qtab th{background:"+C+";color:#fff;padding:3pt 7pt;text-align:left}"
-    + ".qtab td{padding:3pt 7pt;border:1pt solid #ddd}"
-    + ".qtab tr.alt td{background:#f8f8f8}"
-    + ".qk{font-weight:bold;color:"+C+";width:110pt}"
-    + ".ftab{width:100%;border-collapse:separate;border-spacing:6pt}"
-    + ".fcel{width:50%;vertical-align:top;text-align:center}"
-    + ".fimg{width:100%;height:95pt;object-fit:cover;border:1pt solid #ddd}"
-    + ".fleg{font-size:8pt;color:#555;text-align:center;margin-top:2pt;font-style:italic}"
-    + "@media print{@page{size:A4 portrait;margin:0}body{background:#fff;margin:0}.pg{box-shadow:none;margin:0;page-break-after:always;min-height:297mm;width:210mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}";
-
-  function cab() {
-    var le=lC?"<img src='"+lC+"' class='cimg'/>":"<div class='cnm'>"+esc(nCons)+"</div>";
-    var ri=lE?"<img src='"+lE+"' class='cimg'/>":"";
-    return "<div class='cab'>"
-      +"<div class='cle'>"+le+"</div>"
-      +"<div class='cct'><div class='ctp'>"+esc(nEmp)+"</div><div class='csb'>"+numR+" RELATÓRIO – "+esc(mes)+"/"+esc(ano)+"</div></div>"
-      +"<div class='cri'>"+ri+"</div>"
-      +"</div><div class='cln'></div>";
-  }
-
-  function rod(n) {
-    return "<div class='rod'><span>"+esc(nCons)+"</span><span>"+esc(nEmp)+" - "+esc(mes)+"/"+esc(ano)+"</span><span>"+n+"</span></div>";
-  }
-
-  function quad(titulo, linhas) {
-    var rows=linhas.filter(function(r){return r[1];});
-    if(!rows.length) return "";
-    var trs=rows.map(function(r,i){
-      return "<tr class='"+(i%2?"alt":"")+"'><td class='qk'>"+esc(r[0])+"</td><td>"+esc(r[1])+"</td></tr>";
-    }).join("");
-    return "<p class='qtit'>"+esc(titulo)+"</p>"
-      +"<table class='qtab'><tr><th style='width:130pt'>Campo</th><th>Informação</th></tr>"+trs+"</table>";
-  }
-
-  // CAPA
-  var tec=equipe.length>0?equipe[0]:null;
-  var tecHTML=tec?"<div>"+esc(tec.nome)+"</div><div style='font-weight:bold'>"+esc(nCons)+"</div>":"<div style='font-weight:bold'>"+esc(nCons)+"</div>";
-  var capa="<div class='pg'>"+cab()
-    +"<div class='cap'>"
-    +"<div class='ctit'>APRESENTAÇÃO</div>"
-    +"<div class='cptx'>"+esc(nCons)+" apresenta a "+esc(nEmpr)+" o documento intitulado:</div>"
-    +"<div class='csp'></div>"
-    +"<div class='cpj'>"+esc(nEmp)+"</div>"
-    +"<div class='cper'>"+esc(mes)+" de "+esc(ano)+"</div>"
-    +"<div class='csp'></div>"
-    +"<div class='ctec'>"+tecHTML+"</div>"
-    +"</div>"
-    +rod(1)+"</div>";
-
-  // SUMÁRIO
-  var sitens=[
-    {n:"1",t:"IDENTIFICAÇÃO DO EMPREENDIMENTO",s:false},
-    {n:"2",t:"IDENTIFICAÇÃO DA EQUIPE TÉCNICA",s:false},
-    {n:"3",t:"INTRODUÇÃO",s:false}
-  ];
-  ativos.forEach(function(p,i){sitens.push({n:"3."+(i+1),t:p.lb,s:true});});
-  sitens.push({n:"4",t:"GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS",s:false});
-  var strs=sitens.map(function(it){
-    var c=it.s?" class='ssb'":"";
-    return "<tr><td class='sn'"+c+">"+it.n+"</td><td class='st'"+c+">"+esc(it.t)+"</td><td class='sd'></td><td class='sp'"+c+"></td></tr>";
-  }).join("");
-  var sumario="<div class='pg'>"+cab()
-    +"<div class='bod'><h1 class='stit'>SUMÁRIO</h1>"
-    +"<table class='stab'>"+strs+"</table>"
-    +"</div>"+rod(2)+"</div>";
-
-  // IDENTIFICACAO
-  var ident="<div class='pg'>"+cab()+"<div class='bod'>"
-    +"<h1 class='sec'>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h1>"
-    +quad("Quadro 1 – Identificação do Empreendedor",[
-      ["Empreendedor",empr.nome],["CNPJ",empr.cnpj],
-      ["Endereco",empr.endereco],["Telefone",empr.telefone],
-      ["Representante Legal",empr.rep_legal],["E-mail",empr.email]
-    ])
-    +quad("Quadro 2 – Identificação da "+(cons.label||"Empresa Construtora"),[
-      ["Empresa",cons.nome],["CNPJ",cons.cnpj],
-      ["Endereco",cons.endereco],["Telefone",cons.telefone],["E-mail",cons.email]
-    ])
-    +quad("Quadro 3 – Identificação do Empreendimento",[
-      ["Nome do Empreendimento",empt.nome],["Estado (UF)",empt.uf]
-    ])
-    +"</div>"+rod(3)+"</div>";
-
-  // EQUIPE
-  var equipeHTML="";
-  if(equipe.length>0){
-    var etrs=equipe.map(function(m,i){
-      return "<tr class='"+(i%2?"alt":"")+"'><td>"+esc(m.nome)+"</td><td>"+esc(m.função)+"</td><td>"+esc(m.registro||"N/A")+"</td></tr>";
-    }).join("");
-    equipeHTML="<div class='pg'>"+cab()+"<div class='bod'>"
-      +"<h1 class='sec'>2. IDENTIFICAÇÃO DA EQUIPE TÉCNICA RESPONSÁVEL</h1>"
-      +"<table class='qtab'><tr><th>Nome</th><th>Função</th><th>Registro</th></tr>"+etrs+"</table>"
-      +"</div>"+rod(4)+"</div>";
-  }
-
-  // INTRODUÇÃO
-  var iparas=intro.split("\n").filter(function(p){return p.trim();}).map(function(p){return "<p class='txt'>"+esc(p)+"</p>";}).join("");
-  var introducao="<div class='pg'>"+cab()+"<div class='bod'>"
-    +"<h1 class='sec'>3. INTRODUÇÃO</h1>"+iparas
-    +"</div>"+rod(5)+"</div>";
-
-  // PROGRAMAS
-  var prows=ativos.map(function(p,i){
-    return "<tr class='"+(i%2?"alt":"")+"'>"
-      +"<td style='text-align:center;width:30pt'>"+(i+1)+"</td>"
-      +"<td>"+esc(p.lb)+"</td>"
-      +"<td style='color:"+C+";font-weight:bold'>Em Execucao</td>"
-      +"</tr>";
-  }).join("");
-  var programas="<div class='pg'>"+cab()+"<div class='bod'>"
-    +"<h1 class='sec'>4. PROGRAMAS EM EXECUÇÃO</h1>"
-    +"<table class='qtab'><tr><th style='width:30pt'>No</th><th>Programa</th><th style='width:90pt'>Status</th></tr>"+prows+"</table>"
-    +"</div>"+rod(6)+"</div>";
-
-  // GESTAO
-  var gestaoConteudo=ativos.map(function(prog,pi){
-    var pd=dados[prog.id]||{};
-    var pf=fotos[prog.id]||[];
-    var desc=pd.descricao||pd.desc||"";
-    var secTit=pi===0?"<h1 class='sec'>5. GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS</h1>":"";
-    var dHTML=desc?("<h3 class='sub'>Descrição das Atividades</h3>"+desc.split("\n").filter(function(p){return p.trim();}).map(function(p){return "<p class='txt'>"+esc(p)+"</p>";}).join("")):"";
-    var pares=[];
-    for(var i=0;i<pf.length;i+=2) pares.push([pf[i],pf[i+1]||null]);
-    var ftrs=pares.map(function(par,ri){
-      var t1="<td class='fcel'><img src='"+par[0].src+"' class='fimg'/><div class='fleg'>Foto "+(ri*2+1)+(par[0].leg?" - "+esc(par[0].leg):"")+"</div></td>";
-      var t2=par[1]?"<td class='fcel'><img src='"+par[1].src+"' class='fimg'/><div class='fleg'>Foto "+(ri*2+2)+(par[1].leg?" - "+esc(par[1].leg):"")+"</div></td>":"<td class='fcel'></td>";
-      return "<tr>"+t1+t2+"</tr>";
-    }).join("");
-    var fHTML=pf.length>0?("<h3 class='sub'>"+(pi+1)+".1 Registro Fotográfico</h3><table class='ftab'>"+ftrs+"</table>"):"";
-    var grafHTML="";
-    var pgGrafs=(pd.graficos||[]).filter(function(g){return g.addRel&&(g.dados||[]).some(function(d){return d.l&&d.v;});});
-    if(pgGrafs.length>0){
-      grafHTML="<h3 class='sub'>"+(pi+1)+".2 Dados e Indicadores</h3>";
-      grafHTML+=pgGrafs.map(function(gr,gi){
-        var gd=(gr.dados||[]).filter(function(d){return d.l&&d.v;});
-        // Calcular largura necessária para caber todos os rótulos
-        var W=Math.max(500, gd.length*80),H=240,padT=30,padB=50,padL=45,padR=15;
-        var barW=Math.min(50,Math.floor((W-padL-padR)/gd.length)-8);
-        var maxV=Math.max.apply(null,gd.map(function(d){return parseFloat(d.v)||0;}));
-        var cv=document.createElement("canvas");
-        cv.width=W;cv.height=H;
-        var ctx=cv.getContext("2d");
-        ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);
-        if(gr.tipo==="pizza"){
-          var W2=600,H2=320;
-          cv.width=W2;cv.height=H2;
-          ctx.fillStyle="#fff";ctx.fillRect(0,0,W2,H2);
-          var total=gd.reduce(function(a,d){return a+(parseFloat(d.v)||0);},0);
-          var angle=-Math.PI/2,cx=W2/2,cy=H2/2,r=100;
-          // Desenhar fatias
-          gd.forEach(function(d){
-            var slice=(parseFloat(d.v)||0)/total*Math.PI*2;
-            ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
-            ctx.fillStyle=d.cor||gr.cor||C;ctx.fill();
-            ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();
-            angle+=slice;
-          });
-          // Desenhar rótulos externos com linha
-          angle=-Math.PI/2;
-          gd.forEach(function(d){
-            var val=parseFloat(d.v)||0;
-            var slice=val/total*Math.PI*2;
-            var mid=angle+slice/2;
-            // Linha interna → externa
-            var x1=cx+Math.cos(mid)*(r+5);
-            var y1=cy+Math.sin(mid)*(r+5);
-            var x2=cx+Math.cos(mid)*(r+28);
-            var y2=cy+Math.sin(mid)*(r+28);
-            var x3=cx+Math.cos(mid)*(r+35);
-            var y3=cy+Math.sin(mid)*(r+35);
-            ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle="#666";ctx.lineWidth=1;ctx.stroke();
-            // Texto alinhado
-            var pct=((val/total)*100).toFixed(0)+"%";
-            var label=d.l+" ("+pct+")";
-            ctx.fillStyle="#000";ctx.font="bold 10px Arial";
-            ctx.textAlign=Math.cos(mid)>0?"left":"right";
-            ctx.fillText(label,x3,y3);
-            angle+=slice;
-          });
-        } else {
-          var gap=Math.floor((W-padL-padR)/gd.length);
-          ctx.strokeStyle="#eee";ctx.lineWidth=1;
-          for(var yi=0;yi<=4;yi++){
-            var yy=H-padB-(yi/4)*(H-padT-padB);
-            ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();
-            ctx.fillStyle="#333";ctx.font="10px Arial";ctx.textAlign="right";
-            ctx.fillText(((maxV*yi/4)||0).toFixed(0),padL-5,yy+4);
-          }
-          gd.forEach(function(d,i){
-            var val=parseFloat(d.v)||0;
-            var bh=maxV>0?(val/maxV)*(H-padT-padB):0;
-            var bx=padL+i*gap+(gap-barW)/2;
-            var by=H-padB-bh;
-            ctx.fillStyle=d.cor||gr.cor||C;
-            ctx.beginPath();
-            ctx.rect(bx,by,barW,bh);
-            ctx.fill();
-            ctx.fillStyle="#000";ctx.font="bold 10px Arial";ctx.textAlign="center";
-            ctx.fillText(val+(gr.unidade?" "+gr.unidade:""),bx+barW/2,by-5);
-            ctx.fillStyle="#000";ctx.font="10px Arial";
-            ctx.fillText(d.l,bx+barW/2,H-padB+18);
-          });
-        }
-        var imgSrc=cv.toDataURL("image/png");
-        return "<div style='margin-bottom:12pt;text-align:center'>"
-          +"<img src='"+imgSrc+"' style='width:90%;max-height:160pt;object-fit:contain;display:block;margin:0 auto;'/>"
-          +"<p style='font-size:9pt;font-style:italic;color:#555;margin-top:4pt'>Gráfico "+(gi+1)+(gr.titulo?" - "+esc(gr.titulo):"")+"</p>"
-          +(gr.texto?"<p class='txt' style='margin-top:4pt;font-style:italic'>"+esc(gr.texto)+"</p>":"")
-          +"</div>";
-      }).join("");
-    }
-    function buildTabHTML(items,secLabel){
-      if(!items||!items.length) return "";
-      var filtered=items.filter(function(t){return t.addRel;});
-      if(!filtered.length) return "";
-      var html="<h3 class='sub'>"+secLabel+"</h3>";
-      html+=filtered.map(function(tb,ti){
-        var heads=(tb.headers||[]).map(function(h){return "<th>"+esc(h)+"</th>";}).join("");
-        var rows=(tb.cells||[]).map(function(row,ri){
-          var cells=(row||[]).map(function(c){return "<td>"+esc(c)+"</td>";}).join("");
-          return "<tr class='"+(ri%2?"alt":"")+"'>"+cells+"</tr>";
-        }).join("");
-        return "<p class='qtit'>"+esc(tb.titulo||"Item "+(ti+1))+"</p>"
-          +"<table class='qtab'><tr>"+heads+"</tr>"+rows+"</table>";
-      }).join("");
-      return html;
-    }
-    var tabHTML=buildTabHTML(pd.tabelas,(pi+1)+".3 Tabelas");
-    var quadHTML=buildTabHTML(pd.quadros,(pi+1)+".4 Quadros");
-    return "<div style='margin-bottom:20pt'>"
-      +secTit
-      +"<h2 class='ptit' style='border-left:4px solid "+(prog.cor||C)+"'>"+(pi+1)+". "+esc(nomes[prog.id]||prog.lb)+"</h2>"
-      +dHTML+fHTML+grafHTML+tabHTML+quadHTML
-      +"</div>";
-  }).join("");
-
-
-  // Envolver gestao em uma unica pagina com cabecalho
-  var gestaoPage = gestaoConteudo.length>0
-    ? "<div class='pg'>"+cab()+"<div class='bod'>"+gestaoConteudo+"</div>"+rod(6)+"</div>"
-    : "";
-
-  // Seção de ANEXOS — todos os programas juntos no final
-  var todosAnexos=[];
-  var numGlobal=1;
-  ativos.forEach(function(prog){
-    var pd=dados[prog.id]||{};
-    (pd.anexos||[]).filter(function(a){return a.addRel;}).forEach(function(ax){
-      todosAnexos.push({ax:ax,prog:prog,numGlobal:numGlobal});
-      numGlobal++;
-    });
-  });
-
-  var anexosPage="";
-  if(todosAnexos.length>0){
-    var anexConteudo="<h1 class='sec'>6. ANEXOS</h1>";
-    anexConteudo+=todosAnexos.map(function(item){
-      var ax=item.ax; var prog=item.prog;
-      var r="<div style='margin-bottom:12pt;padding:8pt 12pt;border:1pt solid #ddd;border-radius:4pt;background:#fafafa'>";
-      r+="<p style='font-size:10pt;font-weight:bold;color:"+C+";margin-bottom:4pt'>Anexo "+item.numGlobal+(ax.titulo?" – "+esc(ax.titulo):"")+"</p>";
-      r+="<p style='font-size:8pt;color:#888;margin-bottom:4pt'>Programa: "+esc(nomes[prog.id]||prog.lb)+"</p>";
-      if(ax.descricao) r+="<p class='txt'>"+esc(ax.descricao)+"</p>";
-      if(ax.link) r+="<p style='font-size:9pt;margin-top:4pt'>🔗 <a href='"+esc(ax.link)+"' style='color:#0066cc'>"+esc(ax.link)+"</a></p>";
-      if(ax.arquivo) r+="<p style='font-size:9pt;margin-top:4pt'><a href='"+ax.arquivo.src+"' download='"+esc(ax.arquivo.nome)+"' style='color:#2d6a4f;text-decoration:none'>📄 "+esc(ax.arquivo.nome)+" <span style='color:#0066cc;font-size:8pt'>⬇ clique para baixar</span></a></p>";
-      r+="</div>";
-      return r;
-    }).join("");
-    anexosPage="<div class='pg'>"+cab()+"<div class='bod'>"+anexConteudo+"</div>"+rod(7)+"</div>";
-  }
-
-  return "<!DOCTYPE html><html lang='pt-BR'><head><meta charset='UTF-8'>"
-    +"<title>Relatório MMA Field</title>"
-    +"<style>"+css+"</style></head><body>"
-    +capa+sumario+ident+equipeHTML+introducao+programas+gestaoPage+anexosPage
-    +"</body></html>";
-}
-
 function dlWord(mes, ano) {
   var el = document.getElementById("reldoc");
-  if (!el) { alert("Abra a aba Relatorio antes de baixar."); return; }
+  if (!el) { alert("Abra a aba Relatório antes de baixar."); return; }
   var b = new Blob(["<html><body>" + el.innerHTML + "</body></html>"], {type:"application/msword"});
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
   a.href = u; a.download = "Relatorio_" + mes + "_" + ano + ".doc"; a.click();
   URL.revokeObjectURL(u);
 }
-
-function dlPDF(dr) {
-  var html = buildRelHTML(dr);
-  var blob = new Blob([html], {type:"text/html;charset=utf-8"});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = "Relatorio_MMA_Field.html";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url);},3000);
+function dlPDF() {
+  var ob = String.fromCharCode(123), cb = String.fromCharCode(125);
+  var s = document.createElement("style");
+  s.id = "pprt";
+  s.textContent =
+    "@page" + ob + "size:A4 portrait;margin:1.5cm 2cm" + cb +
+    "@media print" + ob +
+      "body *" + ob + "visibility:hidden!important" + cb +
+      "#reldoc,#reldoc *" + ob + "visibility:visible!important" + cb +
+      "#reldoc" + ob + "position:fixed;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none!important;border:none!important;border-radius:0!important;padding:0!important;margin:0!important" + cb +
+      "#capa-rel" + ob + "page-break-after:always!important;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:none!important" + cb +
+      "h2,h3" + ob + "page-break-after:avoid" + cb +
+      "img" + ob + "max-width:100%;page-break-inside:avoid" + cb +
+      "table" + ob + "page-break-inside:avoid" + cb +
+    cb;
+  document.head.appendChild(s);
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() { var x = document.getElementById("pprt"); if (x) x.remove(); }, 3000);
+  }, 600);
 }
 function estadoInicial() {
   try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -660,6 +333,8 @@ function AppPrincipal({ user, onLogout }) {
   const [dados, setDados]   = useState(ei?.dados || {});
   const [pd, setPd]         = useState("pac");
   const [inv, setInv]       = useState(ei?.inv || []);
+  const [ldMTR, setLdMTR]   = useState(false);
+  const [erMTR, setErMTR]   = useState("");
   const [cor, setCor]       = useState(ei?.cor || HC);
   const [lCons, setLCons]   = useState(ei?.lCons || null);
   const [lEmpr, setLEmpr]   = useState(ei?.lEmpr || null);
@@ -670,10 +345,6 @@ function AppPrincipal({ user, onLogout }) {
     {id:"f4",lb:"Estado (UF)",val:"",ed:false},
     {id:"f5",lb:"Responsável Técnico",val:"",ed:false},
   ]);
-  const [empreendedor, setEmpreendedor] = useState(ei?.empreendedor || {nome:"",cnpj:"",endereco:"",telefone:"",rep_legal:"",email:""});
-  const [construtora, setConstrutora]   = useState(ei?.construtora || {label:"Empresa Construtora",nome:"",cnpj:"",endereco:"",telefone:"",email:""});
-  const [empreendimento, setEmpreendimento] = useState(ei?.empreendimento || {nome:"",uf:""});
-  const [equipe, setEquipe]             = useState(ei?.equipe || []);
   const [nrel, setNrel]     = useState(ei?.nrel || "");
   const [mes, setMes]       = useState(ei?.mes || "Janeiro");
   const [ano, setAno]       = useState(ei?.ano || "2026");
@@ -687,35 +358,16 @@ function AppPrincipal({ user, onLogout }) {
   const [cfg, setCfg]       = useState(true);
   const [intro, setIntro]   = useState(ei?.intro || INTRO_DEFAULT);
   const [historico, setHistorico] = useState(() => {
-    try {
-      var h = localStorage.getItem(HIST_KEY);
-      if (!h) return [];
-      var rels = JSON.parse(h);
-      var limite = new Date(); limite.setDate(limite.getDate() - 40);
-      return rels.filter(function(r){ return !r.dataISO || new Date(r.dataISO) > limite; });
-    } catch(e) { return []; }
+    try { var h = localStorage.getItem(HIST_KEY); return h ? JSON.parse(h) : []; } catch(e) { return []; }
   });
   const [msgSalvo, setMsgSalvo] = useState("");
   const ref = useRef();
   const saveTimer = useRef(null);
-  const ultimoSalvo = useRef(null);
-
-  // Aviso ao sair sem salvar
-  useEffect(() => {
-    var handler = function(e) {
-      var msg = "Você tem alterações não salvas. Salve o relatório antes de sair.";
-      e.preventDefault();
-      e.returnValue = msg;
-      return msg;
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, []);
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
       try {
-        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe};
+        var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro};
         localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
@@ -728,9 +380,8 @@ function AppPrincipal({ user, onLogout }) {
       titulo: (nrel?nrel+"º ":"")+"Relatório – "+mes+"/"+ano,
       empresa: campos.find(c=>c.id==="f1")?.val||"",
       empreendimento: campos.find(c=>c.id==="f3")?.val||"",
-      data: new Date().toLocaleDateString("pt-BR") + " " + new Date().toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"}),
-      dataISO: new Date().toISOString(),
-      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe}
+      data: new Date().toLocaleDateString("pt-BR"),
+      estado: {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro}
     };
     var nh = [rel,...historico];
     setHistorico(nh);
@@ -745,10 +396,6 @@ function AppPrincipal({ user, onLogout }) {
     setAno(e.ano||"2026"); setPAtiv(e.pAtiv||PRG.map(p=>p.id));
     setPCust(e.pCust||[]); setNomes(e.nomes||{}); setExtras(e.extras||[]);
     setIntro(e.intro||INTRO_DEFAULT);
-    setEmpreendedor(e.empreendedor||{nome:"",cnpj:"",endereco:"",telefone:"",rep_legal:"",email:""});
-    setConstrutora(e.construtora||{label:"Empresa Construtora",nome:"",cnpj:"",endereco:"",telefone:"",email:""});
-    setEmpreendimento(e.empreendimento||{nome:"",uf:""});
-    setEquipe(e.equipe||[]);
     setAba("relatorio");
     alert("Relatório de "+rel.mes+"/"+rel.ano+" carregado!");
   };
@@ -767,12 +414,7 @@ function AppPrincipal({ user, onLogout }) {
     setFotos({}); setDados({}); setInv([]); setCor(HC); setLCons(null); setLEmpr(null);
     setCampos([{id:"f1",lb:"Empresa Executora",val:"",ed:false},{id:"f2",lb:"Empreendedor",val:"",ed:false},{id:"f3",lb:"Nome do Empreendimento",val:"",ed:false},{id:"f4",lb:"Estado (UF)",val:"",ed:false},{id:"f5",lb:"Responsável Técnico",val:"",ed:false}]);
     setNrel(""); setMes("Janeiro"); setAno("2026"); setPAtiv(PRG.map(p=>p.id));
-    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT);
-    setEmpreendedor({nome:"",cnpj:"",endereco:"",telefone:"",rep_legal:"",email:""});
-    setConstrutora({label:"Empresa Construtora",nome:"",cnpj:"",endereco:"",telefone:"",email:""});
-    setEmpreendimento({nome:"",uf:""});
-    setEquipe([]);
-    setAba("fotos");
+    setPCust([]); setNomes({}); setExtras([]); setIntro(INTRO_DEFAULT); setAba("fotos");
   };
   const todos  = [...PRG,...pCust];
   const ativos = todos.filter(p=>pAtiv.includes(p.id));
@@ -782,7 +424,7 @@ function AppPrincipal({ user, onLogout }) {
   const emp    = campos.find(c=>c.id==="f1")?.val||"";
   const updC   = (id,p) => setCampos(cs=>cs.map(c=>c.id===id?{...c,...p}:c));
   const setLogo= (fn,f) => { var r=new FileReader(); r.onload=e=>fn(e.target.result); r.readAsDataURL(f); };
-  const getD   = id => dados[id]||{desc:"",graficos:[],tabelas:[],quadros:[],anexos:[],cor:PRG.find(p=>p.id===id)?.cor||"#2d6a4f"};
+  const getD   = id => dados[id]||{desc:"",graficos:[],cor:PRG.find(p=>p.id===id)?.cor||"#2d6a4f"};
   const setD   = (id,p) => setDados(d=>({...d,[id]:{...getD(id),...p}}));
   const getF   = id => fotos[id]||[];
   const captGeo = () => {
@@ -805,7 +447,21 @@ function AppPrincipal({ user, onLogout }) {
     if(ref.current) ref.current.value="";
   };
   const remF = (pid,fid) => setFotos(f=>({...f,[pid]:(f[pid]||[]).filter(x=>x.id!==fid)}));
-  
+  const lerMTR = async arq => {
+    setLdMTR(true); setErMTR("");
+    try {
+      var b64 = await new Promise(function(res,rej){var r=new FileReader();r.onload=function(e){res(e.target.result.split(",")[1]);};r.onerror=function(){rej(new Error("Falha"));};r.readAsDataURL(arq);});
+      var pt = "Analise este MTR ou CDF. Retorne APENAS JSON com: tipo_doc, numero, data_emissao, classe, tipo_residuo, volume, unidade, transportador, destinador, tratamento";
+      var mc = arq.type==="application/pdf"?[{type:"document",source:{type:"base64",media_type:"application/pdf",data:b64}},{type:"text",text:pt}]:[{type:"image",source:{type:"base64",media_type:arq.type,data:b64}},{type:"text",text:pt}];
+      var rs = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,messages:[{role:"user",content:mc}]})});
+      var j = await rs.json();
+      var raw=(j.content||[]).map(function(c){return c.text||"";}).join("").trim();
+      var si=raw.indexOf("{"),ei=raw.lastIndexOf("}");
+      var p2=JSON.parse(si>=0?raw.slice(si,ei+1):raw);
+      setInv(function(prev){return [...prev,{id:Date.now(),ed:false,tipo_doc:p2.tipo_doc||"MTR",numero:p2.numero||"",data:p2.data_emissao||"",classe:p2.classe||"",tipo_residuo:p2.tipo_residuo||"",volume:p2.volume||"",unidade:p2.unidade||"t",transportador:p2.transportador||"",destinador:p2.destinador||"",tratamento:p2.tratamento||""}];});
+    } catch(e){setErMTR("Erro: "+e.message);}
+    setLdMTR(false);
+  };
   const addExtra = async () => {
     if(!novo.trim()) return; setGer(true);
     try {
@@ -826,46 +482,25 @@ function AppPrincipal({ user, onLogout }) {
       {lEmpr?<img src={lEmpr} alt="" style={{height:38,objectFit:"contain"}}/>:<div style={{width:90,height:38,background:"#eee",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#aaa"}}>Logo</div>}
     </div>
   );
-  const renderGráfico = (gr, height, forReport) => {
+  const renderGrafico = (gr, height, forReport) => {
     var gd2=(gr.dados||[]).filter(x=>x.l&&x.v);
     if(gd2.length===0) return null;
     var chartData = gd2.map(g=>({name:g.l,val:Number(g.v),fill:g.cor||gr.cor||"#2d6a4f"}));
-    var showLeg = gr.legenda !== false;
     return (
-      <div>
-        <ResponsiveContainer width="100%" height={height||200}>
-          {gr.tipo==="pizza"
-            ?<PieChart>
-                <Pie data={chartData.map(d=>({name:d.name,value:d.val}))} cx="50%" cy="50%" outerRadius={65} dataKey="value"
-                  label={({name,value,percent})=>name+": "+value+(gr.unidade?" "+gr.unidade:"")+" ("+(percent*100).toFixed(0)+"%)"}
-                  labelLine={{stroke:"#000"}}
-                  style={{fontSize:10,fill:"#000",fontWeight:"bold"}}>
-                  {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
-                </Pie>
-                <Tooltip formatter={(v,n)=>[v+(gr.unidade?" "+gr.unidade:""),n]}/>
-              </PieChart>
-            :<BarChart data={chartData} margin={{top:20,right:10,left:0,bottom:chartData.length>4?45:10}}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-              <XAxis dataKey="name" tick={{fontSize:9,fill:"#000"}} angle={chartData.length>4?-35:0} textAnchor={chartData.length>4?"end":"middle"} interval={0}/>
-              <YAxis tick={{fontSize:9,fill:"#000"}} unit={gr.unidade?" "+gr.unidade:""}/>
-              <Tooltip formatter={v=>[v+(gr.unidade?" "+gr.unidade:""),"Valor"]}/>
-              <Bar dataKey="val" radius={[4,4,0,0]} maxBarSize={60}>
-                {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
-                <LabelList dataKey="val" position="top" style={{fontSize:10,fontWeight:"bold",fill:"#000"}} formatter={v=>v+(gr.unidade?" "+gr.unidade:"")}/>
-              </Bar>
-            </BarChart>}
-        </ResponsiveContainer>
-        {showLeg&&(
-          <div style={{marginTop:8,display:"flex",flexWrap:"wrap",gap:"4px 12px",justifyContent:"center"}}>
-            {chartData.map((d,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:5,fontSize:10,color:"#000"}}>
-                <div style={{width:12,height:12,borderRadius:3,background:d.fill,flexShrink:0}}/>
-                <span>{d.name}{gr.unidade?" ("+gr.unidade+")":""}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <ResponsiveContainer width="100%" height={height||200}>
+        {gr.tipo==="pizza"
+          ?<PieChart><Pie data={chartData.map(d=>({name:d.name,value:d.val}))} cx="50%" cy="50%" outerRadius={65} dataKey="value" label={({name,value,percent})=>name+": "+value+(gr.unidade?" "+gr.unidade:"")+" ("+(percent*100).toFixed(0)+"%)"}>{chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}</Pie><Tooltip formatter={(v,n)=>[v+(gr.unidade?" "+gr.unidade:""),n]}/></PieChart>
+          :<BarChart data={chartData} margin={{top:20,right:10,left:0,bottom:chartData.length>4?45:10}}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false}/>
+            <XAxis dataKey="name" tick={{fontSize:9}} angle={chartData.length>4?-35:0} textAnchor={chartData.length>4?"end":"middle"} interval={0}/>
+            <YAxis tick={{fontSize:9}} unit={gr.unidade?" "+gr.unidade:""}/>
+            <Tooltip formatter={v=>[v+(gr.unidade?" "+gr.unidade:""),"Valor"]}/>
+            <Bar dataKey="val" radius={[4,4,0,0]} maxBarSize={60}>
+              {chartData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
+              <LabelList dataKey="val" position="top" style={{fontSize:10,fontWeight:"bold"}} formatter={v=>v+(gr.unidade?" "+gr.unidade:"")}/>
+            </Bar>
+          </BarChart>}
+      </ResponsiveContainer>
     );
   };
   const ABS = [{id:"fotos",lb:"📷 Registro Fotográfico"},{id:"dados",lb:"📊 Dados"},{id:"config",lb:"⚙️ Configurar"},{id:"relatorio",lb:"📄 Relatório"},{id:"historico",lb:"📁 Histórico"}];
@@ -885,7 +520,7 @@ function AppPrincipal({ user, onLogout }) {
             <span style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>👤 {user.email}</span>
             <button onClick={salvarRelatorio} style={{background:"#2d6a4f",color:"#fff",border:"2px solid #a8e6c0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>💾 Salvar Relatório</button>
             <button onClick={novoRelatorio} style={{background:"transparent",color:"#fff",border:"2px solid rgba(255,255,255,0.4)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>+ Novo</button>
-            <button onClick={()=>{if(window.confirm("Tem certeza que deseja sair?\nSalve o relatório antes de sair para não perder dados."))onLogout();}} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
+            <button onClick={onLogout} style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:11}}>Sair</button>
           </div>
         </div>
         <nav style={{maxWidth:1100,margin:"0 auto",display:"flex",paddingLeft:18}}>
@@ -912,14 +547,26 @@ function AppPrincipal({ user, onLogout }) {
                   {ativos.map(p=><option key={p.id} value={p.id}>{p.ic} {getL(p.id)}</option>)}
                 </select>
                 <label style={LB}>Foto</label>
-                <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"14px 8px",border:"2px dashed #a8c5b5",borderRadius:10,cursor:"pointer",background:"#f8fdf9",marginBottom:8}}>
-                  <span style={{fontSize:22}}>🖼️</span>
-                  <span style={{fontSize:11,color:"#2d6a4f",fontWeight:"bold"}}>Selecionar Foto</span>
-                  <span style={{fontSize:10,color:"#888"}}>Clique para escolher da galeria</span>
-                  <input ref={ref} type="file" accept="image/*" onChange={onFoto} style={{display:"none"}}/>
-                </label>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:8}}>
+                  <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"14px 8px",border:"2px dashed #a8c5b5",borderRadius:10,cursor:"pointer",background:"#f8fdf9"}}>
+                    <span style={{fontSize:22}}>📷</span><span style={{fontSize:11,color:"#2d6a4f",fontWeight:"bold"}}>Câmera</span><span style={{fontSize:10,color:"#888"}}>Com GPS automático</span>
+                    <input ref={ref} type="file" accept="image/*" capture="environment" onChange={onFoto} style={{display:"none"}}/>
+                  </label>
+                  <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"14px 8px",border:"2px dashed #a8c5b5",borderRadius:10,cursor:"pointer",background:"#f8fdf9"}}>
+                    <span style={{fontSize:22}}>🖼️</span><span style={{fontSize:11,color:"#2d6a4f",fontWeight:"bold"}}>Galeria</span><span style={{fontSize:10,color:"#888"}}>Selecionar arquivo</span>
+                    <input type="file" accept="image/*" onChange={onFoto} style={{display:"none"}}/>
+                  </label>
+                </div>
                 {prev&&<img src={prev} alt="" style={{width:"100%",height:150,objectFit:"cover",borderRadius:9,border:"2px solid #2d6a4f",marginBottom:10}}/>}
-
+                <div style={{marginBottom:10,padding:"9px 11px",borderRadius:8,border:"1px solid #c8ddd2",background:"#f5fdf7"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{fontSize:11,fontWeight:"bold",color:"#2d6a4f"}}>📍 Geolocalização</div>
+                    <button onClick={captGeo} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"3px 10px",cursor:"pointer",fontSize:10}}>Capturar GPS</button>
+                  </div>
+                  {gst&&<div style={{fontSize:10,color:"#666",marginTop:3}}>{gst}</div>}
+                  {geo&&<div style={{fontSize:10,color:"#2d6a4f",marginTop:4,background:"#e8f5ee",padding:"4px 8px",borderRadius:5}}>{geo}</div>}
+                  {!geo&&!gst&&<div style={{fontSize:10,color:"#aaa",marginTop:3}}>GPS capturado automaticamente ao tirar foto.</div>}
+                </div>
                 <label style={LB}>Legenda</label>
                 <input value={leg} onChange={e=>setLeg(e.target.value)} placeholder="Descreva a foto..." style={{...SI,marginBottom:14}}/>
                 <button onClick={addF} disabled={!prev||!psel} style={{background:!prev||!psel?"#ccc":"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:8,padding:"10px",width:"100%",fontSize:13,cursor:!prev||!psel?"not-allowed":"pointer",fontFamily:"Georgia,serif",fontWeight:"bold"}}>✓ Adicionar Foto</button>
@@ -977,7 +624,53 @@ function AppPrincipal({ user, onLogout }) {
                   </div>
                   {pd==="residuos"&&(
                     <div>
-                      
+                      <div style={{...CD,border:"2px solid #5a4fcf33",background:"linear-gradient(135deg,#faf9ff,#f3f0ff)"}}>
+                        <div style={{fontSize:13,fontWeight:"bold",color:"#5a4fcf",marginBottom:8}}>🤖 Leitura Automática de MTR / CDF</div>
+                        <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"16px",border:"2px dashed #5a4fcf88",borderRadius:12,cursor:"pointer",background:"#fff",maxWidth:380}}>
+                          <span style={{fontSize:28}}>📄</span>
+                          <span style={{fontWeight:"bold",color:"#5a4fcf",fontSize:12}}>Selecionar MTR ou CDF (PDF ou imagem)</span>
+                          <input type="file" accept=".pdf,image/*" multiple style={{display:"none"}} onChange={async e=>{for(var f of Array.from(e.target.files))await lerMTR(f);e.target.value="";}}/>
+                          {ldMTR&&<span style={{fontSize:11,color:"#5a4fcf"}}>⏳ Lendo documento...</span>}
+                        </label>
+                        {erMTR&&<div style={{marginTop:8,padding:"6px 10px",background:"#fff0f0",borderRadius:7,fontSize:11,color:"#b00"}}>{erMTR}</div>}
+                      </div>
+                      <div style={CD}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                          <h3 style={{color:"#5a4fcf",fontSize:13,margin:0}}>📋 Inventário de Resíduos</h3>
+                          <span style={{fontSize:11,color:"#888"}}>{inv.length} registro(s)</span>
+                        </div>
+                        <div style={{overflowX:"auto"}}>
+                          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:860}}>
+                            <thead><tr>{["Doc","Número","Data","Classe","Tipo","Volume","Unidade","Transportador","Destinador","Tratamento",""].map((h,i)=><th key={i} style={{...TH,background:"#5a4fcf",padding:"6px 7px",whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+                            <tbody>
+                              {inv.length===0&&<tr><td colSpan={11} style={{...TD,textAlign:"center",color:"#ccc",padding:"20px",fontStyle:"italic"}}>Nenhum registro</td></tr>}
+                              {inv.map((row,i)=>(
+                                <tr key={row.id}>
+                                  {row.ed?(
+                                    <>{["tipo_doc","numero","data","classe","tipo_residuo","volume"].map(f=>(
+                                      <td key={f} style={{...TD,background:"#faf9ff",padding:"3px 4px"}}><input value={row[f]||""} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,[f]:e.target.value}:r))} style={{width:"100%",minWidth:55,padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}/></td>
+                                    ))}
+                                    <td style={{...TD,background:"#faf9ff",padding:"3px 4px"}}>
+                                      <select value={row.unidade||"t"} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,unidade:e.target.value}:r))} style={{width:"100%",padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}>
+                                        <option value="kg">kg</option><option value="t">t</option><option value="m3">m³</option><option value="un">un</option>
+                                      </select>
+                                    </td>
+                                    {["transportador","destinador","tratamento"].map(f=>(
+                                      <td key={f} style={{...TD,background:"#faf9ff",padding:"3px 4px"}}><input value={row[f]||""} onChange={e=>setInv(prev=>prev.map((r,j)=>j===i?{...r,[f]:e.target.value}:r))} style={{width:"100%",minWidth:55,padding:"2px 4px",border:"1px solid #5a4fcf",borderRadius:4,fontSize:10,fontFamily:"Georgia,serif"}}/></td>
+                                    ))}
+                                    <td style={{...TD,background:"#faf9ff"}}><div style={{display:"flex",gap:3}}><button onClick={()=>setInv(prev=>prev.map((r,j)=>j===i?{...r,ed:false}:r))} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>✓</button><button onClick={()=>setInv(prev=>prev.filter((_,j)=>j!==i))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"3px 5px",cursor:"pointer",fontSize:10}}>×</button></div></td></>
+                                  ):(
+                                    <>{[row.tipo_doc,row.numero,row.data,row.classe,row.tipo_residuo,row.volume||"—",row.unidade||"t",row.transportador,row.destinador,row.tratamento].map((v,ci)=>(
+                                      <td key={ci} style={{...(i%2?TA:TD),whiteSpace:"nowrap",maxWidth:130,overflow:"hidden",textOverflow:"ellipsis"}}>{v||"—"}</td>
+                                    ))}
+                                    <td style={i%2?TA:TD}><div style={{display:"flex",gap:3}}><button onClick={()=>setInv(prev=>prev.map((r,j)=>j===i?{...r,ed:true}:r))} style={{background:"none",border:"1px solid #5a4fcf",color:"#5a4fcf",borderRadius:5,padding:"3px 6px",cursor:"pointer",fontSize:10}}>✏️</button><button onClick={()=>setInv(prev=>prev.filter((_,j)=>j!==i))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"3px 5px",cursor:"pointer",fontSize:10}}>×</button></div></td></>
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                       {inv.length>0&&(()=>{
                         var pt={}; inv.forEach(r=>{var t=r.tipo_residuo||"Outros";pt[t]=(pt[t]||0)+(parseFloat(r.volume)||0);});
                         var tG=Object.values(pt).reduce((a,b)=>a+b,0);
@@ -1082,13 +775,9 @@ function AppPrincipal({ user, onLogout }) {
                             <input value={gr.titulo||""} onChange={e=>setGr({titulo:e.target.value})} placeholder="Título do gráfico" style={{...SI,flex:1,fontWeight:"bold",fontSize:13}}/>
                             <button onClick={remGr} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:7,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>Remover</button>
                           </div>
-                          <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap",alignItems:"flex-end"}}>
+                          <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap"}}>
                             <div><label style={LB}>Tipo</label><select value={gr.tipo||"barra"} onChange={e=>setGr({tipo:e.target.value})} style={{...SI,width:110}}><option value="barra">Barras</option><option value="pizza">Pizza</option></select></div>
                             <div><label style={LB}>Unidade de Medida</label><select value={gr.unidade||""} onChange={e=>setGr({unidade:e.target.value})} style={{...SI,width:140}}><option value="">Sem unidade</option><option value="t">Tonelada (t)</option><option value="kg">kg</option><option value="m">Metro (m)</option><option value="m2">m²</option><option value="m3">m³</option><option value="L">Litros (L)</option><option value="un">Unidade (un)</option><option value="%">Percentual (%)</option></select></div>
-                            <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 12px",background:"#f5fdf7",borderRadius:8,border:"1px solid #c8ddd2",cursor:"pointer"}} onClick={()=>setGr({legenda:gr.legenda===false?true:false})}>
-                              <input type="checkbox" checked={gr.legenda!==false} onChange={()=>setGr({legenda:gr.legenda===false?true:false})} style={{width:14,height:14,accentColor:p.cor,cursor:"pointer"}}/>
-                              <span style={{fontSize:11,color:"#5a6b60",fontWeight:"bold",userSelect:"none"}}>Exibir Legenda</span>
-                            </div>
                           </div>
                           <div style={{marginBottom:10}}>
                             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -1109,11 +798,8 @@ function AppPrincipal({ user, onLogout }) {
                             {(gr.dados||[]).length===0&&<div style={{fontSize:11,color:"#bbb",fontStyle:"italic"}}>Clique em "+ Adicionar Rótulo".</div>}
                           </div>
                           {gd2.length>0&&(
-                            <div data-graf-id={gr.id} style={{marginTop:8,padding:10,background:"#fff",borderRadius:8,border:"1px solid #e8e8e8"}}>
-                              {renderGráfico(gr, 200, false)}
-                              <div style={{textAlign:"center",fontSize:10,color:"#888",marginTop:6,fontStyle:"italic"}}>
-                                Gráfico {(d.graficos||[]).indexOf(gr)+1}{gr.titulo?" – "+gr.titulo:""}
-                              </div>
+                            <div style={{marginTop:8,padding:10,background:"#fff",borderRadius:8,border:"1px solid #e8e8e8"}}>
+                              {renderGrafico(gr, 200, false)}
                             </div>
                           )}
                           <div style={{marginTop:10}}>
@@ -1124,183 +810,6 @@ function AppPrincipal({ user, onLogout }) {
                             <div style={{fontSize:11,color:"#888"}}>{gr.addRel?"✅ Incluído no relatório":"⬜ Não incluído no relatório"}</div>
                             <button onClick={()=>setGr({addRel:!gr.addRel})} style={{background:gr.addRel?"#2d6a4f":p.cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
                               {gr.addRel?"✓ Adicionado ao Relatório":"+ Adicionar ao Relatório"}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* TABELA */}
-                  <div style={CD}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                      <div>
-                        <h3 style={{color:p.cor,fontSize:13,margin:0}}>📋 Tabela</h3>
-                        <div style={{fontSize:10,color:"#888",marginTop:2}}>Dados numéricos e estatísticos.</div>
-                      </div>
-                      <button onClick={()=>{
-                        var cols=parseInt(window.prompt("Quantas colunas?","3")||"3");
-                        var rows=parseInt(window.prompt("Quantas linhas?","3")||"3");
-                        if(cols>0&&rows>0){
-                          var headers=Array.from({length:cols},function(_,i){return "Coluna "+(i+1);});
-                          var cells=Array.from({length:rows},function(){return Array(cols).fill("");});
-                          var t={id:Date.now(),titulo:"Nova Tabela",tipo:"tabela",headers:headers,cells:cells,addRel:false};
-                          set({tabelas:[...(d.tabelas||[]),t]});
-                        }
-                      }} style={{background:p.cor,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:"bold"}}>+ Adicionar Tabela</button>
-                    </div>
-                    {(d.tabelas||[]).length===0&&<div style={{textAlign:"center",padding:"20px",color:"#bbb",fontSize:12,border:"2px dashed #e0e0e0",borderRadius:10}}>Nenhuma tabela ainda. Clique em "+ Adicionar Tabela".</div>}
-                    {(d.tabelas||[]).map((tb,ti)=>{
-                      var setTb=patch=>{var arr=[...(d.tabelas||[])];arr[ti]={...arr[ti],...patch};set({tabelas:arr});};
-                      var remTb=()=>set({tabelas:(d.tabelas||[]).filter((_,j)=>j!==ti)});
-                      var corCab=p.cor;
-                      return(
-                        <div key={tb.id} style={{border:"2px solid "+(tb.addRel?cor+"88":cor+"33"),borderRadius:10,padding:14,marginBottom:14,background:tb.addRel?"#f5fdf7":"#fafdfb"}}>
-                          <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
-                            <input value={tb.titulo||""} onChange={e=>setTb({titulo:e.target.value})} placeholder="Título da tabela" style={{...SI,flex:1,fontWeight:"bold",fontSize:13}}/>
-                            <button onClick={remTb} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12}}>Remover</button>
-                          </div>
-                          <div style={{overflowX:"auto"}}>
-                            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                              <thead><tr>
-                                {(tb.headers||[]).map((h,hi)=>(
-                                  <th key={hi} style={{background:cor,color:"#fff",padding:"6px 8px",border:"1px solid #ddd"}}>
-                                    <input value={h} onChange={e=>{var hs=[...(tb.headers||[])];hs[hi]=e.target.value;setTb({headers:hs});}} style={{background:"transparent",border:"none",color:"#fff",fontWeight:"bold",fontSize:11,fontFamily:"Georgia,serif",width:"100%",outline:"none",textAlign:"center"}}/>
-                                  </th>
-                                ))}
-                              </tr></thead>
-                              <tbody>
-                                {(tb.cells||[]).map((row,ri)=>(
-                                  <tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>
-                                    {(row||[]).map((cell,ci)=>(
-                                      <td key={ci} style={{padding:"5px 8px",border:"1px solid #e0e0e0"}}>
-                                        <input value={cell||""} onChange={e=>{var cs=(tb.cells||[]).map(function(r){return [...r];});cs[ri][ci]=e.target.value;setTb({cells:cs});}} style={{width:"100%",border:"none",background:"transparent",fontSize:11,fontFamily:"Georgia,serif",outline:"none"}}/>
-                                      </td>
-                                    ))}
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                            <div style={{fontSize:11,color:"#888"}}>{tb.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
-                            <button onClick={()=>setTb({addRel:!tb.addRel})} style={{background:tb.addRel?"#2d6a4f":cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
-                              {tb.addRel?"✓ Salvo no Relatório":"💾 Salvar no Relatório"}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* QUADRO */}
-                  <div style={CD}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                      <div>
-                        <h3 style={{color:p.cor,fontSize:13,margin:0}}>🟦 Quadro</h3>
-                        <div style={{fontSize:10,color:"#888",marginTop:2}}>Informações textuais e descritivas.</div>
-                      </div>
-                      <button onClick={()=>{
-                        var cols=parseInt(window.prompt("Quantas colunas?","3")||"3");
-                        var rows=parseInt(window.prompt("Quantas linhas?","3")||"3");
-                        if(cols>0&&rows>0){
-                          var headers=Array.from({length:cols},function(_,i){return "Coluna "+(i+1);});
-                          var cells=Array.from({length:rows},function(){return Array(cols).fill("");});
-                          var t={id:Date.now(),titulo:"Nova Quadro",tipo:"quadro",headers:headers,cells:cells,addRel:false};
-                          set({quadros:[...(d.quadros||[]),t]});
-                        }
-                      }} style={{background:p.cor,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:"bold"}}>+ Adicionar Quadro</button>
-                    </div>
-                    {(d.quadros||[]).length===0&&<div style={{textAlign:"center",padding:"20px",color:"#bbb",fontSize:12,border:"2px dashed #e0e0e0",borderRadius:10}}>Nenhuma quadro ainda. Clique em "+ Adicionar Quadro".</div>}
-                    {(d.quadros||[]).map((tb,ti)=>{
-                      var setTb=patch=>{var arr=[...(d.quadros||[])];arr[ti]={...arr[ti],...patch};set({quadros:arr});};
-                      var remTb=()=>set({quadros:(d.quadros||[]).filter((_,j)=>j!==ti)});
-                      var corCab="#1a3d2b";
-                      return(
-                        <div key={tb.id} style={{border:"2px solid "+(tb.addRel?cor+"88":cor+"33"),borderRadius:10,padding:14,marginBottom:14,background:tb.addRel?"#f5fdf7":"#fafdfb"}}>
-                          <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
-                            <input value={tb.titulo||""} onChange={e=>setTb({titulo:e.target.value})} placeholder="Título da quadro" style={{...SI,flex:1,fontWeight:"bold",fontSize:13}}/>
-                            <button onClick={remTb} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12}}>Remover</button>
-                          </div>
-                          <div style={{overflowX:"auto"}}>
-                            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                              <thead><tr>
-                                {(tb.headers||[]).map((h,hi)=>(
-                                  <th key={hi} style={{background:cor,color:"#fff",padding:"6px 8px",border:"1px solid #ddd"}}>
-                                    <input value={h} onChange={e=>{var hs=[...(tb.headers||[])];hs[hi]=e.target.value;setTb({headers:hs});}} style={{background:"transparent",border:"none",color:"#fff",fontWeight:"bold",fontSize:11,fontFamily:"Georgia,serif",width:"100%",outline:"none",textAlign:"center"}}/>
-                                  </th>
-                                ))}
-                              </tr></thead>
-                              <tbody>
-                                {(tb.cells||[]).map((row,ri)=>(
-                                  <tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>
-                                    {(row||[]).map((cell,ci)=>(
-                                      <td key={ci} style={{padding:"5px 8px",border:"1px solid #e0e0e0"}}>
-                                        <input value={cell||""} onChange={e=>{var cs=(tb.cells||[]).map(function(r){return [...r];});cs[ri][ci]=e.target.value;setTb({cells:cs});}} style={{width:"100%",border:"none",background:"transparent",fontSize:11,fontFamily:"Georgia,serif",outline:"none"}}/>
-                                      </td>
-                                    ))}
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                            <div style={{fontSize:11,color:"#888"}}>{tb.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
-                            <button onClick={()=>setTb({addRel:!tb.addRel})} style={{background:tb.addRel?"#2d6a4f":cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
-                              {tb.addRel?"✓ Salvo no Relatório":"💾 Salvar no Relatório"}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* ANEXOS */}
-                  <div style={CD}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                      <h3 style={{color:p.cor,fontSize:13,margin:0}}>📎 Anexos</h3>
-                      <button onClick={()=>{
-                        var ax=[...(d.anexos||[])];
-                        var num=ax.length+1;
-                        ax.push({id:Date.now(),numero:num,titulo:"",descricao:"",link:"",arquivo:null,addRel:false});
-                        set({anexos:ax});
-                      }} style={{background:p.cor,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:"bold"}}>+ Adicionar Anexo</button>
-                    </div>
-                    {(d.anexos||[]).length===0&&<div style={{textAlign:"center",padding:"20px",color:"#bbb",fontSize:12,border:"2px dashed #e0e0e0",borderRadius:10}}>Nenhum anexo ainda. Clique em "+ Adicionar Anexo".</div>}
-                    {(d.anexos||[]).map((ax,ai)=>{
-                      var setAx=patch=>{var arr=[...(d.anexos||[])];arr[ai]={...arr[ai],...patch};set({anexos:arr});};
-                      var remAx=()=>{var arr=(d.anexos||[]).filter((_,j)=>j!==ai).map((a,i)=>({...a,numero:i+1}));set({anexos:arr});};
-                      return(
-                        <div key={ax.id} style={{border:"2px solid "+(ax.addRel?p.cor+"88":p.cor+"33"),borderRadius:10,padding:14,marginBottom:12,background:ax.addRel?"#f5fdf7":"#fafdfb"}}>
-                          <div style={{display:"flex",gap:8,marginBottom:8,alignItems:"center"}}>
-                            <div style={{background:p.cor,color:"#fff",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:"bold",flexShrink:0}}>Anexo {ax.numero}</div>
-                            <input value={ax.titulo||""} onChange={e=>setAx({titulo:e.target.value})} placeholder="Título do anexo..." style={{...SI,flex:1,fontWeight:"bold"}}/>
-                            <button onClick={remAx} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12,flexShrink:0}}>Remover</button>
-                          </div>
-                          <div style={{marginBottom:8}}>
-                            <label style={LB}>Descrição</label>
-                            <textarea value={ax.descricao||""} onChange={e=>setAx({descricao:e.target.value})} rows={2} placeholder="Descreva o conteúdo do anexo..." style={{...SI,resize:"vertical",fontSize:12}}/>
-                          </div>
-                          <div style={{marginBottom:8}}>
-                            <label style={LB}>Link da Pasta / Drive (opcional)</label>
-                            <input value={ax.link||""} onChange={e=>setAx({link:e.target.value})} placeholder="https://drive.google.com/..." style={SI}/>
-                          </div>
-                          <div style={{marginBottom:10}}>
-                            <label style={LB}>Arquivo PDF (opcional)</label>
-                            <input type="file" accept="application/pdf,image/*" onChange={e=>{
-                              var f=e.target.files[0];
-                              if(!f) return;
-                              var reader=new FileReader();
-                              reader.onload=ev=>setAx({arquivo:{nome:f.name,src:ev.target.result}});
-                              reader.readAsDataURL(f);
-                              e.target.value="";
-                            }} style={{...SI,padding:"5px",border:"2px dashed #a8c5b5",cursor:"pointer"}}/>
-                            {ax.arquivo&&<div style={{display:"flex",alignItems:"center",gap:8,marginTop:6,padding:"6px 10px",background:"#e8f5ee",borderRadius:6}}>
-                              <a href={ax.arquivo.src} download={ax.arquivo.nome} style={{fontSize:11,color:"#2d6a4f",textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>📄 {ax.arquivo.nome} <span style={{fontSize:10,color:"#0066cc"}}>⬇ baixar</span></a>
-                              <button onClick={()=>setAx({arquivo:null})} style={{background:"none",border:"none",color:"#b5451b",cursor:"pointer",fontSize:13,marginLeft:"auto"}}>×</button>
-                            </div>}
-                          </div>
-                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                            <div style={{fontSize:11,color:"#888"}}>{ax.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
-                            <button onClick={()=>setAx({addRel:!ax.addRel})} style={{background:ax.addRel?"#2d6a4f":p.cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
-                              {ax.addRel?"✓ Salvo no Relatório":"💾 Salvar no Relatório"}
                             </button>
                           </div>
                         </div>
@@ -1350,91 +859,13 @@ function AppPrincipal({ user, onLogout }) {
                     </div>
                   </div>
                   <div style={{borderTop:"1px solid #e2ebe5",paddingTop:12,marginBottom:12}}>
-                    {/* INTRODUÇÃO */}
-                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px",marginBottom:0}}>
-                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>📝 Introdução do Relatório</h4>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>🪪 Identificação</h4>
+                      <button onClick={()=>setCampos(c=>[...c,{id:"fc"+Date.now(),lb:"Novo Campo",val:"",ed:true}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Campo</button>
                     </div>
-                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
-                      <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} placeholder="Escreva a introdução do relatório..." style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical"}}/>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                      {campos.map(f=>(<div key={f.id} style={{display:"flex",gap:6,alignItems:"center",padding:"5px 8px",background:"#fafdfb",borderRadius:7,border:"1px solid #e2ebe5"}}><div style={{width:160,cursor:"pointer",flexShrink:0}} onClick={()=>updC(f.id,{ed:!f.ed})}>{f.ed?<input autoFocus value={f.lb} onChange={e=>updC(f.id,{lb:e.target.value})} onBlur={()=>updC(f.id,{ed:false})} onKeyDown={e=>{if(e.key==="Enter"||e.key==="Escape")updC(f.id,{ed:false});}} style={{...SI,fontSize:10,padding:"2px 5px",border:"1px solid #2d6a4f"}}/>:<div style={{fontSize:10,fontWeight:"bold",color:"#2d6a4f"}}>{f.lb} <span style={{opacity:0.4,fontSize:9}}>✏️</span></div>}</div><input value={f.val} onChange={e=>updC(f.id,{val:e.target.value})} style={{...SI,flex:1,fontSize:11,padding:"4px 7px"}}/><button onClick={()=>setCampos(c=>c.filter(x=>x.id!==f.id))} style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"3px 6px",cursor:"pointer",fontSize:11}}>×</button></div>))}
                     </div>
-
-                    {/* EMPREENDEDOR */}
-                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px",marginBottom:0}}>
-                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>🏢 Identificação do Empreendedor</h4>
-                    </div>
-                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                        {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["rep_legal","Representante Legal"],["email","E-mail"]].map(([k,lb])=>(
-                          empreendedor["_hide_"+k] ? null :
-                          <div key={k} style={{position:"relative"}}>
-                            <label style={LB}>{lb}</label>
-                            <div style={{display:"flex",gap:4}}>
-                              <input value={empreendedor[k]||""} onChange={e=>setEmpreendedor(x=>({...x,[k]:e.target.value}))} style={{...SI,flex:1}}/>
-                              <button onClick={()=>setEmpreendedor(x=>({...x,["_hide_"+k]:true}))} title="Remover do relatório" style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"0 7px",cursor:"pointer",fontSize:13,flexShrink:0}}>×</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <button onClick={()=>setEmpreendedor(x=>{var n={...x};["nome","cnpj","endereco","telefone","rep_legal","email"].forEach(k=>delete n["_hide_"+k]);return n;})} style={{marginTop:8,background:"none",border:"1px solid #c8ddd2",color:"#2d6a4f",borderRadius:6,padding:"3px 10px",cursor:"pointer",fontSize:10}}>↺ Restaurar campos ocultos</button>
-                    </div>
-
-                    {/* CONSTRUTORA */}
-                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>🏗️</h4>
-                      <input value={construtora.label||"Empresa Construtora"} onChange={e=>setConstrutora(x=>({...x,label:e.target.value}))} placeholder="Empresa Construtora / Consultoria..." style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.5)",color:"#fff",fontSize:12,fontWeight:"bold",fontFamily:"Georgia,serif",outline:"none",flex:1}} title="Clique para editar"/>
-                    </div>
-                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                        {[["nome","Nome / Razão Social"],["cnpj","CNPJ"],["endereco","Endereço"],["telefone","Telefone"],["email","E-mail"]].map(([k,lb])=>(
-                          construtora["_hide_"+k] ? null :
-                          <div key={k}>
-                            <label style={LB}>{lb}</label>
-                            <div style={{display:"flex",gap:4}}>
-                              <input value={construtora[k]||""} onChange={e=>setConstrutora(x=>({...x,[k]:e.target.value}))} style={{...SI,flex:1}}/>
-                              <button onClick={()=>setConstrutora(x=>({...x,["_hide_"+k]:true}))} title="Remover do relatório" style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"0 7px",cursor:"pointer",fontSize:13,flexShrink:0}}>×</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <button onClick={()=>setConstrutora(x=>{var n={...x};["nome","cnpj","endereco","telefone","email"].forEach(k=>delete n["_hide_"+k]);return n;})} style={{marginTop:8,background:"none",border:"1px solid #c8ddd2",color:"#2d6a4f",borderRadius:6,padding:"3px 10px",cursor:"pointer",fontSize:10}}>↺ Restaurar campos ocultos</button>
-                    </div>
-
-                    {/* EMPREENDIMENTO */}
-                    <div style={{background:"#2d6a4f",borderRadius:"8px 8px 0 0",padding:"8px 12px"}}>
-                      <h4 style={{color:"#fff",fontSize:12,margin:0}}>📍 Identificação do Empreendimento</h4>
-                    </div>
-                    <div style={{border:"1px solid #2d6a4f",borderTop:"none",borderRadius:"0 0 8px 8px",padding:10,marginBottom:12}}>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                        {[["nome","Nome do Empreendimento"],["uf","Estado (UF)"]].map(([k,lb])=>(
-                          empreendimento["_hide_"+k] ? null :
-                          <div key={k}>
-                            <label style={LB}>{lb}</label>
-                            <div style={{display:"flex",gap:4}}>
-                              <input value={empreendimento[k]||""} onChange={e=>setEmpreendimento(x=>({...x,[k]:e.target.value}))} style={{...SI,flex:1}}/>
-                              <button onClick={()=>setEmpreendimento(x=>({...x,["_hide_"+k]:true}))} title="Remover do relatório" style={{background:"none",border:"1px solid #e0bcbc",color:"#b5451b",borderRadius:5,padding:"0 7px",cursor:"pointer",fontSize:13,flexShrink:0}}>×</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                      <h4 style={{color:"#2d6a4f",fontSize:12,margin:0}}>👷 Equipe Técnica</h4>
-                      <button onClick={()=>setEquipe(eq=>[...eq,{id:Date.now(),nome:"",função:"",registro:""}])} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:6,padding:"4px 11px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:10,fontWeight:"bold"}}>+ Membro</button>
-                    </div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
-                      <thead><tr><th style={{...TH,background:"#2d6a4f"}}>Nome</th><th style={{...TH,background:"#2d6a4f"}}>Função</th><th style={{...TH,background:"#2d6a4f"}}>Registro Profissional</th><th style={{...TH,background:"#2d6a4f",width:30}}></th></tr></thead>
-                      <tbody>
-                        {equipe.length===0&&<tr><td colSpan={4} style={{...TD,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>Clique em "+ Membro" para adicionar</td></tr>}
-                        {equipe.map((m,mi)=>(
-                          <tr key={m.id} style={{background:mi%2?"#f8fdf9":"#fff"}}>
-                            <td style={TD}><input value={m.nome||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,nome:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
-                            <td style={TD}><input value={m.função||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,função:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
-                            <td style={TD}><input value={m.registro||""} onChange={e=>setEquipe(eq=>eq.map((x,i)=>i===mi?{...x,registro:e.target.value}:x))} style={{...SI,padding:"3px 6px",fontSize:11}}/></td>
-                            <td style={TD}><button onClick={()=>setEquipe(eq=>eq.filter((_,i)=>i!==mi))} style={{background:"none",border:"1px solid #b5451b",color:"#b5451b",borderRadius:5,padding:"2px 7px",cursor:"pointer",fontSize:11}}>×</button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
                   </div>
                   <div style={{borderTop:"1px solid #e2ebe5",paddingTop:12}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -1458,60 +889,32 @@ function AppPrincipal({ user, onLogout }) {
                 </div>
               )}
             </div>
-            <div style={{textAlign:"center",padding:"16px 0 8px"}}>
-              <button onClick={()=>setAba("relatorio")} style={{background:"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:10,padding:"12px 32px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:14,fontWeight:"bold",boxShadow:"0 4px 12px rgba(26,61,43,0.3)"}}>
-                ✅ Salvar e Ir para o Relatório
-              </button>
+            <div id="extra-card" style={{...CD,border:"1px solid #2d6a4f44",background:"linear-gradient(135deg,#f5fdf7,#fff)",marginBottom:14}}>
+              <div style={{fontSize:13,fontWeight:"bold",color:"#2d6a4f",marginBottom:8}}>✨ Adicionar Programa Extra com IA</div>
+              <div style={{display:"flex",gap:8}}>
+                <input value={novo} onChange={e=>setNovo(e.target.value)} placeholder="Nome do programa..." style={{...SI,flex:1}} onKeyDown={e=>{if(e.key==="Enter"&&novo.trim())addExtra();}}/>
+                <button onClick={addExtra} disabled={!novo.trim()||ger} style={{background:!novo.trim()||ger?"#ccc":"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:8,padding:"9px 14px",cursor:!novo.trim()||ger?"not-allowed":"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold",whiteSpace:"nowrap"}}>{ger?"⏳ Gerando...":"✨ Adicionar"}</button>
+              </div>
             </div>
           </div>
         )}
         {/* RELATORIO */}
         {aba==="relatorio"&&(
           <div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-              <h2 style={{color:HC,margin:0}}>📄 Relatório Mensal</h2>
-              <button onClick={()=>{var dr={lCons,lEmpr,empreendedor,construtora,empreendimento,equipe,nrel,mes,ano,intro,ativos,dados,fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📄 Baixar PDF</button>
-            </div>
+            <h2 style={{color:HC,marginBottom:14}}>📄 Relatório Mensal</h2>
             <div id="reldoc" style={{background:"#fff",borderRadius:14,boxShadow:"0 3px 20px rgba(0,0,0,0.10)",overflow:"hidden",border:"1px solid #dde5db"}}>
               <Cab/>
               <div style={{padding:"28px 40px"}}>
                 <div id="capa-rel" style={{textAlign:"center",padding:"60px 0 40px",marginBottom:0,pageBreakAfter:"always",minHeight:"60vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{construtora.nome||emp||"[Empresa Executora]"} apresenta a {empreendedor.nome||"[Empreendedor]"} o documento:</div>
-                  <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{(empreendimento.nome||nEmp)&&<><br/>{(empreendimento.nome||nEmp).toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
-                  {equipe.length>0&&<div style={{fontSize:12,color:"#555"}}>{equipe.map(m=>m.nome).join(", ")}<br/><strong>{construtora.nome||emp}</strong></div>}
+                  <div style={{fontSize:12,color:"#555",marginBottom:12}}>{emp||"[Empresa Executora]"} apresenta a {campos.find(c=>c.id==="f2")?.val||"[Empreendedor]"} o documento:</div>
+                  <div style={{fontSize:14,fontWeight:"bold",color:cor,lineHeight:1.7,marginBottom:12}}>RELATÓRIO MENSAL DE GESTÃO E SUPERVISÃO DOS PROGRAMAS AMBIENTAIS{nEmp&&<><br/>{nEmp.toUpperCase()}</>}<br/>PERÍODO DE {mes.toUpperCase()}/{ano}</div>
+                  {campos.find(c=>c.id==="f5")?.val&&<div style={{fontSize:12,color:"#555"}}>{campos.find(c=>c.id==="f5").val}<br/><strong>{emp}</strong></div>}
                 </div>
                 <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:10,textAlign:"left"}}>1. INTRODUÇÃO</h2>
-                  <p style={{fontSize:12,color:"#444",lineHeight:1.8,whiteSpace:"pre-wrap"}}>{intro}</p>
+                  <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left",pageBreakBefore:"auto"}}>1. INTRODUÇÃO</h2>
+                  <textarea value={intro} onChange={e=>setIntro(e.target.value)} rows={5} style={{...SI,fontSize:12,lineHeight:1.8,color:"#444",resize:"vertical",border:"1px dashed #c8ddd2",background:"#fafdfb"}}/>
                 </div>
-                <div style={{marginBottom:20}}>
-                  <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>1. IDENTIFICAÇÃO DO EMPREENDIMENTO</h2>
-                  {[
-                    {titulo:"Quadro 1 – Identificação do Empreendedor", linhas:[["Empreendedor",empreendedor.nome],["CNPJ",empreendedor.cnpj],["Endereço",empreendedor.endereco],["Telefone",empreendedor.telefone],["Representante Legal",empreendedor.rep_legal],["E-mail",empreendedor.email]]},
-                    {titulo:"Quadro 2 – Identificação da "+(construtora.label||"Empresa Construtora"), linhas:[["Empresa",construtora.nome],["CNPJ",construtora.cnpj],["Endereço",construtora.endereco],["Telefone",construtora.telefone],["E-mail",construtora.email]]},
-                    {titulo:"Quadro 3 – Identificação do Empreendimento", linhas:[["Nome do Empreendimento",empreendimento.nome],["Estado (UF)",empreendimento.uf]]}
-                  ].map((q,qi)=>{
-                    var rows=q.linhas.filter(r=>r[1]);
-                    if(!rows.length) return null;
-                    return(
-                      <div key={qi} style={{marginBottom:12}}>
-                        <div style={{fontSize:11,fontWeight:"bold",color:"#333",marginBottom:4}}>{q.titulo}</div>
-                        <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,marginBottom:4}}>
-                          <thead><tr><th style={{...TH,background:cor,width:180}}>Campo</th><th style={{...TH,background:cor}}>Informação</th></tr></thead>
-                          <tbody>{rows.map((r,i)=><tr key={i}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:"#333"}}>{r[0]}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{r[1]}</td></tr>)}</tbody>
-                        </table>
-                      </div>
-                    );
-                  })}
-                  {equipe.length>0&&<div style={{marginBottom:12}}>
-                    <div style={{fontSize:11,fontWeight:"bold",color:"#333",marginBottom:4}}>Quadro 4 – Identificação da Equipe Técnica</div>
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-                      <thead><tr><th style={{...TH,background:cor}}>Nome</th><th style={{...TH,background:cor}}>Função</th><th style={{...TH,background:cor}}>Registro Profissional</th></tr></thead>
-                      <tbody>{equipe.map((m,i)=><tr key={m.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{m.nome||"—"}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{m.funcao||"—"}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{m.registro||"N/A"}</td></tr>)}
-                      </tbody>
-                    </table>
-                  </div>}
-                </div>
+                <table style={{width:"100%",borderCollapse:"collapse",marginBottom:20,fontSize:11}}><tbody>{campos.map((f,i)=><tr key={f.id}><td style={{...TD,background:i%2?"#f8fdf9":"#fff",fontWeight:"bold",color:cor,width:200}}>{f.lb}</td><td style={{...TD,background:i%2?"#f8fdf9":"#fff"}}>{f.val||"—"}</td></tr>)}</tbody></table>
                 <div style={{marginBottom:20}}>
                   <h2 style={{color:cor,fontSize:13,borderBottom:"2px solid "+cor,paddingBottom:5,marginBottom:10,textAlign:"left"}}>2. PROGRAMAS EM EXECUÇÃO</h2>
                   <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}><thead><tr><th style={{...TH,background:cor,width:40}}>Nº</th><th style={{...TH,background:cor}}>Programa</th><th style={{...TH,background:cor,width:120}}>Status</th></tr></thead><tbody>{ativos.map((p,i)=><tr key={p.id}><td style={i%2?TA:TD}>{i+1}</td><td style={i%2?TA:TD}>{p.ic} {getL(p.id)}</td><td style={{...(i%2?TA:TD),color:"#2d6a4f",fontWeight:"bold"}}>● Em Execução</td></tr>)}</tbody></table>
@@ -1528,68 +931,14 @@ function AppPrincipal({ user, onLogout }) {
                       {grafRel.map((gr,gi)=>(
                         <div key={gi} style={{marginBottom:16}}>
                           <h4 style={{fontSize:11,color:"#333",marginBottom:5,textAlign:"left"}}>{gr.titulo||"Gráfico "+(gi+1)}</h4>
-                          {renderGráfico(gr, 200, true)}
+                          {renderGrafico(gr, 200, true)}
                           {gr.texto&&<p style={{fontSize:11,color:"#444",lineHeight:1.7,marginTop:8,fontStyle:"italic",borderLeft:"3px solid "+p.cor,paddingLeft:10}}>{gr.texto}</p>}
                         </div>
                       ))}
-                      {(d.tabelas||[]).filter(tb=>tb.addRel).length>0&&(
-                        <div style={{marginBottom:16}}>
-                          <h4 style={{fontSize:11,color:"#333",marginBottom:8}}>Tabelas</h4>
-                          {(d.tabelas||[]).filter(tb=>tb.addRel).map((tb,ti)=>(
-                            <div key={ti} style={{marginBottom:12}}>
-                              <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>{tb.titulo||"Tabela "+(ti+1)}</div>
-                              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-                                <thead><tr>{(tb.headers||[]).map((h,hi)=><th key={hi} style={{background:cor,color:"#fff",padding:"5px 8px",border:"1px solid #ddd",textAlign:"left"}}>{h}</th>)}</tr></thead>
-                                <tbody>{(tb.cells||[]).map((row,ri)=><tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>{(row||[]).map((c,ci)=><td key={ci} style={{padding:"4px 8px",border:"1px solid #eee"}}>{c}</td>)}</tr>)}</tbody>
-                              </table>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {(d.quadros||[]).filter(tb=>tb.addRel).length>0&&(
-                        <div style={{marginBottom:16}}>
-                          <h4 style={{fontSize:11,color:"#333",marginBottom:8}}>Quadros</h4>
-                          {(d.quadros||[]).filter(tb=>tb.addRel).map((tb,ti)=>(
-                            <div key={ti} style={{marginBottom:12}}>
-                              <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:4}}>{tb.titulo||"Quadro "+(ti+1)}</div>
-                              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-                                <thead><tr>{(tb.headers||[]).map((h,hi)=><th key={hi} style={{background:cor,color:"#fff",padding:"5px 8px",border:"1px solid #ddd",textAlign:"left"}}>{h}</th>)}</tr></thead>
-                                <tbody>{(tb.cells||[]).map((row,ri)=><tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>{(row||[]).map((c,ci)=><td key={ci} style={{padding:"4px 8px",border:"1px solid #eee"}}>{c}</td>)}</tr>)}</tbody>
-                              </table>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
                     </div>
                   );
                 })}
-
-                {(()=>{
-                  var todosAnx=[];
-                  var ng=1;
-                  ativos.forEach(p=>{
-                    var d2=getD(p.id);
-                    (d2.anexos||[]).filter(a=>a.addRel).forEach(ax=>{
-                      todosAnx.push({ax,prog:p,ng:ng++});
-                    });
-                  });
-                  if(!todosAnx.length) return null;
-                  return(
-                    <div style={{marginBottom:20}}>
-                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>6. ANEXOS</h2>
-                      {todosAnx.map((item,i)=>(
-                        <div key={i} style={{marginBottom:8,padding:"8px 12px",border:"1px solid #c8ddd2",borderRadius:7,background:"#fafdfb"}}>
-                          <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:2}}>Anexo {item.ng}{item.ax.titulo?" – "+item.ax.titulo:""}</div>
-                          <div style={{fontSize:10,color:"#888",marginBottom:3}}>Programa: {item.prog.lb}</div>
-                          {item.ax.descricao&&<p style={{fontSize:11,color:"#444",margin:"3px 0"}}>{item.ax.descricao}</p>}
-                          {item.ax.link&&<a href={item.ax.link} target="_blank" rel="noreferrer" style={{fontSize:10,color:"#0066cc",display:"block",marginTop:3}}>🔗 {item.ax.link}</a>}
-                          {item.ax.arquivo&&<a href={item.ax.arquivo.src} download={item.ax.arquivo.nome} style={{fontSize:10,color:"#2d6a4f",display:"block",marginTop:3,textDecoration:"none"}}>📄 {item.ax.arquivo.nome} <span style={{color:"#0066cc"}}>⬇ baixar</span></a>}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
+                {extras.map((pe,pi)=><div key={pe.id} style={{marginBottom:28}}><h3 style={{color:cor,fontSize:13,borderLeft:"4px solid #2d6a4f",paddingLeft:10,marginBottom:10,textAlign:"left"}}>{ativos.length+pi+1}. {pe.nome.toUpperCase()}</h3><p style={{fontSize:12,color:"#444",lineHeight:1.8}}>{pe.intro}</p></div>)}
                 <div style={{marginTop:24,paddingTop:10,borderTop:"1px solid #ddd",display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}><span>{emp}</span><span>{numR} Relatório – {mes}/{ano}</span></div>
               </div>
             </div>
@@ -1599,14 +948,7 @@ function AppPrincipal({ user, onLogout }) {
         {aba==="historico"&&(
           <div>
             <h2 style={{color:HC,marginBottom:6}}>📁 Histórico e Download de Relatórios</h2>
-            <div style={{background:"#fff8e1",border:"1px solid #f0c040",borderRadius:8,padding:"10px 14px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
-              <span style={{fontSize:16}}>⚠️</span>
-              <div>
-                <div style={{fontSize:12,fontWeight:"bold",color:"#7d5a00",marginBottom:2}}>Relatórios ficam salvos por 40 dias</div>
-                <div style={{fontSize:11,color:"#7d5a00"}}>Baixe o PDF antes do prazo. Após 40 dias os relatórios são excluídos automaticamente da nuvem.</div>
-              </div>
-            </div>
-            <p style={{fontSize:12,color:"#888",marginBottom:16}}>Use o botão <strong>"💾 Salvar Relatório"</strong> no topo para guardar o relatório atual.</p>
+            <p style={{fontSize:12,color:"#888",marginBottom:20}}>Abra, baixe ou exclua relatórios salvos. Use o botão <strong>"💾 Salvar Relatório"</strong> no topo para guardar o relatório atual.</p>
             {historico.length===0?(
               <div style={{...CD,textAlign:"center",padding:"48px 20px",color:"#aaa"}}>
                 <div style={{fontSize:44,marginBottom:10}}>📁</div>
@@ -1621,15 +963,12 @@ function AppPrincipal({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:"bold",color:HC,marginBottom:4}}>📄 {rel.titulo}</div>
                       {rel.empreendimento&&<div style={{fontSize:12,color:"#555",marginBottom:2}}>🏗️ {rel.empreendimento}</div>}
                       {rel.empresa&&<div style={{fontSize:11,color:"#888",marginBottom:2}}>🏢 {rel.empresa}</div>}
-{(()=>{
-                        var dias=rel.dataISO?Math.max(0,40-Math.floor((new Date()-new Date(rel.dataISO))/(1000*60*60*24))):40;
-                        var cor=dias<=7?"#b5451b":dias<=15?"#b08000":"#aaa";
-                        return <div style={{fontSize:10,color:cor}}>💾 Salvo em {rel.data}{rel.dataISO?" · "+dias+" dias restantes":""}</div>;
-                      })()}
+                      <div style={{fontSize:10,color:"#aaa"}}>Salvo em {rel.data}</div>
                     </div>
                     <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
-                      <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>✏️ Abrir / Editar</button>
-                      <button onClick={()=>{var dr={lCons:rel.estado?.lCons||lCons,lEmpr:rel.estado?.lEmpr||lEmpr,empreendedor:rel.estado?.empreendedor||empreendedor,construtora:rel.estado?.construtora||construtora,empreendimento:rel.estado?.empreendimento||empreendimento,equipe:rel.estado?.equipe||equipe,nrel:rel.estado?.nrel||nrel,mes:rel.mes,ano:rel.ano,intro:rel.estado?.intro||intro,ativos,dados:rel.estado?.dados||dados,fotos:rel.estado?.fotos||fotos,nomes,cor,pCust};dlPDF(dr);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📄 Baixar PDF</button>
+                      <button onClick={()=>carregarRelatorio(rel)} style={{background:"#2d6a4f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📂 Abrir</button>
+                      <button onClick={()=>baixarRelatorio(rel)} style={{background:"#5a4fcf",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>📥 Baixar Word</button>
+                      <button onClick={()=>{carregarRelatorio(rel);setTimeout(function(){dlPDF();},1000);}} style={{background:"#b5451b",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>🖨️ Baixar PDF</button>
                       <button onClick={()=>excluirRelatorio(rel.id)} style={{background:"none",border:"2px solid #b5451b",color:"#b5451b",borderRadius:8,padding:"8px 12px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12}}>🗑️ Excluir</button>
                     </div>
                   </div>
