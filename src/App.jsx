@@ -556,7 +556,8 @@ function buildRelHTML(dr) {
           return "<tr class='"+(ri%2?"alt":"")+"'>"+cells+"</tr>";
         }).join("");
         return "<p class='qtit'>"+esc(tb.titulo||"Item "+(ti+1))+"</p>"
-          +"<table class='qtab'><tr>"+heads+"</tr>"+rows+"</table>";
+          +"<table class='qtab'><tr>"+heads+"</tr>"+rows+"</table>"
+          +(tb.texto?"<p class='txt' style='margin-top:4pt;font-style:italic'>"+esc(tb.texto)+"</p>":"");
       }).join("");
       return html;
     }
@@ -915,7 +916,7 @@ function AppPrincipal({ user, onLogout }) {
         <ResponsiveContainer width="100%" height={height||200}>
           {gr.tipo==="pizza"
             ?<PieChart>
-                <Pie data={chartData.map(d=>({name:d.name,value:d.val}))} cx="50%" cy="50%" outerRadius={65} dataKey="value"
+                <Pie data={chartData} cx="50%" cy="50%" outerRadius={65} dataKey="val"
                   label={({name,value,percent})=>name+": "+value+(gr.unidade?" "+gr.unidade:"")+" ("+(percent*100).toFixed(0)+"%)"}
                   labelLine={{stroke:"#000"}}
                   style={{fontSize:10,fill:"#000",fontWeight:"bold"}}>
@@ -1265,6 +1266,10 @@ function AppPrincipal({ user, onLogout }) {
                               </tbody>
                             </table>
                           </div>
+                          <div style={{marginTop:10}}>
+                            <label style={{...LB,marginBottom:4}}>TEXTO INTERPRETATIVO (VAI PARA O RELATÓRIO)</label>
+                            <textarea value={tb.texto||""} onChange={e=>setTb({texto:e.target.value})} rows={3} placeholder="Ex: Os dados acima demonstram que..." style={{...SI,resize:"vertical",fontSize:12}}/>
+                          </div>
                           <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <div style={{fontSize:11,color:"#888"}}>{tb.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
                             <button onClick={()=>setTb({addRel:!tb.addRel})} style={{background:tb.addRel?"#2d6a4f":cor,color:"#fff",border:"none",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:12,fontWeight:"bold"}}>
@@ -1325,6 +1330,10 @@ function AppPrincipal({ user, onLogout }) {
                                 ))}
                               </tbody>
                             </table>
+                          </div>
+                          <div style={{marginTop:10}}>
+                            <label style={{...LB,marginBottom:4}}>TEXTO INTERPRETATIVO (VAI PARA O RELATÓRIO)</label>
+                            <textarea value={tb.texto||""} onChange={e=>setTb({texto:e.target.value})} rows={3} placeholder="Ex: O quadro acima apresenta..." style={{...SI,resize:"vertical",fontSize:12}}/>
                           </div>
                           <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <div style={{fontSize:11,color:"#888"}}>{tb.addRel?"✅ Salvo no relatório":"⬜ Não incluído no relatório"}</div>
@@ -1626,6 +1635,7 @@ function AppPrincipal({ user, onLogout }) {
                                 <thead><tr>{(tb.headers||[]).map((h,hi)=><th key={hi} style={{background:cor,color:"#fff",padding:"5px 8px",border:"1px solid #ddd",textAlign:"left"}}>{h}</th>)}</tr></thead>
                                 <tbody>{(tb.cells||[]).map((row,ri)=><tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>{(row||[]).map((c,ci)=><td key={ci} style={{padding:"4px 8px",border:"1px solid #eee"}}>{c}</td>)}</tr>)}</tbody>
                               </table>
+                              {tb.texto&&<p style={{fontSize:11,color:"#444",lineHeight:1.7,marginTop:6,fontStyle:"italic",borderLeft:"3px solid "+cor,paddingLeft:8}}>{tb.texto}</p>}
                             </div>
                           ))}
                         </div>
@@ -1640,6 +1650,7 @@ function AppPrincipal({ user, onLogout }) {
                                 <thead><tr>{(tb.headers||[]).map((h,hi)=><th key={hi} style={{background:cor,color:"#fff",padding:"5px 8px",border:"1px solid #ddd",textAlign:"left"}}>{h}</th>)}</tr></thead>
                                 <tbody>{(tb.cells||[]).map((row,ri)=><tr key={ri} style={{background:ri%2?"#f8fdf9":"#fff"}}>{(row||[]).map((c,ci)=><td key={ci} style={{padding:"4px 8px",border:"1px solid #eee"}}>{c}</td>)}</tr>)}</tbody>
                               </table>
+                              {tb.texto&&<p style={{fontSize:11,color:"#444",lineHeight:1.7,marginTop:6,fontStyle:"italic",borderLeft:"3px solid "+cor,paddingLeft:8}}>{tb.texto}</p>}
                             </div>
                           ))}
                         </div>
