@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -29,6 +29,11 @@ const TD  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",vertica
 const TA  = {padding:"5px 9px",fontSize:11,borderBottom:"1px solid #eee",verticalAlign:"top",background:"#f8fdf9"};
 const SAVE_KEY = "mmafield_data";
 const HIST_KEY = "mmafield_historico";
+// IMPORTANTE: estas chaves NUNCA devem ser usadas "puras" — sempre amarradas
+// ao user.id, para que os dados de um usuário não apareçam para outro no
+// mesmo navegador. Use sempre chaveSave(uid) / chaveHist(uid) abaixo.
+function chaveSave(uid) { return SAVE_KEY + "_" + uid; }
+function chaveHist(uid) { return HIST_KEY + "_" + uid; }
 
 // ── Supabase helpers para sincronização na nuvem ──
 async function sbCarregarEstado(userId) {
@@ -633,8 +638,8 @@ function dlPDF(dr) {
   document.body.removeChild(a);
   setTimeout(function(){URL.revokeObjectURL(url);},3000);
 }
-function estadoInicial() {
-  try { var s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s); } catch(e) {}
+function estadoInicial(uid) {
+  try { var s = localStorage.getItem(chaveSave(uid)); if (s) return JSON.parse(s); } catch(e) {}
   return null;
 }
 
@@ -646,6 +651,12 @@ export default function App() {
   const [carregandoAuth, setCarregandoAuth] = useState(true);
 
   useEffect(() => {
+    // Limpeza única: remove as chaves antigas SEM vínculo a usuário, que
+    // podem conter dados de outra conta salvos no navegador antes da correção.
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(HIST_KEY);
+    } catch(e) {}
     // Verificar sessão existente
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -675,14 +686,14 @@ export default function App() {
     return <AuthScreen onLogin={setUser} />;
   }
 
-  return <AppPrincipal user={user} onLogout={handleLogout} />;
+  return <AppPrincipal key={user.id} user={user} onLogout={handleLogout} />;
 }
 
 // ─────────────────────────────────────────────
 // APP PRINCIPAL (conteúdo do app após login)
 // ─────────────────────────────────────────────
 function AppPrincipal({ user, onLogout }) {
-  var ei = estadoInicial();
+  var ei = estadoInicial(user.id);
   const [aba, setAba]       = useState("fotos");
   const [fotos, setFotos]   = useState(ei?.fotos || {});
   const [psel, setPsel]     = useState("");
@@ -758,7 +769,7 @@ function AppPrincipal({ user, onLogout }) {
         setHistorico(histNuvem);
       } else {
         try {
-          var h = localStorage.getItem(HIST_KEY);
+          var h = localStorage.getItem(chaveHist(user.id));
           if (h) {
             var rels = JSON.parse(h);
             var limite = new Date(); limite.setDate(limite.getDate() - 40);
@@ -790,7 +801,7 @@ function AppPrincipal({ user, onLogout }) {
     saveTimer.current = setTimeout(async function() {
       try {
         var estado = {fotos,dados,inv,cor,lCons,lEmpr,campos,nrel,mes,ano,pAtiv,pCust,nomes,extras,intro,empreendedor,construtora,empreendimento,equipe};
-        localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
+        localStorage.setItem(chaveSave(user.id), JSON.stringify(estado));
         await sbSalvarEstado(user.id, estado);
         setMsgSalvo("✅ Salvo automaticamente");
         setTimeout(function() { setMsgSalvo(""); }, 2000);
@@ -812,7 +823,7 @@ function AppPrincipal({ user, onLogout }) {
     if (sbId) rel._sbId = sbId;
     var nh = [rel,...historico];
     setHistorico(nh);
-    try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
+    try { localStorage.setItem(chaveHist(user.id), JSON.stringify(nh)); } catch(e) {}
     alert("Relatório de "+mes+"/"+ano+" salvo no histórico!");
   };
   const carregarRelatorio = (rel) => {
@@ -836,7 +847,7 @@ function AppPrincipal({ user, onLogout }) {
     if (rel?._sbId) await sbExcluirDoHistorico(rel._sbId);
     var nh = historico.filter(r=>r.id!==id);
     setHistorico(nh);
-    try { localStorage.setItem(HIST_KEY, JSON.stringify(nh)); } catch(e) {}
+    try { localStorage.setItem(chaveHist(user.id), JSON.stringify(nh)); } catch(e) {}
   };
   const baixarRelatorio = (rel) => {
     carregarRelatorio(rel);
