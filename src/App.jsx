@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -648,7 +648,7 @@ function estadoInicial(uid) {
 // ─────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
-  const [carregandoAuth, setCarregandoAuth] = useState(true);
+  const [modoRecuperacao, setModoRecuperacao] = useState(false);`r`n  const [carregandoAuth, setCarregandoAuth] = useState(true);
 
   useEffect(() => {
     // Limpeza única: remove as chaves antigas SEM vínculo a usuário, que
@@ -682,7 +682,7 @@ export default function App() {
     );
   }
 
-  if (!user) {
+  if (modoRecuperacao) {`r`n    return <NovaSenhaScreen onConcluido={() => { setModoRecuperacao(false); setUser(null); }} />;`r`n  }`r`n`r`n  if (!user) {
     return <AuthScreen onLogin={setUser} />;
   }
 
@@ -1748,3 +1748,4 @@ function AppPrincipal({ user, onLogout }) {
     </div>
   );
 }
+
