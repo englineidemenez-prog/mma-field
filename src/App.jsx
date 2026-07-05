@@ -705,8 +705,13 @@ export default function App() {
       setCarregandoAuth(false);
     });
     // Escutar mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setUser(session?.user ?? null);
+        setModoRecuperacao(true);
+      } else {
+        setUser(session?.user ?? null);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
