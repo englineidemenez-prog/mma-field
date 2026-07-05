@@ -646,9 +646,51 @@ function estadoInicial(uid) {
 // ─────────────────────────────────────────────
 // APP PRINCIPAL
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// TELA DE NOVA SENHA (fluxo de recuperação)
+// ─────────────────────────────────────────────
+function NovaSenhaScreen({ onConcluido }) {
+  const [senha, setSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+  const handleSalvar = async () => {
+    setErro("");
+    if (senha.length < 6) { setErro("A senha deve ter pelo menos 6 caracteres."); return; }
+    if (senha !== confirmar) { setErro("As senhas não coincidem."); return; }
+    setCarregando(true);
+    const { error } = await supabase.auth.updateUser({ password: senha });
+    setCarregando(false);
+    if (error) { setErro("Erro ao atualizar senha. Tente novamente."); return; }
+    setSucesso("Senha atualizada com sucesso!");
+    setTimeout(() => onConcluido(), 1500);
+  };
+  const ei = {width:"100%",padding:"12px 14px",border:"1.5px solid #cdd8d3",borderRadius:9,fontSize:14,fontFamily:"Georgia,serif",background:"#fafdfb",boxSizing:"border-box",marginBottom:14,outline:"none"};
+  return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif"}}>
+      <div style={{background:"#fff",borderRadius:18,padding:"40px 36px",width:"100%",maxWidth:400,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
+        <div style={{textAlign:"center",marginBottom:20,fontSize:32}}>🌿</div>
+        <div style={{textAlign:"center",fontSize:20,fontWeight:"bold",color:HC,marginBottom:4}}>MMA Field</div>
+        <div style={{textAlign:"center",fontSize:11,color:"#888",letterSpacing:2,textTransform:"uppercase",marginBottom:24}}>Meu Mundo Ambiental</div>
+        <div style={{fontSize:15,fontWeight:"bold",color:HC,marginBottom:20,textAlign:"center"}}>Defina sua nova senha</div>
+        {erro && <div style={{background:"#fff0f0",border:"1px solid #ffcccc",color:"#b00000",padding:"10px 14px",borderRadius:8,fontSize:12,marginBottom:14}}>{erro}</div>}
+        {sucesso && <div style={{background:"#f0fff4",border:"1px solid #a8e6c0",color:"#1a5c35",padding:"10px 14px",borderRadius:8,fontSize:12,marginBottom:14}}>{sucesso}</div>}
+        <label style={{display:"block",fontSize:10,fontWeight:"bold",color:"#5a6b60",marginBottom:5,textTransform:"uppercase",letterSpacing:0.6}}>Nova Senha</label>
+        <input type="password" value={senha} onChange={e => setSenha(e.target.value)} placeholder="Minimo 6 caracteres" style={ei} />
+        <label style={{display:"block",fontSize:10,fontWeight:"bold",color:"#5a6b60",marginBottom:5,textTransform:"uppercase",letterSpacing:0.6}}>Confirmar Nova Senha</label>
+        <input type="password" value={confirmar} onChange={e => setConfirmar(e.target.value)} placeholder="Repita a nova senha" style={ei} onKeyDown={e => e.key === "Enter" && handleSalvar()} />
+        <button onClick={handleSalvar} disabled={carregando} style={{width:"100%",padding:13,background:"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:9,fontSize:14,fontWeight:"bold",fontFamily:"Georgia,serif",cursor:"pointer",marginTop:4,opacity:carregando?0.7:1}}>
+          {carregando ? "Salvando..." : "Salvar nova senha"}
+        </button>
+      </div>
+    </div>
+  );
+}
 export default function App() {
   const [user, setUser] = useState(null);
-  const [modoRecuperacao, setModoRecuperacao] = useState(false);`r`n  const [carregandoAuth, setCarregandoAuth] = useState(true);
+  const [modoRecuperacao, setModoRecuperacao] = useState(false);
+  const [carregandoAuth, setCarregandoAuth] = useState(true);
 
   useEffect(() => {
     // Limpeza única: remove as chaves antigas SEM vínculo a usuário, que
@@ -682,7 +724,11 @@ export default function App() {
     );
   }
 
-  if (modoRecuperacao) {`r`n    return <NovaSenhaScreen onConcluido={() => { setModoRecuperacao(false); setUser(null); }} />;`r`n  }`r`n`r`n  if (!user) {
+  if (modoRecuperacao) {
+    return <NovaSenhaScreen onConcluido={() => { setModoRecuperacao(false); setUser(null); }} />;
+  }
+
+  if (!user) {
     return <AuthScreen onLogin={setUser} />;
   }
 
