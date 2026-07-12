@@ -692,7 +692,7 @@ function AssinaturaBloqueadaScreen({status,onLogout}){
   var ei={display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:9,fontSize:14,fontWeight:"bold",fontFamily:"Georgia,serif",cursor:"pointer",textAlign:"center",textDecoration:"none",boxSizing:"border-box"};
   return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",padding:16}},
     React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:"40px 36px",width:"100%",maxWidth:420,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}},
-      React.createElement("div",{style:{textAlign:"center",marginBottom:20,fontSize:32}},"\uD83C\uDF3F"),
+      React.createElement("div",{style:{textAlign:"center",marginBottom:20,fontSize:32}},"🌿"),
       React.createElement("div",{style:{textAlign:"center",fontSize:20,fontWeight:"bold",color:HC,marginBottom:4}},"MMA Field"),
       React.createElement("div",{style:{textAlign:"center",fontSize:11,color:"#888",letterSpacing:2,textTransform:"uppercase",marginBottom:24}},"Meu Mundo Ambiental"),
       semLinha
@@ -762,6 +762,10 @@ export default function App() {
     return <NovaSenhaScreen onConcluido={() => { setModoRecuperacao(false); setUser(null); }} />;
   }
 
+  if (!user) {
+    return <AuthScreen onLogin={setUser} />;
+  }
+
   if (statusAssinatura === undefined) {
     return (
       <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -772,10 +776,6 @@ export default function App() {
 
   if (statusAssinatura !== "ativa") {
     return <AssinaturaBloqueadaScreen status={statusAssinatura} onLogout={handleLogout} />;
-  }
-
-  if (!user) {
-    return <AuthScreen onLogin={setUser} />;
   }
 
   return <AppPrincipal key={user.id} user={user} onLogout={handleLogout} />;
