@@ -687,10 +687,29 @@ function NovaSenhaScreen({ onConcluido }) {
     </div>
   );
 }
+function AssinaturaBloqueadaScreen({status,onLogout}){
+  var semLinha=!status;
+  var ei={display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2d6a4f,#1a3d2b)",color:"#fff",border:"none",borderRadius:9,fontSize:14,fontWeight:"bold",fontFamily:"Georgia,serif",cursor:"pointer",textAlign:"center",textDecoration:"none",boxSizing:"border-box"};
+  return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",padding:16}},
+    React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:"40px 36px",width:"100%",maxWidth:420,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}},
+      React.createElement("div",{style:{textAlign:"center",marginBottom:20,fontSize:32}},"\uD83C\uDF3F"),
+      React.createElement("div",{style:{textAlign:"center",fontSize:20,fontWeight:"bold",color:HC,marginBottom:4}},"MMA Field"),
+      React.createElement("div",{style:{textAlign:"center",fontSize:11,color:"#888",letterSpacing:2,textTransform:"uppercase",marginBottom:24}},"Meu Mundo Ambiental"),
+      semLinha
+        ? React.createElement("div",{style:{background:"#fff8e1",border:"1px solid #ffe082",borderRadius:10,padding:"14px 16px",marginBottom:20,fontSize:13,color:"#7a5c00",lineHeight:1.5}},"Ainda nao encontramos seu pagamento. Se voce acabou de assinar, aguarde alguns minutos e atualize a pagina.")
+        : React.createElement("div",{style:{background:"#fff0f0",border:"1px solid #ffcccc",borderRadius:10,padding:"14px 16px",marginBottom:20,fontSize:13,color:"#800000",lineHeight:1.5}},"Sua assinatura esta com um pagamento pendente. Regularize para voltar a acessar o MMA Field."),
+      React.createElement("div",{style:{fontSize:12,color:"#555",marginBottom:16,textAlign:"center"}},"Escolha um plano para continuar:"),
+      React.createElement("a",{href:"https://pay.kiwify.com.br/vHMUT8l",target:"_blank",rel:"noopener noreferrer",style:{...ei,marginBottom:10,display:"block"}},"\uD83D\uDCB3 Plano Mensal"),
+      React.createElement("a",{href:"https://pay.kiwify.com.br/2ZE3qsd",target:"_blank",rel:"noopener noreferrer",style:{...ei,background:"linear-gradient(135deg,#1a5c9e,#0d3d6b)",marginBottom:20,display:"block"}},"\uD83D\uDC8E Plano Trimestral"),
+      React.createElement("button",{onClick:onLogout,style:{width:"100%",padding:"10px",background:"none",border:"1px solid #ccc",borderRadius:9,fontSize:13,color:"#888",fontFamily:"Georgia,serif",cursor:"pointer"}},"Sair da conta")
+    )
+  );
+}
 export default function App() {
   const [user, setUser] = useState(null);
   const [modoRecuperacao, setModoRecuperacao] = useState(false);
   const [carregandoAuth, setCarregandoAuth] = useState(true);
+  const [statusAssinatura, setStatusAssinatura] = useState(undefined);
 
   useEffect(() => {
     // Limpeza única: remove as chaves antigas SEM vínculo a usuário, que
@@ -716,9 +735,18 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(()=>{
+    if(!user){setStatusAssinatura(undefined);return;}
+    setStatusAssinatura(undefined);
+    supabase.from("assinaturas").select("status").eq("email",user.email).maybeSingle().then(({data})=>{
+      setStatusAssinatura(data?data.status:null);
+    });
+  },[user]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setStatusAssinatura(undefined);
   };
 
   if (carregandoAuth) {
@@ -731,6 +759,18 @@ export default function App() {
 
   if (modoRecuperacao) {
     return <NovaSenhaScreen onConcluido={() => { setModoRecuperacao(false); setUser(null); }} />;
+  }
+
+  if (statusAssinatura === undefined) {
+    return (
+      <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#1a3d2b,#2d6a4f)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{color:"#fff",fontFamily:"Georgia,serif",fontSize:16}}>\uD83C\uDF3F Verificando assinatura...</div>
+      </div>
+    );
+  }
+
+  if (statusAssinatura !== "ativa") {
+    return <AssinaturaBloqueadaScreen status={statusAssinatura} onLogout={handleLogout} />;
   }
 
   if (!user) {
