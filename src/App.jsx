@@ -738,9 +738,10 @@ export default function App() {
   useEffect(()=>{
     if(!user){setStatusAssinatura(undefined);return;}
     setStatusAssinatura(undefined);
-    supabase.from("assinaturas").select("status").eq("email",user.email).maybeSingle().then(({data})=>{
+    supabase.from("assinaturas").select("status").eq("email",user.email).maybeSingle().then(({data,error})=>{
+      if(error)console.error("assinatura:",error);
       setStatusAssinatura(data?data.status:null);
-    });
+    }).catch(()=>setStatusAssinatura(null));
   },[user]);
 
   const handleLogout = async () => {
