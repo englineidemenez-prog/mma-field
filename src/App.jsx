@@ -1784,7 +1784,7 @@ function AppPrincipal({ user, onLogout }) {
                   if(!todosAnx.length) return null;
                   return(
                     <div style={{marginBottom:20}}>
-                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>6. ANEXOS</h2>
+                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>{ativos.some(p=>(getD(p.id).mapas||[]).some(m=>m.addRel))?"7":"6"}. ANEXOS</h2>
                       {todosAnx.map((item,i)=>(
                         <div key={i} style={{marginBottom:8,padding:"8px 12px",border:"1px solid #c8ddd2",borderRadius:7,background:"#fafdfb"}}>
                           <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:2}}>Anexo {item.ng}{item.ax.titulo?" – "+item.ax.titulo:""}</div>
