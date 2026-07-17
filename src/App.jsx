@@ -1773,6 +1773,27 @@ function AppPrincipal({ user, onLogout }) {
                 })}
 
                 {(()=>{
+                  var todosMap=[];var nm=1;
+                  ativos.forEach(p=>{var d2=getD(p.id);(d2.mapas||[]).filter(m=>m.addRel).forEach(mf=>{todosMap.push({mf,prog:p,nm:nm++});});});
+                  if(!todosMap.length) return null;
+                  return(
+                    <div style={{marginBottom:20}}>
+                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>6. MAPAS E FIGURAS</h2>
+                      {todosMap.map((item,i)=>(
+                        <div key={i} style={{marginBottom:10,padding:"10px 12px",border:"1px solid #c8ddd2",borderRadius:7,background:"#fafdfb"}}>
+                          <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:2}}>{item.mf.tipo||"Mapa"} {item.nm}</div>
+                          <div style={{fontSize:10,color:"#888",marginBottom:4}}>Programa: {item.prog.lb}</div>
+                          {item.mf.arquivo&&item.mf.arquivo.tipo&&item.mf.arquivo.tipo.startsWith("image/")&&<img src={item.mf.arquivo.src} alt="mapa" style={{maxWidth:"100%",maxHeight:180,borderRadius:4,marginBottom:6,border:"1px solid #ddd"}}/>}
+                          {item.mf.arquivo&&!(item.mf.arquivo.tipo||"").startsWith("image/")&&<a href={item.mf.arquivo.src} download={item.mf.arquivo.nome} style={{fontSize:10,color:"#2d6a4f",display:"block",marginBottom:4,textDecoration:"none"}}>📄 {item.mf.arquivo.nome}</a>}
+                          {item.mf.textoint&&<p style={{fontSize:11,color:"#444",margin:"3px 0"}}>{item.mf.textoint}</p>}
+                          {item.mf.legenda&&<p style={{fontSize:10,color:"#777",fontStyle:"italic",textAlign:"center",margin:"3px 0"}}>{item.mf.legenda}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {(()=>{
                   var todosAnx=[];
                   var ng=1;
                   ativos.forEach(p=>{
@@ -1784,7 +1805,7 @@ function AppPrincipal({ user, onLogout }) {
                   if(!todosAnx.length) return null;
                   return(
                     <div style={{marginBottom:20}}>
-                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>6. ANEXOS</h2>
+                      <h2 style={{color:cor,fontSize:13,marginBottom:12,textAlign:"left"}}>{ativos.some(p=>(getD(p.id).mapas||[]).some(m=>m.addRel))?"7":"6"}. ANEXOS</h2>
                       {todosAnx.map((item,i)=>(
                         <div key={i} style={{marginBottom:8,padding:"8px 12px",border:"1px solid #c8ddd2",borderRadius:7,background:"#fafdfb"}}>
                           <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:2}}>Anexo {item.ng}{item.ax.titulo?" – "+item.ax.titulo:""}</div>
