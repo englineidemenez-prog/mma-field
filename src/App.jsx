@@ -588,6 +588,13 @@ function buildRelHTML(dr) {
   var mapasPage='';
   if(todosMapas.length>0){var mapConteudo='<h1 class='sec'>6. MAPAS E FIGURAS</h1>';mapConteudo+=todosMapas.map(function(item){var mf=item.mf;var r='<div style='margin-bottom:16pt;padding:10pt 12pt;border:1pt solid #ddd;background:#fafafa'>';r+='<p style='font-size:10pt;font-weight:bold'>'+(mf.tipo||'Mapa')+' '+item.numMapa+'</p>';if(mf.arquivo&&mf.arquivo.tipo&&mf.arquivo.tipo.startsWith('image/')){r+='<div style='text-align:center'><img src=''+mf.arquivo.src+'' style='max-width:100%;max-height:300pt'/></div>';}if(mf.textoint)r+='<p>'+esc(mf.textoint)+'</p>';if(mf.legenda)r+='<p style='font-size:8pt;font-style:italic;text-align:center'>'+esc(mf.legenda)+'</p>';r+='</div>';return r;}).join('');mapasPage='<div class='pg'>'+cab()+'<div class='bod'>'+mapConteudo+'</div>'+rod(7)+'</div>';}
 
+  // Seção de MAPAS/FIGURAS
+  var todosMapas=[];
+  var numMapa=1;
+  ativos.forEach(function(prog){var pd=dados[prog.id]||{};(pd.mapas||[]).filter(function(m){return m.addRel;}).forEach(function(mf){todosMapas.push({mf:mf,prog:prog,numMapa:numMapa});numMapa++;});});
+  var mapasPage='';
+  if(todosMapas.length>0){var mapConteudo='<h1 class='sec'>6. MAPAS E FIGURAS</h1>';mapConteudo+=todosMapas.map(function(item){var mf=item.mf;var r='<div style='margin-bottom:16pt;padding:10pt 12pt;border:1pt solid #ddd;background:#fafafa'>';r+='<p style='font-size:10pt;font-weight:bold'>'+(mf.tipo||'Mapa')+' '+item.numMapa+'</p>';if(mf.arquivo&&mf.arquivo.tipo&&mf.arquivo.tipo.startsWith('image/')){r+='<div style='text-align:center'><img src=''+mf.arquivo.src+'' style='max-width:100%;max-height:300pt'/></div>';}if(mf.textoint)r+='<p>'+esc(mf.textoint)+'</p>';if(mf.legenda)r+='<p style='font-size:8pt;font-style:italic;text-align:center'>'+esc(mf.legenda)+'</p>';r+='</div>';return r;}).join('');mapasPage='<div class='pg'>'+cab()+'<div class='bod'>'+mapConteudo+'</div>'+rod(7)+'</div>';}
+
   // Seção de ANEXOS — todos os programas juntos no final
   var todosAnexos=[];
   var numGlobal=1;
