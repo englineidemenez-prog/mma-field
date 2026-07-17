@@ -544,8 +544,8 @@ function buildRelHTML(dr) {
         var imgSrc=cv.toDataURL("image/png");
         return "<div style='margin-bottom:12pt;text-align:center'>"
           +"<img src='"+imgSrc+"' style='width:90%;max-height:160pt;object-fit:contain;display:block;margin:0 auto;'/>"
-          +"<p style='font-size:9pt;font-style:italic;color:#555;margin-top:4pt'>Gráfico "+(gi+1)+(gr.titulo?" - "+esc(gr.titulo):"")+"</p>"
-          +(gr.texto?"<p class='txt' style='margin-top:4pt;font-style:italic'>"+esc(gr.texto)+"</p>":"")
+          +"<p style='font-size:9pt;font-style:italic;color:#555;margin-top:4pt'>Gráfico "+(gi+1)+(gr.titulo?" – "+esc(gr.titulo):"")+"</p>"
+          +"<p style='font-size:8pt;color:#888;margin-top:2pt'>Fonte: Elaboração própria.</p>"+"<p style='font-size:8pt;color:#888;margin-top:2pt'>Fonte: Elaboração própria.</p>"+(gr.texto?"<p class='txt' style='margin-top:4pt;font-style:italic'>"+esc(gr.texto)+"</p>":"")
           +"</div>";
       }).join("");
     }
