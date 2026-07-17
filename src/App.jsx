@@ -1783,7 +1783,7 @@ function AppPrincipal({ user, onLogout }) {
                         <div key={i} style={{marginBottom:10,padding:"10px 12px",border:"1px solid #c8ddd2",borderRadius:7,background:"#fafdfb"}}>
                           <div style={{fontSize:11,fontWeight:"bold",color:cor,marginBottom:2}}>{item.mf.tipo||"Mapa"} {item.nm}</div>
                           <div style={{fontSize:10,color:"#888",marginBottom:4}}>Programa: {item.prog.lb}</div>
-                          {item.mf.arquivo&&item.mf.arquivo.tipo&&item.mf.arquivo.tipo.startsWith("image/")&&<img src={item.mf.arquivo.src} alt="mapa" style={{maxWidth:"100%",maxHeight:180,borderRadius:4,marginBottom:6,border:"1px solid #ddd"}}/>}
+                          {item.mf.arquivo&&item.mf.arquivo.tipo&&item.mf.arquivo.tipo.startsWith("image/")&&<img src={item.mf.arquivo.src} alt="mapa" style={{width:"100%",borderRadius:4,marginBottom:8,border:"1px solid #ddd",display:"block"}}/>}
                           {item.mf.arquivo&&!(item.mf.arquivo.tipo||"").startsWith("image/")&&<a href={item.mf.arquivo.src} download={item.mf.arquivo.nome} style={{fontSize:10,color:"#2d6a4f",display:"block",marginBottom:4,textDecoration:"none"}}>📄 {item.mf.arquivo.nome}</a>}
                           {item.mf.textoint&&<p style={{fontSize:11,color:"#444",margin:"3px 0"}}>{item.mf.textoint}</p>}
                           {item.mf.legenda&&<p style={{fontSize:10,color:"#777",fontStyle:"italic",textAlign:"center",margin:"3px 0"}}>{item.mf.legenda}</p>}
