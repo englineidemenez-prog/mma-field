@@ -83,7 +83,7 @@ function AuthScreen({ onLogin }) {
 
   const handleLogin = async () => {
     setErro(""); setCarregando(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.toLowerCase().trim(), password: senha });
     setCarregando(false);
     if (error) { setErro("Email ou senha incorretos."); return; }
     onLogin(data.user);
@@ -94,7 +94,7 @@ function AuthScreen({ onLogin }) {
     if (senha !== confirmar) { setErro("As senhas não coincidem."); return; }
     if (senha.length < 6) { setErro("A senha deve ter pelo menos 6 caracteres."); return; }
     setCarregando(true);
-    const { data, error } = await supabase.auth.signUp({ email, password: senha });
+    const { data, error } = await supabase.auth.signUp({ email: email.toLowerCase().trim(), password: senha });
     setCarregando(false);
     if (error) { setErro("Erro ao criar conta: " + error.message); return; }
     setSucesso("Conta criada! Verifique seu email para confirmar o cadastro.");
@@ -103,7 +103,7 @@ function AuthScreen({ onLogin }) {
 
   const handleEsqueci = async () => {
     setErro(""); setCarregando(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
       redirectTo: window.location.origin,
     });
     setCarregando(false);
@@ -738,7 +738,7 @@ export default function App() {
   useEffect(()=>{
     if(!user){setStatusAssinatura(undefined);return;}
     setStatusAssinatura(undefined);
-    supabase.from("assinaturas").select("status").eq("email",user.email).maybeSingle().then(({data,error})=>{
+    supabase.from("assinaturas").select("status").eq("email",user.email.toLowerCase().trim()).maybeSingle().then(({data,error})=>{
       if(error)console.error("assinatura:",error);
       setStatusAssinatura(data?data.status:null);
     }).catch(()=>setStatusAssinatura(null));
