@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fdf8f5;
+  --surface: #ffffff;
+  --foreground: #3a2e35;
+  --muted: #8a7a82;
+  --primary: #c97b8b;
+  --primary-dark: #a85f70;
+  --primary-light: #f6dde2;
+  --accent: #9c8bc9;
+  --accent-light: #ece6f7;
+  --success: #7fae8e;
+  --success-light: #e2efe6;
+  --border: #f0e4e1;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-border: var(--border);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100%;
+  font-family: var(--font-sans), -apple-system, "Segoe UI", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
