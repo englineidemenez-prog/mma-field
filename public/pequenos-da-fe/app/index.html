@@ -69,7 +69,7 @@ header{position:relative; z-index:5; padding:14px 0 4px;}
   border:4px solid #fff;
 }
 .lion span{filter:drop-shadow(0 2px 2px rgba(0,0,0,.15))}
-.crown{position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:26px;}
+.mascot-img{width:82%; height:82%; object-fit:contain; filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
 .logo-txt{min-width:0}
 .logo-txt h1{font-size:clamp(22px,4.6vw,34px); font-weight:900; letter-spacing:-.5px;
   background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;}
@@ -377,7 +377,7 @@ nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); col
     
     <div style="margin:20px 0 30px;">
       <div class="lion" style="margin:0 auto; width:100px; height:100px; font-size:52px; border-width:6px;">
-        <div class="crown" style="top:-22px; font-size:36px;">👑</div><span>🐑</span>
+        <img src="assets/mascot.png" alt="Ovelhinha com coroa" class="mascot-img">
       </div>
       <h1 style="font-family:var(--font); font-weight:900; font-size:36px; margin-top:15px; background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;">
         Arca<span class="kidschip" style="font-size:16px; padding:2px 12px; vertical-align:middle;">Kids</span>
@@ -441,7 +441,7 @@ nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); col
 <header id="mainHeader" style="display: block;">
   <div class="wrap topbar">
     <div class="logo" id="logo" title="Arca Kids">
-      <div class="lion"><div class="crown">👑</div><span>🐑</span></div>
+      <div class="lion"><img src="assets/mascot.png" alt="Ovelhinha com coroa" class="mascot-img"></div>
       <div class="logo-txt">
         <h1>Arca<span class="kidschip">Kids</span></h1>
         <p>Brincando e aprendendo sobre o amor de Deus!</p>
@@ -1675,18 +1675,21 @@ function exportAppAsSelfContainedHtml(){
   // repetir o caminho aqui faria esse texto aparecer de novo lá dentro e
   // ser substituído por engano.
   var heroRelSrc = document.querySelector(".hero-banner-img").getAttribute("src");
+  var mascotRelSrc = document.querySelector(".mascot-img").getAttribute("src");
   var soundKeys = Object.keys(window.ANIMAL_SOUNDS);
-  var pending = [fetchAsDataURL(heroRelSrc)].concat(
+  var pending = [fetchAsDataURL(heroRelSrc), fetchAsDataURL(mascotRelSrc)].concat(
     soundKeys.map(function(k){ return fetchAsDataURL(window.ANIMAL_SOUNDS[k]); })
   );
 
   return Promise.all(pending).then(function(dataUrls){
     var heroDataUrl = dataUrls[0];
+    var mascotDataUrl = dataUrls[1];
     var html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
     html = html.split('"'+heroRelSrc+'"').join('"'+heroDataUrl+'"');
+    html = html.split('"'+mascotRelSrc+'"').join('"'+mascotDataUrl+'"');
     soundKeys.forEach(function(k, i){
       var relPath = window.ANIMAL_SOUNDS[k];
-      html = html.split('"'+relPath+'"').join('"'+dataUrls[i+1]+'"');
+      html = html.split('"'+relPath+'"').join('"'+dataUrls[i+2]+'"');
     });
     return html;
   }).finally(function(){

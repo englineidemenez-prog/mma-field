@@ -3,11 +3,12 @@
    abaixo (v2, v3, ...). Isso força os celulares que já visitaram o site a
    descartar o cache antigo e buscar a versão nova, em vez de continuar
    mostrando para sempre a versão que guardaram na primeira visita. */
-var CACHE_NAME = "arca-kids-v2";
+var CACHE_NAME = "arca-kids-v3";
 var PRECACHE_URLS = [
   "./",
   "./index.html",
   "./manifest.json",
+  "./assets/mascot.png",
   "./assets/hero.webp",
   "./assets/sounds/cachorro.mp3",
   "./assets/sounds/cavalo.mp3",
