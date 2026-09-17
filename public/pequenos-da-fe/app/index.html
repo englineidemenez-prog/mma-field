@@ -457,7 +457,7 @@ nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); col
       <div class="divider"></div>
       <div class="stat"><span class="ic">❤️</span><div><small>Nível</small><b id="levelTop">1</b></div></div>
     </div>
-    <button class="iconbtn" id="installBtn" aria-label="Instalar aplicativo" style="display:none">📲</button>
+    <button class="btn g" id="installBtn" aria-label="Instalar aplicativo" style="display:none; padding:10px 16px; font-size:13px; margin:0;">📲 Baixe o aplicativo</button>
     <button class="iconbtn" id="musicBtn" aria-label="Música">🎵</button>
     <button class="iconbtn" id="cfgBtn" aria-label="Configurações">⚙️</button>
     <button class="avatarbtn" id="avatarBtn" aria-label="Perfil">👦</button>
@@ -1563,12 +1563,12 @@ function renderFamily(){
 
   // Em celular, o botão já aparece de cara — não depende de o navegador
   // "avisar" que o app é instalável (esse aviso pode nunca chegar).
-  if(isMobile()) installBtn.style.display = "grid";
+  if(isMobile()) installBtn.style.display = "inline-flex";
 
   window.addEventListener("beforeinstallprompt", function(e){
     e.preventDefault();
     deferredEvent = e;
-    installBtn.style.display = "grid";
+    installBtn.style.display = "inline-flex";
   });
   window.addEventListener("appinstalled", function(){
     installBtn.style.display = "none";
