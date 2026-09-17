@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pequenos da Fé Kids — Brincando e aprendendo sobre o amor de Deus!</title>
+<meta name="description" content="Aplicativo infantil cristão com jogos bíblicos, histórias, missões da fé, estrelas e conquistas. Funciona online e offline.">
+<meta name="theme-color" content="#2f9bf5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<!-- Link para fonte Baloo 2 para visual arredondado e infantil (com fallback local se estiver offline) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --sky:#bfe6ff; --sky2:#e9f6ff; --ink:#3b2a6b; --ink2:#6b6394;
+  --blue:#2f9bf5; --blue2:#1a6fd4;
+  --pink:#f857a6; --pink2:#d62a86;
+  --orange:#ffb01f; --orange2:#f57c1f;
+  --green:#67c33f; --green2:#3d9a2c;
+  --purple:#9a5cf0; --purple2:#6f34cf;
+  --teal:#2fd0c5; --teal2:#189aa8;
+  --yellow:#ffd23f;
+  --card-radius:28px;
+  --shadow:0 10px 24px rgba(60,80,140,.16);
+  --shadow-lg:0 18px 40px rgba(60,80,140,.22);
+  --font:'Baloo 2', 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font); color:var(--ink); overflow-x:hidden;
+  background:
+    radial-gradient(1200px 500px at 12% -8%, #ffffff 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(900px 420px at 88% 4%, #ffffff 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(180deg,#d6efff 0%, #eaf7ff 32%, #f6f2ff 70%, #fff6ea 100%);
+  background-attachment:fixed;
+  min-height:100vh; padding-bottom:120px;
+}
+button{font-family:inherit; cursor:pointer; border:0; background:none; color:inherit;}
+h1,h2,h3,h4{margin:0; line-height:1.12;}
+p{margin:0;}
+.wrap{max-width:1180px; margin:0 auto; padding:0 14px;}
+
+/* nuvens de fundo */
+.cloud{position:fixed; pointer-events:none; z-index:0; opacity:.75;
+  background:#fff; border-radius:100px; filter:blur(.3px);}
+.cloud:before,.cloud:after{content:""; position:absolute; background:#fff; border-radius:50%;}
+.c1{width:120px;height:34px;top:90px;left:4%;animation:float 9s ease-in-out infinite;}
+.c1:before{width:52px;height:52px;top:-24px;left:18px}
+.c1:after{width:38px;height:38px;top:-16px;left:62px}
+.c2{width:90px;height:26px;top:210px;right:5%;animation:float 12s ease-in-out infinite;}
+.c2:before{width:40px;height:40px;top:-18px;left:14px}
+.c2:after{width:30px;height:30px;top:-12px;left:48px}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+/* ============ HEADER ============ */
+header{position:relative; z-index:5; padding:14px 0 4px;}
+.topbar{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.logo{display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; flex:1 1 auto; min-width:0;}
+.logo:active{transform:scale(.97)}
+.lion{
+  width:74px;height:74px;flex:none;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #ffd88a, #f0a132 70%);
+  box-shadow:var(--shadow); display:grid; place-items:center; font-size:38px; position:relative;
+  border:4px solid #fff;
+}
+.lion span{filter:drop-shadow(0 2px 2px rgba(0,0,0,.15))}
+.crown{position:absolute; top:-16px; font-size:26px;}
+.logo-txt{min-width:0}
+.logo-txt h1{font-size:clamp(22px,4.6vw,34px); font-weight:900; letter-spacing:-.5px;
+  background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.kidschip{display:inline-block; background:linear-gradient(180deg,#4cc3ff,#1f97e8); color:#fff; font-size:14px;
+  padding:1px 10px; border-radius:999px; margin-left:6px; vertical-align:3px; box-shadow:0 3px 0 #1373b5;}
+.logo-txt p{font-size:12.5px; font-weight:700; color:var(--ink2); border-bottom:4px solid var(--yellow);
+  display:inline-block; line-height:1.25; border-radius:2px;}
+.stats{display:flex; align-items:center; gap:6px; background:#fff; padding:8px 14px; border-radius:999px; box-shadow:var(--shadow);}
+.stat{display:flex; align-items:center; gap:8px; padding:0 8px;}
+.stat .ic{font-size:26px}
+.stat b{display:block; font-size:20px; line-height:1}
+.stat small{display:block; font-size:11px; color:var(--ink2); font-weight:700}
+.divider{width:1px; height:28px; background:#e7e9f5}
+.iconbtn{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#fff;box-shadow:var(--shadow);transition:.15s;}
+.iconbtn:active{transform:scale(.92)}
+.iconbtn.on{background:linear-gradient(180deg,#a56cff,#6f34cf); color:#fff}
+.avatarbtn{width:60px;height:60px;border-radius:50%;background:linear-gradient(180deg,#bfe6ff,#7fc4ff);
+  border:4px solid #fff; box-shadow:var(--shadow); font-size:28px; display:grid; place-items:center;}
+
+/* ============ HERO ============ */
+.hero{position:relative; z-index:2; margin-top:14px; border-radius:34px; overflow:hidden;
+  background:linear-gradient(180deg,#8fd6ff,#5cb8f7 55%,#2f93e0); box-shadow:var(--shadow-lg);
+  display:grid; grid-template-columns:1.2fr 1fr; align-items:stretch; min-height:420px;}
+.hero-banner-img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:right center; z-index:0;}
+.hero-content{position:relative; z-index:2; padding:30px 22px; display:flex; flex-direction:column; justify-content:center; background:linear-gradient(90deg, rgba(143,214,255,0.98) 0%, rgba(143,214,255,0.85) 40%, rgba(143,214,255,0) 100%);}
+.hero-card{position:relative; background:rgba(255,255,255,.94); border-radius:26px; padding:24px; box-shadow:var(--shadow); max-width:480px;}
+.hero-card h2{font-size:clamp(22px,3.8vw,32px); font-weight:900}
+.hero-card p{margin-top:8px; color:var(--ink2); font-weight:700; font-size:clamp(15px,2.1vw,18px)}
+.btn-play{margin-top:20px; display:inline-flex; align-items:center; gap:10px; padding:16px 28px; border-radius:999px;
+  background:linear-gradient(180deg,#ffd44f,#f5a01c); color:#5a3600; font-weight:900; font-size:20px;
+  box-shadow:0 6px 0 #cf7d0d, var(--shadow); transition:.12s; width:fit-content;}
+.btn-play:active{transform:translateY(4px); box-shadow:0 2px 0 #cf7d0d}
+.ark-side{position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:center; padding-bottom:30px; pointer-events:none;}
+.verse{background:#fff8e1; border:3px dashed #f0c15a; border-radius:22px; padding:12px 14px;
+  font-size:13.5px; font-weight:700; color:#7a5a12; max-width:280px; box-shadow:var(--shadow); backdrop-filter:blur(4px); pointer-events:auto;}
+.verse small{display:block; margin-top:6px; color:#a98328}
+
+@media (max-width: 768px) {
+  .hero{grid-template-columns:1fr; min-height:420px; display:flex; flex-direction:column;}
+  .hero-banner-img{object-position: 85% center;}
+  .hero-content{background:linear-gradient(180deg, rgba(143,214,255,0.95) 0%, rgba(143,214,255,0.7) 45%, rgba(143,214,255,0) 100%); padding:15px 14px; align-items:center; text-align:center; flex: 1; justify-content: flex-start;}
+  .hero-card{max-width:96%; padding:14px; margin-top: 5px;}
+  .hero-card h2{font-size: 20px;}
+  .hero-card p{font-size: 13px; margin-top: 5px;}
+  .btn-play{margin-top: 10px; padding: 10px 20px; font-size: 16px; box-shadow:0 4px 0 #cf7d0d, var(--shadow);}
+  .ark-side{padding-bottom:10px; margin-top:-30px; flex: 0;}
+  .verse{font-size:11px; max-width:92%; margin:0 auto; padding: 6px 8px;}
+}
+
+/* ============ SECTIONS / CARDS ============ */
+.section-head{display:flex; align-items:center; gap:12px; margin:26px 4px 14px; flex-wrap:wrap}
+.section-head .badge{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:26px;
+  background:linear-gradient(180deg,#a56cff,#6f34cf); color:#fff; box-shadow:var(--shadow)}
+.section-head h3{font-size:clamp(22px,3.4vw,30px); font-weight:900}
+.section-head p{font-size:14px; color:var(--ink2); font-weight:700}
+.pill{margin-left:auto; background:#fff; border-radius:999px; padding:12px 18px; font-weight:900; box-shadow:var(--shadow)}
+
+.games{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; position:relative; z-index:2;}
+.gcard{position:relative; border-radius:var(--card-radius); padding:18px; min-height:200px; color:#fff; text-align:left;
+  box-shadow:var(--shadow-lg); overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; transition:.15s;}
+.gcard:hover{transform:translateY(-4px)}
+.gcard:active{transform:scale(.98)}
+.gcard .art{position:absolute; left:10px; top:10px; font-size:56px; filter:drop-shadow(0 6px 6px rgba(0,0,0,.2)); line-height:1}
+.gcard .ic{position:absolute; right:14px; top:14px; width:46px;height:46px;border-radius:50%;
+  background:rgba(255,255,255,.25); display:grid; place-items:center; font-size:22px}
+.gcard h4{font-size:24px; font-weight:900; text-shadow:0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.2)}
+.gcard p{font-size:14px; font-weight:700; opacity:.95; margin-top:4px; text-shadow:0 1px 4px rgba(0,0,0,.25)}
+.gcard .go{position:absolute; right:14px; bottom:14px; width:38px;height:38px;border-radius:50%;background:#fff;color:#333;
+  display:grid;place-items:center;font-weight:900; box-shadow:var(--shadow)}
+.g-blue{background:linear-gradient(160deg,var(--blue),var(--blue2))}
+.g-pink{background:linear-gradient(160deg,var(--pink),var(--pink2))}
+.g-orange{background:linear-gradient(160deg,var(--orange),var(--orange2))}
+.g-green{background:linear-gradient(160deg,var(--green),var(--green2))}
+.g-purple{background:linear-gradient(160deg,var(--purple),var(--purple2))}
+.g-teal{background:linear-gradient(160deg,var(--teal),var(--teal2))}
+
+/* ---- cenas ilustradas dos cards (apenas visual) ---- */
+.gcard{min-height:225px}
+.gcard .scene{position:absolute; inset:0; pointer-events:none; z-index:0}
+.gcard .scene svg{width:100%; height:100%; display:block}
+.gcard .shade{position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:linear-gradient(180deg,rgba(255,255,255,0.2) 0%,rgba(255,255,255,0) 50%,rgba(0,0,0,0.1) 100%)}
+.gcard .art{z-index:2; left:12px; top:12px; font-size:0}
+.gcard .art svg{width:104px; height:104px; display:block; filter:drop-shadow(0 8px 10px rgba(0,0,0,.22))}
+.gcard .ic{z-index:2; backdrop-filter:blur(2px); box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+.gcard .txt{position:relative; z-index:2}
+.gcard .go{z-index:2}
+.gcard h4{text-shadow:0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.2)}
+.gcard p{text-shadow:0 1px 6px rgba(0,0,0,.38)}
+
+.quick{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:16px; position:relative; z-index:2}
+.qcard{background:#fff; border-radius:22px; padding:14px 16px; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow); text-align:left}
+.qcard span.e{font-size:30px}
+.qcard b{display:block; font-size:16px}
+.qcard small{color:var(--ink2); font-weight:700}
+.qcard i{margin-left:auto; font-style:normal; color:var(--ink2); font-weight:900}
+
+/* ============ VIEWS ============ */
+.view{display:none; position:relative; z-index:2}
+.view.active{display:block; animation:fade .25s ease}
+@keyframes fade{from{opacity:0; transform:translateY(8px)}to{opacity:1;transform:none}}
+.panel{background:#fff; border-radius:28px; padding:18px; box-shadow:var(--shadow); margin-top:14px}
+.backbtn{display:inline-flex; align-items:center; gap:8px; background:#fff; border-radius:999px; padding:12px 20px;
+  font-weight:900; box-shadow:var(--shadow); margin-top:14px}
+.big{font-size:20px; font-weight:900; margin-bottom:10px}
+.muted{color:var(--ink2); font-weight:700; font-size:14px}
+
+/* botões genéricos */
+.btn{display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius:999px; font-weight:900;
+  background:linear-gradient(180deg,#8fd0ff,#3d9ef0); color:#fff; box-shadow:0 5px 0 #2a7bc0; margin:4px}
+.btn:active{transform:translateY(3px); box-shadow:0 2px 0 #2a7bc0}
+.btn.y{background:linear-gradient(180deg,#ffd44f,#f5a01c); color:#5a3600; box-shadow:0 5px 0 #cf7d0d}
+.btn.y:active{box-shadow:0 2px 0 #cf7d0d}
+.btn.g{background:linear-gradient(180deg,#8be06a,#4faf32); box-shadow:0 5px 0 #3a8626}
+.btn.g:active{box-shadow:0 2px 0 #3a8626}
+.btn.p{background:linear-gradient(180deg,#c79bff,#8b52e6); box-shadow:0 5px 0 #6a34c0}
+.btn.p:active{box-shadow:0 2px 0 #6a34c0}
+.btn.gray{background:linear-gradient(180deg,#e6e9f5,#cfd5e8); color:var(--ink); box-shadow:0 5px 0 #b3bad2}
+.btn.gray:active{box-shadow:0 2px 0 #b3bad2}
+
+/* jogos */
+.animals{display:grid; grid-template-columns:repeat(7,1fr); gap:12px}
+@media (max-width: 900px) {
+  .animals{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+}
+.animal{background:linear-gradient(180deg,#eaf7ff,#cfe9ff); border-radius:24px; padding:14px 8px; box-shadow:var(--shadow); transition:.15s}
+.animal:active{transform:scale(.94)}
+.animal .e{font-size:44px; display:block}
+.animal b{font-size:15px}
+.pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.22) rotate(-6deg)}100%{transform:scale(1)}}
+
+.opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:12px}
+.opt{background:linear-gradient(180deg,#fff,#eef4ff); border-radius:24px; padding:20px 10px; font-size:52px; box-shadow:var(--shadow); transition:.12s}
+.opt:active{transform:scale(.94)}
+.opt.num{font-size:38px; font-weight:900; color:var(--ink)}
+.opt.right{background:linear-gradient(180deg,#b9f0a1,#63c93f); animation:pop .5s}
+.opt.wrong{background:linear-gradient(180deg,#ffd0d0,#ff9c9c)}
+.countbox{background:linear-gradient(180deg,#f2fbff,#dff1ff); border-radius:24px; padding:18px; font-size:44px; line-height:1.5; word-break:break-word}
+
+.mem{display:grid; gap:10px}
+.card3d{aspect-ratio:1/1; border-radius:20px; display:grid; place-items:center; font-size:min(9vw,40px);
+  background:linear-gradient(160deg,#a56cff,#6f34cf); color:#fff; box-shadow:var(--shadow); transition:.2s; user-select:none}
+.card3d.open{background:linear-gradient(160deg,#fff,#e6f2ff)}
+.card3d.done{background:linear-gradient(160deg,#b9f0a1,#63c93f)}
+
+.palette{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:12px}
+.swatch{width:44px;height:44px;border-radius:50%; box-shadow:var(--shadow); border:4px solid #fff; transition:.12s}
+.swatch.sel{transform:scale(1.18); border-color:var(--ink)}
+#paintStage{width:100%; max-width:520px; margin:0 auto; display:block; background:#fff; border-radius:24px; box-shadow:var(--shadow)}
+#paintStage .region{cursor:pointer; transition:fill .15s}
+.thumbs{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:16px}
+.thumb{background:linear-gradient(180deg,#fff,#eef6ff); border-radius:22px; padding:18px 10px; box-shadow:var(--shadow); font-size:48px; border:none; cursor:pointer; transition:.15s}
+.thumb:hover{transform:translateY(-3px)}
+.thumb:active{transform:scale(.95)}
+.thumb b{display:block; font-size:14px; margin-top:8px; font-weight:800; color:var(--ink)}
+
+@media (max-width:720px){
+  .thumbs{grid-template-columns:repeat(2,1fr); gap:12px}
+  .thumb{padding:14px 8px; font-size:42px}
+}
+
+.mission{display:flex; align-items:center; gap:12px; background:linear-gradient(180deg,#fff,#f3f7ff);
+  border-radius:22px; padding:14px; box-shadow:var(--shadow); margin-bottom:12px; text-align:left}
+.mission .e{font-size:34px}
+.mission b{font-size:16px}
+.mission.doneM{background:linear-gradient(180deg,#e6ffd9,#c6f0ae)}
+
+.list{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px}
+.storycard{position:relative; overflow:hidden; border-radius:24px; padding:16px; color:#fff; text-align:left;
+  box-shadow:var(--shadow-lg); min-height:180px; display:flex; flex-direction:column; justify-content:flex-end; transition:.15s}
+.storycard:hover{transform:translateY(-4px)}
+.storycard:active{transform:scale(.98)}
+.storycard .scene{position:absolute; inset:0; pointer-events:none; z-index:0}
+.storycard .scene svg{width:100%; height:100%; display:block}
+.storycard .shade{position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:linear-gradient(180deg,rgba(255,255,255,0.15) 0%,rgba(255,255,255,0) 50%,rgba(0,0,0,0.1) 100%)}
+.storycard .cap{position:relative; z-index:2}
+.storycard .e{font-size:40px}
+.storycard b{font-size:19px; text-shadow:0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.2)}
+.storycard small{opacity:.95; font-weight:700; text-shadow:0 1px 6px rgba(0,0,0,.42)}
+
+.medals{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:14px}
+.medal{background:linear-gradient(180deg,#fff,#f2f5ff); border-radius:24px; padding:16px 10px; box-shadow:var(--shadow); text-align:center}
+.medal.locked{filter:grayscale(1); opacity:.55}
+.medal .e{font-size:40px; display:block}
+.medal b{font-size:14px; display:block; margin-top:6px}
+.medal small{font-size:11px; color:var(--ink2); font-weight:700}
+
+.avatars{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+.av{width:64px;height:64px;border-radius:50%; background:linear-gradient(180deg,#d8ecff,#9fd0ff); font-size:32px;
+  display:grid; place-items:center; border:4px solid #fff; box-shadow:var(--shadow)}
+.av.sel{border-color:var(--purple); transform:scale(1.08)}
+input[type=text],input[type=number]{width:100%; padding:14px 16px; border-radius:18px; border:3px solid #e3e8f7;
+  font-family:inherit; font-size:16px; font-weight:700; color:var(--ink); background:#fbfcff}
+input:focus{outline:none; border-color:var(--purple)}
+label.f{display:block; font-weight:900; margin:12px 4px 6px}
+
+.progressbar{height:18px; border-radius:999px; background:#e9edfa; overflow:hidden; box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
+.progressbar i{display:block; height:100%; background:linear-gradient(90deg,#ffd44f,#f5a01c); border-radius:999px; transition:width .5s}
+.kv{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
+.kvi{background:linear-gradient(180deg,#fff,#f2f6ff); border-radius:20px; padding:14px; box-shadow:var(--shadow); text-align:center}
+.kvi b{font-size:24px; display:block}
+.kvi small{color:var(--ink2); font-weight:800}
+
+/* ============ BOTTOM NAV ============ */
+nav.bottom{position:fixed; left:0; right:0; bottom:0; z-index:50; padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  display:flex; justify-content:center; pointer-events:none;}
+nav.bottom .inner{pointer-events:auto; display:flex; gap:4px; background:#fff; border-radius:30px; padding:8px;
+  box-shadow:var(--shadow-lg); width:100%; max-width:760px;}
+nav.bottom button{flex:1; border-radius:22px; padding:8px 2px; display:grid; place-items:center; gap:2px; font-weight:800; font-size:11.5px; color:var(--ink2)}
+nav.bottom button .e{font-size:22px}
+nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); color:#6b4400; box-shadow:0 4px 0 #e2a410}
+
+/* ============ MODAIS / TOASTS ============ */
+.modal{position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:16px;
+  background:rgba(35,25,70,.5); backdrop-filter:blur(3px)}
+.modal.show{display:flex}
+.modal .box{background:#fff; border-radius:30px; padding:20px; width:100%; max-width:460px; max-height:88vh; overflow:auto; box-shadow:var(--shadow-lg)}
+.modal .box h3{font-size:22px; margin-bottom:6px}
+.toast{position:fixed; left:50%; top:18px; transform:translateX(-50%) translateY(-30px); z-index:200; opacity:0;
+  background:linear-gradient(180deg,#fff,#fff6d8); border:3px solid var(--yellow); border-radius:999px; padding:12px 22px;
+  font-weight:900; box-shadow:var(--shadow-lg); transition:.3s; pointer-events:none; text-align:center; max-width:92vw}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+.levelup{position:fixed; inset:0; z-index:190; display:none; place-items:center; pointer-events:none}
+.levelup.show{display:grid}
+.levelup div{background:linear-gradient(180deg,#ffe07a,#f5a01c); color:#6b3d00; font-size:clamp(24px,6vw,44px); font-weight:900;
+  padding:24px 34px; border-radius:34px; box-shadow:var(--shadow-lg); animation:pop .6s ease}
+.confetti{position:fixed; z-index:180; pointer-events:none; font-size:22px; animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg); opacity:0}}
+
+/* ============ RESPONSIVO ============ */
+@media (max-width:1023px){
+  .hero{grid-template-columns:1fr}
+  .games{grid-template-columns:repeat(2,1fr)}
+  .quick{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  body{padding-bottom:110px}
+  .stats{order:3; width:100%; justify-content:center; padding:8px}
+  .logo{flex:1 1 100%}
+  .lion{width:62px;height:62px;font-size:30px}
+  .hero{padding:14px; border-radius:28px}
+  .verse{max-width:100%}
+  /* cards de jogos: lista vertical horizontal-card (referência mobile) */
+  .games{grid-template-columns:1fr; gap:12px}
+  .gcard{min-height:112px; display:grid; grid-template-columns:112px 1fr 44px; align-items:center; gap:12px;
+    padding:12px; border-radius:26px}
+  .gcard .scene{opacity:.5}
+  .gcard .shade{background:linear-gradient(90deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.15) 100%)}
+  .gcard .art{position:static; font-size:0; text-align:center; z-index:2}
+  .gcard .art svg{width:104px; height:104px; margin:0 auto}
+  .gcard .ic{display:none}
+  .gcard .txt{grid-column:2}
+  .gcard h4{font-size:19px}
+  .gcard p{font-size:12.5px}
+  .gcard .go{position:static; grid-column:3; grid-row:1; width:36px;height:36px; justify-self:end; align-self:center; margin-top:0}
+  .gcard .rightcol{grid-column:3; display:grid; gap:8px; justify-items:end}
+  .storycard{min-height:170px}
+  .section-head .pill{margin-left:auto}
+}
+@media (max-width:380px){
+  .stat b{font-size:17px}
+  .iconbtn{width:46px;height:46px}
+  .avatarbtn{width:52px;height:52px;font-size:24px}
+  .btn{padding:11px 16px; font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="cloud c1"></div><div class="cloud c2"></div>
+
+<!-- ================= CADASTRO INICIAL ================= -->
+<section id="v-cadastro" class="view" style="display:none; position:fixed; inset:0; z-index:9999; background:linear-gradient(180deg,#d6efff 0%,#eaf7ff 100%); overflow-y:auto; padding:20px 14px 40px; pointer-events:auto;">
+  <!-- Fundo decorativo infantil -->
+  <div class="cad-bg" style="position: fixed; inset: 0px; z-index: -1; pointer-events: none; overflow: hidden; display: none;">
+    <!-- Céu e Nuvens -->
+    <div style="position:absolute; top:40px; left:10%; width:140px; height:45px; background:#fff; border-radius:100px; opacity:0.8; filter:blur(1px);"></div>
+    <div style="position:absolute; top:120px; right:15%; width:100px; height:35px; background:#fff; border-radius:100px; opacity:0.7; filter:blur(1px);"></div>
+    <div style="position:absolute; top:200px; left:25%; width:80px; height:30px; background:#fff; border-radius:100px; opacity:0.6; filter:blur(1px);"></div>
+    
+    <!-- Sol suave -->
+    <div style="position:absolute; top:30px; right:5%; width:80px; height:80px; background:radial-gradient(circle, #fff7d6 0%, #ffeb99 60%, rgba(255,235,153,0) 100%); border-radius:50%; box-shadow:0 0 40px #fff7d6;"></div>
+    
+    <!-- Natureza inferior -->
+    <div style="position:absolute; bottom:0; left:0; right:0; height:120px; background:linear-gradient(180deg, #8ad6a0 0%, #67c33f 100%); border-radius:100% 100% 0 0 / 40px 40px 0 0; transform:scaleX(1.2);"></div>
+    <div style="position:absolute; bottom:10px; left:-10%; width:60%; height:80px; background:#a5e6b7; border-radius:100% 100% 0 0 / 30px 30px 0 0; opacity:0.6;"></div>
+    <div style="position:absolute; bottom:0; right:-5%; width:50%; height:100px; background:#7bcc8f; border-radius:100% 100% 0 0 / 35px 35px 0 0; opacity:0.8;"></div>
+    
+    <!-- Pequenas flores simplificadas (SVG inline para ser leve e offline) -->
+    <div style="position:absolute; bottom:40px; left:15%; font-size:24px;">🌸</div>
+    <div style="position:absolute; bottom:25px; left:35%; font-size:20px;">🌼</div>
+    <div style="position:absolute; bottom:50px; right:20%; font-size:22px;">🌺</div>
+    <div style="position:absolute; bottom:30px; right:40%; font-size:18px;">🌸</div>
+    
+    <!-- Arco-íris discreto -->
+    <svg style="position:absolute; top:60px; left:5%; width:200px; height:100px; opacity:0.15; filter:blur(1px);" viewBox="0 0 100 50">
+      <path d="M10,50 Q50,0 90,50" fill="none" stroke="#ff8fb1" stroke-width="4"></path>
+      <path d="M15,50 Q50,5 85,50" fill="none" stroke="#ffdb8f" stroke-width="4"></path>
+      <path d="M20,50 Q50,10 80,50" fill="none" stroke="#8fe6ff" stroke-width="4"></path>
+    </svg>
+  </div>
+
+  <div class="wrap" style="max-width:500px; text-align:center; position:relative; z-index:1;">
+    
+    <div style="margin:20px 0 30px;">
+      <div class="lion" style="margin:0 auto; width:100px; height:100px; font-size:52px; border-width:6px;">
+        <div class="crown" style="top:-22px; font-size:36px;">👑</div><span>🦁</span>
+      </div>
+      <h1 style="font-family:var(--font); font-weight:900; font-size:36px; margin-top:15px; background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;">
+        Pequenos da Fé<span class="kidschip" style="font-size:16px; padding:2px 12px; vertical-align:middle;">Kids</span>
+      </h1>
+    </div>
+
+    <div class="panel" style="margin-top:0; padding:24px; border-radius:32px; box-shadow:var(--shadow-lg);">
+      <h2 style="font-size:24px; font-weight:900; margin-bottom:10px; color:var(--ink);">Olá, seja bem-vindo<br>ao Pequenos da Fé! 💜</h2>
+      
+      <div style="margin-top:25px; text-align:left;">
+        <label class="f" style="margin-bottom:8px;">Como você gostaria de ser chamado?</label>
+        <input type="text" id="cadName" placeholder="Digite seu nome aqui" style="border-width:2px; font-size:18px; padding:16px;">
+      </div>
+
+      <div style="margin-top:25px; text-align:left;">
+        <label class="f" style="margin-bottom:12px;">Você é menino ou menina?</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <button id="cadBoy" class="opt-card" style="padding:15px; border-radius:24px; border:3px solid #eee; background:#fff; cursor:pointer; position:relative; transition:0.2s;">
+            <div style="font-size:50px; margin-bottom:5px;">👦</div>
+            <b style="font-size:18px;">Menino</b>
+            <div class="check-mark" style="display:none; position:absolute; top:8px; right:8px; background:var(--blue); color:#fff; width:22px; height:22px; border-radius:50%; font-size:14px; line-height:22px; text-align:center;">✓</div>
+          </button>
+          <button id="cadGirl" class="opt-card" style="padding:15px; border-radius:24px; border:3px solid #eee; background:#fff; cursor:pointer; position:relative; transition:0.2s;">
+            <div style="font-size:50px; margin-bottom:5px;">👧</div>
+            <b style="font-size:18px;">Menina</b>
+            <div class="check-mark" style="display:none; position:absolute; top:8px; right:8px; background:var(--pink); color:#fff; width:22px; height:22px; border-radius:50%; font-size:14px; line-height:22px; text-align:center;">✓</div>
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top:25px; text-align:left;">
+        <label class="f" style="margin-bottom:8px;">Qual é a sua idade? 🎂</label>
+        <select id="cadAge" style="width:100%; padding:14px 16px; border-radius:18px; border:2px solid #e3e8f7; font-family:inherit; font-size:18px; font-weight:700; color:var(--ink); background:#fbfcff; outline:none; cursor:pointer;">
+          <option value="" disabled="" selected="">Selecione sua idade</option>
+          <option value="1">1 aninho</option>
+          <option value="2">2 aninhos</option>
+          <option value="3">3 aninhos</option>
+          <option value="4">4 aninhos</option>
+          <option value="5">5 aninhos</option>
+          <option value="6">6 aninhos</option>
+          <option value="7">7 aninhos</option>
+          <option value="8">8 aninhos</option>
+          <option value="9">9 aninhos</option>
+          <option value="10">10 aninhos</option>
+          <option value="11">11 aninhos</option>
+          <option value="12">12 aninhos</option>
+        </select>
+      </div>
+
+      <div style="margin-top:35px;">
+        <button id="cadBtn" class="btn g" style="width:100%; padding:18px; font-size:22px; justify-content:center;">Cadastrar 🎉</button>
+      </div>
+    </div>
+    
+    <div style="margin-top:30px; opacity:0.7; font-weight:700; font-size:14px; color:var(--ink2);">
+      💜 Aqui cada criança é especial!<br>Vamos aprender e crescer juntos na presença de Deus!
+    </div>
+  </div>
+</section>
+
+<header id="mainHeader" style="display: block;">
+  <div class="wrap topbar">
+    <div class="logo" id="logo" title="Pequenos da Fé Kids">
+      <div class="lion"><div class="crown">👑</div><span>🦁</span></div>
+      <div class="logo-txt">
+        <h1>Pequenos da Fé<span class="kidschip">Kids</span></h1>
+        <p>Brincando e aprendendo sobre o amor de Deus!</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="ic">⭐</span><div><small>Minhas Estrelas</small><b id="starsTop">0</b></div></div>
+      <div class="divider"></div>
+      <div class="stat"><span class="ic">❤️</span><div><small>Nível</small><b id="levelTop">1</b></div></div>
+    </div>
+    <button class="iconbtn" id="musicBtn" aria-label="Música">🎵</button>
+    <button class="iconbtn" id="cfgBtn" aria-label="Configurações">⚙️</button>
+    <button class="avatarbtn" id="avatarBtn" aria-label="Perfil">👦</button>
+  </div>
+</header>
+<main class="wrap" id="mainContent" style="display: block;">
+
+
+  <!-- ================= HOME ================= -->
+  <section class="view active" id="v-home">
+    <div class="hero">
+      <img src="assets/hero.webp" class="hero-banner-img" alt="Arca de Noé com Animais" loading="eager">
+      <div class="hero-content">
+        <div class="hero-card">
+          <h2>Bem-vindo(a), <span id="heroName">pequeno(a) aventureiro(a)</span>! 💛</h2>
+          <p>Vamos brincar, aprender e crescer juntos na Palavra de Deus?</p>
+          <button class="btn-play" id="continueBtn">▶ Continuar Jogando ›</button>
+        </div>
+      </div>
+      <div class="ark-side">
+        <div class="verse">“Deixem as crianças virem a mim, pois o Reino de Deus pertence aos que são como elas.”
+          <small>Lucas 18:16</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="badge">🎮</div>
+      <div><h3>Nossos Jogos</h3><p>Aprender a Bíblia nunca foi tão divertido!</p></div>
+      <button class="pill" data-nav="jogar">Ver todos ›</button>
+    </div>
+    <div class="games" id="gamesGrid"></div>
+
+    <div class="quick">
+      <button class="qcard" data-nav="historias"><span class="e">📖</span><div><b>Histórias Bíblicas</b><small>Leia e aprenda com a Bíblia</small></div><i>›</i></button>
+      <button class="qcard" data-nav="conquistas"><span class="e">🏅</span><div><b>Meu Álbum</b><small>Colecione suas conquistas</small></div><i>›</i></button>
+      <button class="qcard" data-nav="familias"><span class="e">❤️</span><div><b>Para as Famílias</b><small>Dicas e conteúdos cristãos</small></div><i>›</i></button>
+    </div>
+  </section>
+
+  <!-- ================= JOGAR ================= -->
+  <section class="view" id="v-jogar">
+    <div class="section-head"><div class="badge">🎮</div><div><h3>Nossos Jogos</h3><p>Escolha uma brincadeira!</p></div></div>
+    <div class="games" id="gamesGrid2"></div>
+  </section>
+
+  <!-- ============== JOGO: SONS DE ANIMAIS ============== -->
+  <section class="view" id="v-sons">
+    <button class="backbtn" data-nav="jogar">‹ Voltar</button>
+    <div class="panel">
+      <div class="big">🔊 Sons de Animais</div>
+      <p class="muted">Toque em um animal da Arca para ouvir o som dele!</p>
+      <div id="animalName" style="text-align:center;font-size:22px;font-weight:900;margin:12px 0;min-height:28px"></div>
+      <div class="animals" id="animalsGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============== JOGO: PINTANDO A BÍBLIA ============== -->
+  <section class="view" id="v-pintar">
+    <button class="backbtn" id="paintBack">‹ Voltar</button>
+    <div class="panel" id="paintPick">
+      <div class="big">🎨 Pintando a Bíblia</div>
+      <p class="muted">Escolha um desenho para colorir:</p>
+      <div class="thumbs" id="paintThumbs" style="margin-top:12px"></div>
+    </div>
+    <div class="panel" id="paintArea" style="display:none">
+      <div class="big" id="paintTitle">Pintura</div>
+      <svg id="paintStage" viewBox="0 0 400 400"></svg>
+      <div class="palette" id="palette"></div>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn gray" id="undoBtn">↩ Desfazer</button>
+        <button class="btn gray" id="clearBtn">🧽 Limpar</button>
+        <button class="btn" id="newPaintBtn">🖼️ Nova pintura</button>
+        <button class="btn g" id="finishPaintBtn">✅ Concluir</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== JOGO: ONDE ESTÁ ============== -->
+  <section class="view" id="v-onde">
+    <button class="backbtn" data-nav="jogar">‹ Voltar</button>
+    <div class="panel" style="text-align:center">
+      <div class="big">🔍 Onde Está?</div>
+      <p id="ondeQ" style="font-size:22px;font-weight:900;margin:10px 0">Encontre o Peixe!</p>
+      <div class="opts" id="ondeOpts"><button class="opt">❤️</button><button class="opt">🍞</button><button class="opt">🐟</button><button class="opt">🐑</button></div>
+      <p class="muted" id="ondeMsg" style="margin-top:14px;min-height:22px"></p>
+    </div>
+  </section>
+
+  <!-- ============== JOGO: CONTE E TOQUE ============== -->
+  <section class="view" id="v-contar">
+    <button class="backbtn" data-nav="jogar">‹ Voltar</button>
+    <div class="panel" style="text-align:center">
+      <div class="big">🔢 Conte e Toque</div>
+      <div class="countbox" id="countBox">❤️ ❤️ </div>
+      <p id="countQ" style="font-size:20px;font-weight:900;margin:12px 0">Quantos(as) corações você consegue ver?</p>
+      <div class="opts" id="countOpts"><button class="opt num">1</button><button class="opt num">4</button><button class="opt num">3</button><button class="opt num">2</button></div>
+      <p class="muted" id="countMsg" style="margin-top:14px;min-height:22px"></p>
+    </div>
+  </section>
+
+  <!-- ============== JOGO: MEMÓRIA ============== -->
+  <section class="view" id="v-memoria">
+    <button class="backbtn" data-nav="jogar">‹ Voltar</button>
+    <div class="panel" style="text-align:center">
+      <div class="big">🧠 Jogo da Memória</div>
+      <div>
+        <button class="btn" data-diff="4">Fácil</button>
+        <button class="btn p" data-diff="6">Médio</button>
+        <button class="btn g" data-diff="8">Difícil</button>
+      </div>
+      <p class="muted" id="memInfo" style="margin:10px 0">Encontre os 4 pares!</p>
+      <div class="mem" id="memGrid" style="grid-template-columns: repeat(4, 1fr);"><div class="card3d" data-s="🐟">?</div><div class="card3d" data-s="👑">?</div><div class="card3d" data-s="🦁">?</div><div class="card3d" data-s="🦁">?</div><div class="card3d" data-s="🐟">?</div><div class="card3d" data-s="⛵">?</div><div class="card3d" data-s="⛵">?</div><div class="card3d" data-s="👑">?</div></div>
+    </div>
+  </section>
+
+  <!-- ============== JOGO: MISSÕES ============== -->
+  <section class="view" id="v-missoes">
+    <button class="backbtn" data-nav="jogar">‹ Voltar</button>
+    <div class="panel">
+      <div class="big">🏆 Missões da Fé</div>
+      <p class="muted">Pequenos desafios com grandes ensinamentos. Conclua e ganhe estrelas!</p>
+      <div id="missionsList" style="margin-top:14px"><div class="mission"><span class="e">💛</span><div style="flex:1"><b>Ajude alguém hoje</b><div class="muted">Faça algo bom por uma pessoa da sua casa.</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">🙏</span><div style="flex:1"><b>Faça uma oração antes de dormir</b><div class="muted">Converse com Deus sobre o seu dia.</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">❤️</span><div style="flex:1"><b>Diga algo carinhoso</b><div class="muted">Fale palavras bonitas para alguém que você ama.</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">📖</span><div style="flex:1"><b>Aprenda um versículo</b><div class="muted">“Deus é amor.” 1 João 4:8</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">😊</span><div style="flex:1"><b>Agradeça por três coisas</b><div class="muted">Diga a Deus três coisas boas do seu dia.</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">🤝</span><div style="flex:1"><b>Compartilhe algo</b><div class="muted">Divida um brinquedo ou um lanchinho.</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">🧹</span><div style="flex:1"><b>Ajude a arrumar a casa</b><div class="muted">Guarde seus brinquedos sem ninguém pedir.</div></div><button class="btn g">Missão concluída</button></div><div class="mission"><span class="e">🌻</span><div style="flex:1"><b>Cuide da natureza</b><div class="muted">Regue uma plantinha e agradeça pela Criação.</div></div><button class="btn g">Missão concluída</button></div></div>
+    </div>
+  </section>
+
+  <!-- ================= HISTÓRIAS ================= -->
+  <section class="view" id="v-historias">
+    <div class="section-head"><div class="badge">📖</div><div><h3>Histórias Bíblicas</h3><p>Leia e aprenda com a Bíblia</p></div></div>
+    <div class="list" id="storyList"></div>
+  </section>
+  <section class="view" id="v-historia">
+    <button class="backbtn" data-nav="historias">‹ Voltar</button>
+    <div class="panel" style="text-align:center">
+      <div style="font-size:70px" id="stEmoji"></div>
+      <div class="big" id="stTitle"></div>
+      <p id="stText" style="font-size:18px;font-weight:700;line-height:1.5;margin:14px 0;min-height:110px"></p>
+      
+
+      <p class="muted" id="stPage"></p>
+      <div style="margin-top:10px">
+        <button class="btn gray" id="stPrev">‹ Anterior</button>
+        <button class="btn y" id="stNext">Próximo ›</button>
+      </div>
+      <div style="text-align:center;margin-top:20px;border-top:2px dashed #eee;padding-top:20px">
+        <button class="btn" id="logoutBtn" style="background:linear-gradient(180deg,#ff8fb1,#ff5e8e); box-shadow:0 5px 0 #d94b75; width:100%; max-width:200px">🚪 Sair</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONQUISTAS ================= -->
+  <section class="view" id="v-conquistas">
+    <div class="section-head"><div class="badge">🏅</div><div><h3>Meu Álbum</h3><p>Colecione suas conquistas</p></div></div>
+    <div class="panel">
+      <div class="kv" style="margin-bottom:16px">
+        <div class="kvi"><b id="kStars">0</b><small>Estrelas</small></div>
+        <div class="kvi"><b id="kLevel">1</b><small>Nível</small></div>
+        <div class="kvi"><b id="kGames">0</b><small>Jogos feitos</small></div>
+        <div class="kvi"><b id="kMedals">0</b><small>Medalhas</small></div>
+      </div>
+      <div class="medals" id="medalsGrid"><div class="medal locked"><span class="e">🔒</span><b>Primeira Estrela</b><small>Ganhe sua 1ª estrela</small></div><div class="medal locked"><span class="e">🔒</span><b>Explorador da Arca</b><small>Ouça 6 animais</small></div><div class="medal locked"><span class="e">🔒</span><b>Pequeno Artista</b><small>Conclua 1 pintura</small></div><div class="medal locked"><span class="e">🔒</span><b>Mestre da Memória</b><small>Vença a memória 2 vezes</small></div><div class="medal locked"><span class="e">🔒</span><b>Contador da Fé</b><small>Acerte 5 desafios</small></div><div class="medal locked"><span class="e">🔒</span><b>Pequeno Ajudante</b><small>Conclua 3 missões</small></div><div class="medal locked"><span class="e">🔒</span><b>Leitor da Bíblia</b><small>Leia 3 histórias</small></div><div class="medal locked"><span class="e">🔒</span><b>Estrela Brilhante</b><small>Chegue a 100 estrelas</small></div><div class="medal locked"><span class="e">🔒</span><b>Coroa da Fé</b><small>Alcance o nível 5</small></div></div>
+    </div>
+  </section>
+
+  <!-- ================= PERFIL ================= -->
+  <section class="view" id="v-perfil">
+    <div class="section-head"><div class="badge">👤</div><div><h3>Meu Perfil</h3><p>Tudo fica salvo só no seu aparelho</p></div></div>
+    <div class="panel">
+      <div style="text-align:center;font-size:70px" id="perfAvatar">👦</div>
+      <label class="f">Meu nome</label>
+      <input type="text" id="pName" maxlength="18" placeholder="Escreva seu nome">
+      <label class="f">Minha idade (opcional)</label>
+      <input type="number" id="pAge" min="1" max="17" placeholder="Ex: 6">
+      <label class="f">Escolha seu avatar</label>
+      <div class="avatars" id="avatarPick"></div>
+      <div style="text-align:center;margin-top:16px"><button class="btn g" id="saveProfile">💾 Salvar Perfil</button></div>
+      <div style="margin-top:20px">
+        <p class="muted">Progresso para o próximo nível</p>
+        <div class="progressbar" style="margin-top:8px"><i id="progBar" style="width:0%"></i></div>
+        <p class="muted" id="progTxt" style="margin-top:6px">0 de 25 estrelas para o nível 2</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAMÍLIAS ================= -->
+  <section class="view" id="v-familias">
+    <div class="section-head"><div class="badge">❤️</div><div><h3>Para as Famílias</h3><p>Acompanhe e caminhe junto</p></div></div>
+    <div class="panel">
+      <div class="big">Resumo das atividades</div>
+      <div class="kv" id="famStats" style="margin-top:12px"></div>
+      <div class="big" style="margin-top:20px">Histórico recente</div>
+      <div id="famHistory" class="muted" style="margin-top:8px"></div>
+      <div class="big" style="margin-top:20px">Atividades em família 💛</div>
+      <div id="famTips" class="muted" style="margin-top:8px;line-height:1.8"></div>
+      <div class="big" style="margin-top:20px">Som e backup</div>
+      <div style="margin-top:8px">
+        <button class="btn" id="famSound">🔊 Som: ligado</button>
+        <button class="btn gray" id="resetAll">♻️ Recomeçar tudo</button>
+      </div>
+      
+    </div>
+  </section>
+</main>
+
+<nav class="bottom" id="mainNav" style="display: flex;">
+
+  <div class="inner" id="navInner">
+    <button data-nav="home" class="active"><span class="e">🏠</span>Início</button>
+    <button data-nav="jogar"><span class="e">🎮</span>Jogar</button>
+    <button data-nav="conquistas"><span class="e">⭐</span>Conquistas</button>
+    <button data-nav="historias"><span class="e">📖</span>Histórias</button>
+    <button data-nav="perfil" class=""><span class="e">👤</span>Perfil</button>
+  </div>
+</nav>
+
+<div class="modal" id="cfgModal"><div class="box">
+  <h3>⚙️ Configurações</h3>
+  <p class="muted">Deixe do jeitinho que a criança gosta.</p>
+  <div style="margin-top:14px">
+    <button class="btn" id="cfgSound">🔊 Som: ligado</button>
+    <button class="btn p" id="cfgMusic">🎵 Música: desligada</button>
+  </div>
+  <div style="margin-top:14px">
+    <button class="btn g" id="cfgDownload" style="width:100%">📥 Baixar aplicativo HTML atualizado</button>
+  </div>
+  <div style="text-align:center;margin-top:18px"><button class="btn gray" id="cfgClose">Fechar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<div class="levelup" id="levelup"><div id="levelupTxt">NOVO NÍVEL! 🎉</div></div>
+
+<script>
+(function(){
+"use strict";
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+/* =================== ESTADO / STORAGE =================== */
+var KEY = "pequenos_da_fe_kids_v1";
+var DEF = {
+  name:"", age:"", avatar:"🧒",
+  stars:0, level:1,
+  gamesPlayed:0, storiesRead:[], achievements:[], missions:[], paintings:0,
+  sound:true, music:false, history:[], animalsHeard:[], memoryWins:0, correct:0
+};
+var S = load();
+function load(){
+  try{ var raw = localStorage.getItem(KEY); if(!raw) return JSON.parse(JSON.stringify(DEF));
+    var o = JSON.parse(raw), d = JSON.parse(JSON.stringify(DEF));
+    for(var k in d){ if(!(k in o)) o[k]=d[k]; } return o;
+  }catch(e){ return JSON.parse(JSON.stringify(DEF)); }
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function logAct(t){ S.history.unshift({t:t, d:new Date().toISOString()}); S.history = S.history.slice(0,40); save(); }
+
+/* =================== ÁUDIO (offline, WebAudio) =================== */
+var actx=null, musicTimer=null;
+function ac(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } 
+  if(actx && actx.state==="suspended"){ actx.resume(); } return actx; }
+function tone(freq, dur, type, vol, delay){
+  if(!S.sound) return; var c=ac(); if(!c) return;
+  var t0=c.currentTime+(delay||0);
+  var o=c.createOscillator(), g=c.createGain();
+  o.type=type||"sine"; o.frequency.setValueAtTime(freq,t0);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(vol||1.0,t0+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+(dur||0.3));
+  o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+(dur||0.3)+0.05);
+}
+function sweep(f1,f2,dur,type,vol,delay){
+  if(!S.sound) return; var c=ac(); if(!c) return;
+  var t0=c.currentTime+(delay||0); var o=c.createOscillator(), g=c.createGain();
+  o.type=type||"sawtooth"; o.frequency.setValueAtTime(f1,t0); o.frequency.linearRampToValueAtTime(f2,t0+dur);
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol||1.0,t0+0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+0.05);
+}
+function sGood(){ tone(660,.16,"triangle",1.0,0); tone(880,.18,"triangle",1.0,.14); tone(1170,.26,"triangle",0.9,.28); }
+function sBad(){ tone(240,.2,"sine",0.8,0); tone(180,.26,"sine",0.8,.16); }
+function sTap(){ tone(520,.09,"sine",0.7,0); }
+function sStar(){ tone(1050,.1,"triangle",0.8,0); tone(1400,.14,"triangle",0.8,.09); }
+var MEL=[523,587,659,784,659,587,523,659,784,880,784,659];
+function musicToggle(on){
+  S.music=on; save(); updateMusicUI();
+  if(musicTimer){ clearInterval(musicTimer); musicTimer=null; }
+  if(on){ var i=0; ac(); musicTimer=setInterval(function(){
+      if(!S.music){ return; } var c=ac(); if(!c) return;
+      var t=c.currentTime, o=c.createOscillator(), g=c.createGain();
+      o.type="triangle"; o.frequency.setValueAtTime(MEL[i%MEL.length],t);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+.05);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+.42);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.5); i++;
+    }, 460); }
+}
+function updateMusicUI(){
+  var b=document.getElementById("musicBtn"); b.classList.toggle("on", !!S.music);
+  document.getElementById("cfgMusic").textContent = S.music? "🎵 Música: ligada" : "🎵 Música: desligada";
+}
+function updateSoundUI(){
+  var t = S.sound? "🔊 Som: ligado" : "🔇 Som: desligado";
+  document.getElementById("cfgSound").textContent=t;
+  document.getElementById("famSound").textContent=t;
+}
+
+/* =================== UI HELPERS =================== */
+var toastEl=document.getElementById("toast"), toastT=null;
+function toast(msg){
+  toastEl.innerHTML=msg; toastEl.classList.add("show");
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(function(){ toastEl.classList.remove("show"); },1800);
+}
+function confetti(n){
+  var chars=["⭐","✨","🎉","💛","🌟"];
+  for(var i=0;i<(n||14);i++){
+    (function(i){
+      var e=document.createElement("div"); e.className="confetti";
+      e.textContent=chars[Math.floor(Math.random()*chars.length)];
+      e.style.left=(Math.random()*96)+"vw"; e.style.top="-40px";
+      e.style.animationDelay=(Math.random()*.4)+"s";
+      document.body.appendChild(e);
+      setTimeout(function(){ if(e.parentNode) e.parentNode.removeChild(e); },2400);
+    })(i);
+  }
+}
+function levelFor(stars){ return Math.floor(stars/25)+1; }
+function addStars(n, why){
+  var before=S.level; S.stars+=n; S.level=levelFor(S.stars); save();
+  sStar(); refreshStats(); toast("+"+n+" ⭐ "+(why||""));
+  if(S.level>before){
+    var lu=document.getElementById("levelup");
+    document.getElementById("levelupTxt").textContent="NOVO NÍVEL! 🎉 Nível "+S.level;
+    lu.classList.add("show"); confetti(24); sGood();
+    setTimeout(function(){ lu.classList.remove("show"); },1900);
+    logAct("Subiu para o nível "+S.level);
+  }
+  checkAchievements();
+}
+
+
+
+window.ANIMAL_SOUNDS = {
+    "cachorro": "assets/sounds/cachorro.mp3",
+    "cavalo": "assets/sounds/cavalo.mp3",
+    "elefante": "assets/sounds/elefante.mp3",
+    "galinha": "assets/sounds/galinha.mp3",
+    "gato": "assets/sounds/gato.mp3",
+    "leao": "assets/sounds/leao.mp3",
+    "macaco": "assets/sounds/macaco.mp3",
+    "ovelha": "assets/sounds/ovelha.mp3",
+    "passaro": "assets/sounds/passaro.mp3",
+    "pato": "assets/sounds/pato.mp3",
+    "porco": "assets/sounds/porco.mp3",
+    "sapo": "assets/sounds/sapo.mp3",
+    "vaca": "assets/sounds/vaca.mp3"
+  };
+
+
+window.animalAudio = new Audio();
+window.playAnimal = function(animal) {
+  if(!S.sound) return;
+  
+  if(window.animalAudio) {
+    window.animalAudio.pause();
+    window.animalAudio.currentTime = 0;
+  }
+
+  var nameMap = {
+    'Leão': 'leao',
+    'Elefante': 'elefante',
+    'Cachorro': 'cachorro',
+    'Vaca': 'vaca',
+    'Cavalo': 'cavalo',
+    'Ovelha': 'ovelha',
+    'Macaco': 'macaco',
+    'Galo': 'galinha',
+    'Galinha': 'galinha',
+    'Pássaro': 'passaro',
+    'Pomba': 'passaro'
+  };
+
+  var key = nameMap[animal];
+  if (key && ANIMAL_SOUNDS[key]) {
+    window.animalAudio.src = ANIMAL_SOUNDS[key];
+    window.animalAudio.volume = 1.0;
+    window.animalAudio.muted = false;
+    window.animalAudio.play().catch(function(e) {
+      console.warn("Audio play failed:", e);
+    });
+  }
+};
+
+function refreshStats(){
+  document.getElementById("starsTop").textContent=S.stars;
+  document.getElementById("levelTop").textContent=S.level;
+  var k=document.getElementById("kStars"); if(k){
+    k.textContent=S.stars; document.getElementById("kLevel").textContent=S.level;
+    document.getElementById("kGames").textContent=S.gamesPlayed;
+    document.getElementById("kMedals").textContent=S.achievements.length;
+  }
+  var need=S.level*25, prev=(S.level-1)*25, pct=Math.min(100,Math.round(((S.stars-prev)/(need-prev))*100));
+  var pb=document.getElementById("progBar"); if(pb){ pb.style.width=pct+"%";
+    document.getElementById("progTxt").textContent=S.stars+" de "+need+" estrelas para o nível "+(S.level+1); }
+}
+
+/* =================== NAVEGAÇÃO =================== */
+var NAVMAP={home:"v-home",jogar:"v-jogar",conquistas:"v-conquistas",historias:"v-historias",perfil:"v-perfil",
+  familias:"v-familias",sons:"v-sons",pintar:"v-pintar",onde:"v-onde",contar:"v-contar",memoria:"v-memoria",
+  missoes:"v-missoes",historia:"v-historia"};
+var NAVTAB={home:"home",jogar:"jogar",conquistas:"conquistas",historias:"historias",perfil:"perfil",
+  familias:"perfil",sons:"jogar",pintar:"jogar",onde:"jogar",contar:"jogar",memoria:"jogar",missoes:"jogar",historia:"historias"};
+var current="home";
+function go(name){
+  if(!NAVMAP[name]) name="home";
+  var views=document.querySelectorAll(".view");
+  for(var i=0;i<views.length;i++) views[i].classList.remove("active");
+  document.getElementById(NAVMAP[name]).classList.add("active");
+  var btns=document.querySelectorAll("nav.bottom button");
+  for(var j=0;j<btns.length;j++) btns[j].classList.toggle("active", btns[j].getAttribute("data-nav")===NAVTAB[name]);
+  current=name; window.scrollTo({top:0,behavior:"smooth"}); sTap();
+  if(name==="conquistas"){ renderMedals(); refreshStats(); }
+  if(name==="familias") renderFamily();
+  if(name==="perfil") renderProfile();
+  if(name==="missoes") renderMissions();
+}
+document.addEventListener("click", function(ev){
+  var el=ev.target;
+  while(el && el!==document.body){
+    if(el.getAttribute && el.getAttribute("data-nav")){
+      var targetId = el.getAttribute("data-nav");
+      // Ao mudar de área, interromper a narração da história
+      if(targetId !== "historia" && targetId !== "historias"){
+         if(typeof stopStoryAudio === 'function') stopStoryAudio();
+      }
+      go(targetId);
+      return;
+    }
+    el=el.parentNode;
+  }
+});
+
+/* =================== ARTE ILUSTRADA DOS CARDS (somente visual) =================== */
+var GAME_SCENE={
+ sons:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe9ff" stop-opacity=".55"/><stop offset="1" stop-color="#5ab7f0" stop-opacity=".15"/></linearGradient></defs><rect width="300" height="200" fill="url(#sSky)"/><circle cx="52" cy="42" r="26" fill="#fff" opacity=".35"/><circle cx="76" cy="46" r="20" fill="#fff" opacity=".35"/><circle cx="238" cy="34" r="20" fill="#fff" opacity=".3"/><circle cx="258" cy="40" r="15" fill="#fff" opacity=".3"/><path d="M0 160 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 v40 H0z" fill="#2b8fd6" opacity=".35"/><path d="M0 176 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 v24 H0z" fill="#1c6fb0" opacity=".35"/></svg>',
+ pintar:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#ffd7ea" opacity=".25"/><circle cx="250" cy="40" r="34" fill="#fff" opacity=".2"/><circle cx="40" cy="170" r="40" fill="#fff" opacity=".14"/><circle cx="215" cy="150" r="10" fill="#ffe27a" opacity=".55"/><circle cx="243" cy="168" r="7" fill="#8ad6a0" opacity=".55"/><circle cx="196" cy="176" r="6" fill="#8fc6ff" opacity=".55"/></svg>',
+ onde:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#ffe6a8" opacity=".22"/><circle cx="60" cy="36" r="22" fill="#fff" opacity=".3"/><circle cx="84" cy="42" r="16" fill="#fff" opacity=".3"/><g fill="#fff" opacity=".45"><path d="M232 44l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z"/><path d="M268 106l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/><path d="M40 128l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></g><g opacity=".18" fill="#7a4a00"><rect x="150" y="150" width="8" height="34" rx="3"/><rect x="139" y="160" width="30" height="8" rx="3"/><circle cx="252" cy="176" r="12"/></g></svg>',
+ contar:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#c8f5cf" opacity=".22"/><circle cx="255" cy="34" r="24" fill="#fff" opacity=".28"/><path d="M0 158 q40 -22 80 -4 t80 -6 t80 4 t80 -2 v50 H0z" fill="#2f9e57" opacity=".3"/><g fill="#fff" opacity=".22" font-family="Arial" font-weight="900" font-size="46"><text x="196" y="86">1</text><text x="230" y="106">2</text><text x="264" y="80">3</text></g></svg>',
+ memoria:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#e2d0ff" opacity=".2"/><g fill="#fff" opacity=".14"><rect x="176" y="24" width="34" height="46" rx="8"/><rect x="220" y="24" width="34" height="46" rx="8"/><rect x="176" y="80" width="34" height="46" rx="8"/><rect x="220" y="80" width="34" height="46" rx="8"/></g><circle cx="44" cy="52" r="30" fill="#fff" opacity=".12"/></svg>',
+ missoes:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="mGlow" cx=".72" cy=".28" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="300" height="200" fill="#bff1f0" opacity=".18"/><rect width="300" height="200" fill="url(#mGlow)"/><g stroke="#fff" stroke-opacity=".25" stroke-width="6" stroke-linecap="round"><path d="M216 56 l40 -26"/><path d="M216 62 l46 6"/><path d="M212 70 l30 34"/></g><g fill="#fff" opacity=".4"><circle cx="60" cy="46" r="4"/><circle cx="96" cy="150" r="3"/><circle cx="150" cy="36" r="3"/></g></svg>'
+};
+var GAME_ART={
+ sons:'<svg viewBox="0 0 100 100" aria-hidden="true"><g><ellipse cx="50" cy="84" rx="40" ry="8" fill="#1b6fae" opacity=".35"/><path d="M14 62h72c-4 14-16 22-36 22S18 76 14 62z" fill="#c9873f"/><path d="M14 62h72c-1 4-3 8-5 11H19c-2-3-4-7-5-11z" fill="#a9682a"/><rect x="34" y="40" width="32" height="22" rx="6" fill="#fff3dd"/><rect x="34" y="40" width="32" height="7" rx="3" fill="#e0523f"/><path d="M30 40h40l-8-10H38z" fill="#e0523f"/><circle cx="43" cy="54" r="4" fill="#8ac6f0"/><circle cx="57" cy="54" r="4" fill="#8ac6f0"/><g><circle cx="24" cy="52" r="9" fill="#f2b23c"/><circle cx="24" cy="52" r="6" fill="#ffd98a"/><circle cx="21.5" cy="51" r="1.3" fill="#5a3a12"/><circle cx="26.5" cy="51" r="1.3" fill="#5a3a12"/><path d="M22 55q2 2 4 0" stroke="#5a3a12" stroke-width="1.3" fill="none" stroke-linecap="round"/></g><g><rect x="72" y="34" width="6" height="24" rx="3" fill="#f4c463"/><circle cx="75" cy="32" r="6" fill="#f4c463"/><circle cx="73" cy="31" r="1.2" fill="#4a3210"/><circle cx="77" cy="31" r="1.2" fill="#4a3210"/><circle cx="70" cy="42" r="2" fill="#d99f36"/><circle cx="79" cy="48" r="2" fill="#d99f36"/></g><g><circle cx="50" cy="24" r="8" fill="#b9c6d6"/><path d="M44 26q-8 2-8 8" stroke="#b9c6d6" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="48" cy="22" r="1.3" fill="#4b5563"/><circle cx="53" cy="22" r="1.3" fill="#4b5563"/></g></g></svg>',
+ pintar:'<svg viewBox="0 0 100 100" aria-hidden="true"><g><rect x="16" y="14" width="56" height="62" rx="8" fill="#fff" stroke="#e2c6d4" stroke-width="2" transform="rotate(-6 44 45)"/><g transform="rotate(-6 44 45)" fill="none" stroke="#5b5b6b" stroke-width="2.4" stroke-linecap="round"><ellipse cx="44" cy="44" rx="16" ry="11"/><circle cx="30" cy="38" r="6"/><circle cx="28" cy="37" r="1.2" fill="#5b5b6b"/><path d="M34 54v8M42 55v8M50 54v8M57 52v8"/><path d="M24 33q-3-4 1-6"/></g><g transform="rotate(18 82 62)"><rect x="78" y="34" width="9" height="34" rx="3" fill="#4fb3f0"/><path d="M78 68h9l-4.5 9z" fill="#f6d9a0"/></g><g transform="rotate(-12 70 74)"><rect x="66" y="46" width="9" height="32" rx="3" fill="#ef5f8a"/><path d="M66 78h9l-4.5 9z" fill="#f6d9a0"/></g><g><path d="M18 74a14 14 0 1 1 22 11c-4 3 0 6-4 7a15 15 0 0 1-18-18z" fill="#f7c873"/><circle cx="22" cy="76" r="2.6" fill="#e0523f"/><circle cx="30" cy="72" r="2.6" fill="#4fb3f0"/><circle cx="35" cy="80" r="2.6" fill="#59c27f"/><circle cx="25" cy="85" r="2.6" fill="#a56cff"/></g></g></svg>',
+ onde:'<svg viewBox="0 0 100 100" aria-hidden="true"><g><g opacity=".9"><rect x="46" y="30" width="10" height="42" rx="4" fill="#f5c542"/><rect x="32" y="42" width="38" height="10" rx="4" fill="#f5c542"/><rect x="46" y="30" width="10" height="42" rx="4" fill="#ffe08a" opacity=".5"/></g><g><circle cx="42" cy="42" r="24" fill="#eaf6ff" opacity=".45" stroke="#fff" stroke-width="5"/><path d="M60 60l18 18" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M60 60l18 18" stroke="#c98b4b" stroke-width="5" stroke-linecap="round"/><path d="M28 34a16 16 0 0 1 12-9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" opacity=".8"/></g><g fill="#fff"><path d="M84 20l2.5 5.5L92 28l-5.5 2.5L84 36l-2.5-5.5L76 28l5.5-2.5z"/><path d="M16 74l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/></g></g></svg>',
+ contar:'<svg viewBox="0 0 100 100" aria-hidden="true"><g><ellipse cx="50" cy="86" rx="38" ry="7" fill="#1f7a45" opacity=".3"/><g><ellipse cx="48" cy="56" rx="26" ry="20" fill="#fff"/><circle cx="30" cy="46" r="9" fill="#f6f6f8"/><circle cx="66" cy="44" r="9" fill="#f6f6f8"/><circle cx="40" cy="40" r="9" fill="#f6f6f8"/><circle cx="56" cy="38" r="10" fill="#f6f6f8"/><rect x="38" y="70" width="6" height="12" rx="3" fill="#7d6a5a"/><rect x="56" y="70" width="6" height="12" rx="3" fill="#7d6a5a"/><ellipse cx="74" cy="56" rx="12" ry="11" fill="#4b4b57"/><circle cx="70" cy="54" r="2" fill="#fff"/><circle cx="79" cy="54" r="2" fill="#fff"/><ellipse cx="75" cy="61" rx="4" ry="3" fill="#2f2f38"/><ellipse cx="64" cy="48" rx="5" ry="7" fill="#3d3d47"/></g><g fill="#fff" font-family="Arial" font-weight="900" font-size="20"><text x="8" y="34">1</text><text x="24" y="24">2</text><text x="42" y="20">3</text></g><g><circle cx="16" cy="76" r="4" fill="#ffd166"/><circle cx="88" cy="80" r="4" fill="#ff8fb1"/><path d="M12 84h76" stroke="#2f9e57" stroke-width="4" stroke-linecap="round" opacity=".6"/></g></g></svg>',
+ memoria:'<svg viewBox="0 0 100 100" aria-hidden="true"><g><g transform="rotate(-14 32 56)"><rect x="14" y="30" width="36" height="50" rx="9" fill="#fff"/><rect x="18" y="34" width="28" height="42" rx="7" fill="#efe6ff"/><path d="M32 44l3.5 7.5L43 53l-5.5 5 1.5 8-7-4-7 4 1.5-8-5.5-5 7.5-1.5z" fill="#a56cff"/></g><g transform="rotate(8 60 54)"><rect x="42" y="24" width="36" height="50" rx="9" fill="#fff"/><rect x="46" y="28" width="28" height="42" rx="7" fill="#ffe6f2"/><path d="M60 62s-11-7-11-14a6 6 0 0 1 11-3 6 6 0 0 1 11 3c0 7-11 14-11 14z" fill="#ef5f8a"/></g><g transform="rotate(20 82 66)"><rect x="66" y="44" width="32" height="44" rx="8" fill="#fff"/><rect x="70" y="48" width="24" height="36" rx="6" fill="#e8f4ff"/><path d="M82 58c6 0 9 4 9 4s-4 8-11 8-8-4-8-4 4-8 10-8z" fill="#68b7f0"/><path d="M74 66l-5 5 8-2z" fill="#68b7f0"/></g></g></svg>',
+ missoes:'<svg viewBox="0 0 100 100" aria-hidden="true"><g><g stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"><path d="M50 6v8M22 20l6 6M78 20l-6 6M12 48h8M88 48h-8"/></g><path d="M50 16l9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3z" fill="#ffd45e" stroke="#f2ae2a" stroke-width="3" stroke-linejoin="round"/><path d="M50 24l6 13 14 2-10 10 3 14-13-7-13 7 3-14-10-10 14-2z" fill="#ffe89a"/><g transform="translate(58 56)"><path d="M6 2h20v10a10 10 0 0 1-20 0z" fill="#f0a33a"/><path d="M2 3h5v6a5 5 0 0 1-5-5z" fill="#f0a33a"/><path d="M25 3h5a5 5 0 0 1-5 5z" fill="#f0a33a"/><rect x="13" y="21" width="6" height="7" fill="#d9862c"/><rect x="8" y="28" width="16" height="5" rx="2" fill="#d9862c"/></g><g transform="translate(12 56)"><circle cx="12" cy="16" r="11" fill="#ffcf5e" stroke="#e8a72d" stroke-width="2.5"/><path d="M12 10l2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 15.2l5-.7z" fill="#fff3c9"/><path d="M6 2l4 8M18 2l-4 8" stroke="#e0523f" stroke-width="4" stroke-linecap="round"/></g></g></svg>'
+};
+var STORY_SCENE={
+ criacao:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="cS" cx=".2" cy=".2" r=".8"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".8"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient></defs><rect width="300" height="200" fill="#0f3f7a" opacity=".35"/><rect width="300" height="200" fill="url(#cS)"/><circle cx="46" cy="40" r="22" fill="#ffe27a" opacity=".95"/><g fill="#fff"><circle cx="120" cy="30" r="2.5"/><circle cx="170" cy="56" r="2"/><circle cx="238" cy="26" r="3"/><circle cx="266" cy="70" r="2"/><circle cx="90" cy="70" r="1.8"/></g><circle cx="212" cy="150" r="62" fill="#3fa9f5"/><path d="M170 132q22-14 40-2t46-4q6 14-2 28-30 12-58 4t-30-26z" fill="#5fc27e"/><path d="M0 186 q40 -14 80 0 t80 0 t80 0 t80 0 v14 H0z" fill="#1f7a45" opacity=".5"/></svg>',
+ arca:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#8fd8ff" opacity=".45"/><g fill="none" stroke-width="9" opacity=".65"><path d="M40 96a110 60 0 0 1 220 0" stroke="#ff6b6b"/><path d="M52 100a98 52 0 0 1 196 0" stroke="#ffb84d"/><path d="M64 104a86 44 0 0 1 172 0" stroke="#ffe66d"/><path d="M76 108a74 36 0 0 1 148 0" stroke="#6ee7a0"/><path d="M88 112a62 28 0 0 1 124 0" stroke="#63b3ff"/></g><g><path d="M96 138h108c-6 20-24 30-54 30s-48-10-54-30z" fill="#c9873f"/><rect x="128" y="112" width="44" height="26" rx="6" fill="#fff3dd"/><path d="M122 112h56l-12-14h-32z" fill="#e0523f"/><circle cx="142" cy="126" r="4" fill="#8ac6f0"/><circle cx="158" cy="126" r="4" fill="#8ac6f0"/></g><path d="M0 172 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 v28 H0z" fill="#2b8fd6" opacity=".6"/><path d="M0 184 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 v16 H0z" fill="#1c6fb0" opacity=".6"/></svg>',
+ davi:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#ffd9a0" opacity=".4"/><circle cx="252" cy="40" r="24" fill="#fff2c2" opacity=".8"/><path d="M0 156 q50 -30 100 -8 t100 -10 t100 6 v56 H0z" fill="#e0a95c" opacity=".55"/><g opacity=".3" fill="#7a4a12"><path d="M212 168V112a20 20 0 0 1 40 0v56z"/><circle cx="232" cy="96" r="16"/></g><g><circle cx="86" cy="112" r="14" fill="#f7c9a0"/><path d="M74 108a12 12 0 0 1 24 0z" fill="#8a5a2b"/><circle cx="82" cy="112" r="1.8" fill="#4a3210"/><circle cx="91" cy="112" r="1.8" fill="#4a3210"/><path d="M82 118q4 3 8 0" stroke="#4a3210" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M76 128h20l4 34H72z" fill="#6ec5f0"/><path d="M96 134l22-12" stroke="#f7c9a0" stroke-width="7" stroke-linecap="round"/><circle cx="124" cy="118" r="6" fill="#9aa3ad"/></g><g fill="#fff" opacity=".6"><circle cx="40" cy="42" r="3"/><circle cx="150" cy="34" r="2.4"/></g></svg>',
+ daniel:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#3b2a5a" opacity=".35"/><circle cx="240" cy="44" r="22" fill="#ffe9a8" opacity=".8"/><path d="M0 158 q60 -24 120 -6 t120 -8 t60 4 v52 H0z" fill="#7a5a2b" opacity=".5"/><g transform="translate(170 92)"><circle cx="30" cy="34" r="26" fill="#f2b23c"/><circle cx="30" cy="34" r="18" fill="#ffd98a"/><circle cx="24" cy="31" r="2.4" fill="#5a3a12"/><circle cx="36" cy="31" r="2.4" fill="#5a3a12"/><path d="M25 40q5 5 10 0" stroke="#5a3a12" stroke-width="2.4" fill="none" stroke-linecap="round"/></g><g fill="#fff" opacity=".5"><circle cx="60" cy="40" r="3"/><circle cx="110" cy="26" r="2"/></g></svg>',
+ jonas:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#3fa9f5" opacity=".35"/><g fill="#fff" opacity=".35"><circle cx="60" cy="52" r="7"/><circle cx="82" cy="34" r="5"/><circle cx="100" cy="58" r="4"/></g><g transform="translate(150 96)"><ellipse cx="40" cy="30" rx="52" ry="30" fill="#2f7fd0"/><path d="M92 30l24-16v32z" fill="#2f7fd0"/><circle cx="18" cy="22" r="4" fill="#fff"/><path d="M0 34q16 10 34 6" stroke="#1b5a99" stroke-width="4" fill="none" stroke-linecap="round"/></g><path d="M0 168 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 v32 H0z" fill="#1c6fb0" opacity=".5"/></svg>',
+ natal:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#2b2350" opacity=".35"/><path d="M214 20l7 17 18 3-13 13 3 19-15-9-15 9 3-19-13-13 18-3z" fill="#ffe27a"/><g fill="#fff" opacity=".6"><circle cx="60" cy="40" r="2.6"/><circle cx="118" cy="26" r="2"/><circle cx="150" cy="62" r="2.2"/></g><g transform="translate(96 116)"><path d="M0 40l24-26h52l24 26z" fill="#c9873f"/><rect x="30" y="26" width="40" height="18" rx="8" fill="#fff3dd"/><circle cx="50" cy="34" r="6" fill="#f7c9a0"/></g><path d="M0 178h300v22H0z" fill="#7a5a2b" opacity=".4"/></svg>',
+ criancas:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#c8f5cf" opacity=".3"/><circle cx="250" cy="40" r="26" fill="#fff2a8" opacity=".7"/><path d="M0 156 q50 -22 100 -6 t100 -8 t100 6 v52 H0z" fill="#2f9e57" opacity=".4"/><g><circle cx="150" cy="92" r="20" fill="#f7c9a0"/><path d="M130 90a20 20 0 0 1 40 0z" fill="#8a5a2b"/><path d="M132 120h36l8 40h-52z" fill="#f5f0e6"/><path d="M130 128l-22 14M170 128l22 14" stroke="#f7c9a0" stroke-width="9" stroke-linecap="round"/></g><g><circle cx="98" cy="132" r="12" fill="#f7c9a0"/><path d="M88 146h20l4 22H84z" fill="#ef5f8a"/><circle cx="204" cy="134" r="12" fill="#f7c9a0"/><path d="M194 148h20l4 20h-28z" fill="#68b7f0"/></g></svg>',
+ samaritano:'<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#ffd9a0" opacity=".35"/><path d="M0 160 q60 -20 120 -4 t120 -8 t60 4 v48 H0z" fill="#d99f56" opacity=".5"/><path d="M150 130s-34-20-34-42a17 17 0 0 1 34-10 17 17 0 0 1 34 10c0 22-34 42-34 42z" fill="#ef5f8a" opacity=".9"/><g fill="#fff" opacity=".5"><circle cx="60" cy="44" r="3"/><circle cx="238" cy="36" r="2.4"/></g></svg>'
+};
+
+/* =================== JOGOS: CARDS =================== */
+var GAMES=[
+  {id:"sons",  t:"Sons de Animais", d:"Ouça e descubra os animais da Arca", ic:"🔊", art:"🦁", c:"g-blue"},
+  {id:"pintar",t:"Pintando a Bíblia", d:"Desenhos cristãos para colorir", ic:"🎨", art:"🖍️", c:"g-pink"},
+  {id:"onde",  t:"Onde Está?", d:"Encontre a imagem correta", ic:"🔍", art:"✝️", c:"g-orange"},
+  {id:"contar",t:"Conte e Toque", d:"Aprenda os números brincando", ic:"🔢", art:"🐑", c:"g-green"},
+  {id:"memoria",t:"Jogo da Memória", d:"Encontre os pares bíblicos", ic:"🧠", art:"🃏", c:"g-purple"},
+  {id:"missoes",t:"Missões da Fé", d:"Pequenos desafios com grandes ensinamentos", ic:"🏆", art:"🌟", c:"g-teal"}
+];
+function renderGames(el){
+  if(!el) return;
+  el.innerHTML="";
+  GAMES.forEach(function(g){
+    var b=document.createElement("button");
+    b.className="gcard "+g.c; b.setAttribute("data-nav",g.id);
+    b.innerHTML='<div class="scene">'+(GAME_SCENE[g.id]||'')+'</div>'+
+      '<div class="art">'+(GAME_ART[g.id]||g.art)+'</div><div class="ic">'+g.ic+'</div>'+
+      '<div class="shade"></div>'+
+      '<div class="txt"><h4>'+g.t+'</h4><p>'+g.d+'</p></div><div class="go">›</div>';
+    el.appendChild(b);
+  });
+}
+(function(){
+  renderGames(document.getElementById("gamesGrid"));
+  renderGames(document.getElementById("gamesGrid2"));
+})();
+
+/* =================== JOGO 1: SONS DE ANIMAIS =================== */
+var ANIMALS=[
+  {e:"🦁",n:"Leão"},
+  {e:"🐘",n:"Elefante"},
+  {e:"🐑",n:"Ovelha"},
+  {e:"🐄",n:"Vaca"},
+  {e:"🐎",n:"Cavalo"},
+  {e:"🐓",n:"Galo"},
+  {e:"🐶",n:"Cachorro"},
+  {e:"🕊️",n:"Pomba"},
+  {e:"🐒",n:"Macaco"}
+];
+function renderAnimals(){
+  var g=document.getElementById("animalsGrid"); if(!g) return;
+  g.innerHTML="";
+  ANIMALS.forEach(function(a,i){
+    var b=document.createElement("button"); b.className="animal";
+    b.innerHTML='<span class="e">'+a.e+'</span><b>'+a.n+'</b>';
+    b.addEventListener("click", function(){
+      b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+      playAnimal(a.n);
+      document.getElementById("animalName").textContent=a.e+" "+a.n+"!";
+      if(S.animalsHeard.indexOf(a.n)<0){ S.animalsHeard.push(a.n); save(); addStars(1,"Você conheceu o "+a.n+"!"); }
+    });
+    g.appendChild(b);
+  });
+}
+renderAnimals();
+
+/* =================== JOGO 2: PINTANDO A BÍBLIA =================== */
+var COLORS=["#ff4d4d","#ff9f1a","#ffd93d","#7ed957","#2fb36f","#38b6ff","#2f6bf5","#a56cff","#ff77c8","#8b5a2b","#ffffff","#2b2b3d"];
+var DRAWINGS=[
+  {id:"arca", t:"Arca de Noé", e:"⛵", svg:
+    '<rect class="region" x="0" y="0" width="400" height="250" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="320" cy="60" r="34" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<path class="region" d="M60 250 L340 250 L300 340 L100 340 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="140" y="170" width="120" height="80" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M120 170 L200 110 L280 170 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="0" y="340" width="400" height="60" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"ovelha", t:"Ovelha", e:"🐑", svg:
+    '<rect class="region" x="0" y="0" width="400" height="300" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<rect class="region" x="0" y="300" width="400" height="100" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<ellipse class="region" cx="200" cy="230" rx="110" ry="80" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="105" cy="185" r="45" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="92" cy="175" r="7" fill="#333"/>'+
+    '<rect class="region" x="160" y="300" width="20" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="230" y="300" width="20" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'},
+  {id:"cruz", t:"Cruz e Sol", e:"✝️", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="320" cy="80" r="50" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="170" y="60" width="60" height="290" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="90" y="140" width="220" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M0 350 L400 350 L400 400 L0 400 Z" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"peixe", t:"Jonas e o Peixe", e:"🐟", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<ellipse class="region" cx="200" cy="200" rx="140" ry="85" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M340 200 L390 150 L390 250 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="110" cy="175" r="12" fill="#333"/>'+
+    '<path class="region" d="M180 115 L230 60 L260 120 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="70" cy="330" r="22" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="140" cy="360" r="16" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"estrela", t:"Estrela de Belém", e:"⭐", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<path class="region" d="M200 40 L240 150 L355 150 L262 215 L298 325 L200 258 L102 325 L138 215 L45 150 L160 150 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="60" cy="60" r="18" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="345" cy="330" r="22" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"coracao", t:"Amor de Deus", e:"❤️", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<path class="region" d="M200 340 C60 240 60 120 140 105 C180 97 200 130 200 150 C200 130 220 97 260 105 C340 120 340 240 200 340 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="70" cy="70" r="24" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="330" cy="70" r="24" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"flor", t:"Flor", e:"🌸", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="200" cy="200" r="40" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="200" cy="140" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="260" cy="170" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="260" cy="230" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="200" cy="260" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="140" cy="230" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="140" cy="170" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="190" y="240" width="20" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'},
+  {id:"sol_novo", t:"Sol", e:"☀️", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="200" cy="200" r="80" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="200" cy="80" r="20" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="320" cy="200" r="20" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="200" cy="320" r="20" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="80" cy="200" r="20" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M160 180 Q200 170 240 180" fill="none" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="180" cy="190" r="5" fill="#333"/>'+
+    '<circle class="region" cx="220" cy="190" r="5" fill="#333"/>'},
+  {id:"arvore", t:"Árvore", e:"🌳", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<rect class="region" x="170" y="250" width="60" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<ellipse class="region" cx="200" cy="150" rx="100" ry="120" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="150" cy="120" r="15" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="250" cy="180" r="15" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"arcoiris", t:"Arco-íris", e:"🌈", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<path class="region" d="M50 350 A150 150 0 0 1 350 350" fill="none" stroke="#333" stroke-width="20"/>'+
+    '<path class="region" d="M70 350 A130 130 0 0 1 330 350" fill="none" stroke="#333" stroke-width="20"/>'+
+    '<path class="region" d="M90 350 A110 110 0 0 1 310 350" fill="none" stroke="#333" stroke-width="20"/>'+
+    '<path class="region" d="M50 350 A150 150 0 0 0 350 350" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="50" cy="350" r="40" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="350" cy="350" r="40" fill="#fff" stroke="#333" stroke-width="3"/>'},
+  {id:"borboleta", t:"Borboleta", e:"🦋", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<rect class="region" x="190" y="150" width="20" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M200 150 Q100 50 100 200 Q100 350 200 250 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M200 150 Q300 50 300 200 Q300 350 200 250 Z" fill="#fff" stroke="#333" stroke-width="4"/>'},
+  {id:"elefante", t:"Elefante", e:"🐘", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<ellipse class="region" cx="200" cy="220" rx="120" ry="90" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<ellipse class="region" cx="100" cy="180" rx="40" ry="50" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M120 220 Q80 300 100 350" fill="none" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="140" y="300" width="30" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="230" y="300" width="30" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'},
+  {id:"leao", t:"Leão", e:"🦁", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="200" cy="200" r="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="200" cy="200" r="100" fill="#fff" stroke="#333" stroke-width="2"/>'+
+    '<circle class="region" cx="180" cy="180" r="10" fill="#333"/>'+
+    '<circle class="region" cx="220" cy="180" r="10" fill="#333"/>'+
+    '<path class="region" d="M180 230 Q200 250 220 230" fill="none" stroke="#333" stroke-width="4"/>'},
+  {id:"vaca", t:"Vaca", e:"🐄", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<rect class="region" x="80" y="150" width="240" height="150" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="320" cy="150" r="40" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="100" y="300" width="30" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="270" y="300" width="30" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<ellipse class="region" cx="150" cy="220" rx="30" ry="20" fill="#333" stroke="#333"/>'+
+    '<ellipse class="region" cx="250" cy="250" rx="30" ry="20" fill="#333" stroke="#333"/>'},
+  {id:"cavalo", t:"Cavalo", e:"🐴", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<rect class="region" x="100" y="200" width="200" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M300 200 Q350 100 280 100 Q200 100 200 200" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="120" y="300" width="30" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="250" y="300" width="30" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'},
+  {id:"pomba", t:"Pomba", e:"🕊️", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<ellipse class="region" cx="200" cy="200" rx="100" ry="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M100 200 Q50 100 150 150" fill="none" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M300 200 Q350 100 250 150" fill="none" stroke="#333" stroke-width="4"/>'},
+  {id:"casa", t:"Casa", e:"🏠", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<rect class="region" x="80" y="200" width="240" height="180" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<path class="region" d="M60 200 L200 80 L340 200 Z" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="160" y="280" width="80" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="100" y="220" width="60" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="240" y="220" width="60" height="60" fill="#fff" stroke="#333" stroke-width="4"/>'},
+  {id:"familia", t:"Família", e:"👨‍👩‍👧‍👦", svg:
+    '<rect class="region" x="0" y="0" width="400" height="400" fill="#fff" stroke="#333" stroke-width="3"/>'+
+    '<circle class="region" cx="100" cy="200" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="170" cy="200" r="30" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="240" cy="230" r="20" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<circle class="region" cx="300" cy="230" r="20" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="70" y="230" width="60" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="140" y="230" width="60" height="100" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="220" y="250" width="40" height="80" fill="#fff" stroke="#333" stroke-width="4"/>'+
+    '<rect class="region" x="280" y="250" width="40" height="80" fill="#fff" stroke="#333" stroke-width="4"/>'}
+];
+var paintColor=COLORS[0], paintHist=[], curDrawing=null;
+function renderPaint(){
+  var th=document.getElementById("paintThumbs"); if(!th) return;
+  th.innerHTML="";
+  DRAWINGS.forEach(function(d){
+    var b=document.createElement("button"); b.className="thumb";
+    b.innerHTML=d.e+'<b>'+d.t+'</b>';
+    b.addEventListener("click", function(){ openDrawing(d); });
+    th.appendChild(b);
+  });
+  var p=document.getElementById("palette"); if(!p) return;
+  p.innerHTML="";
+  COLORS.forEach(function(c,i){
+    var b=document.createElement("button"); b.className="swatch"+(i===0?" sel":"");
+    b.style.background=c;
+    b.addEventListener("click", function(){
+      paintColor=c; sTap();
+      var all=p.querySelectorAll(".swatch"); for(var j=0;j<all.length;j++) all[j].classList.remove("sel");
+      b.classList.add("sel");
+    });
+    p.appendChild(b);
+  });
+}
+renderPaint();
+function openDrawing(d){
+  curDrawing=d; paintHist=[];
+  document.getElementById("paintPick").style.display="none";
+  document.getElementById("paintArea").style.display="block";
+  document.getElementById("paintTitle").textContent="🎨 "+d.t;
+  var stage=document.getElementById("paintStage");
+  stage.innerHTML=d.svg;
+  var saved=null; try{ saved=JSON.parse(localStorage.getItem(KEY+"_paint_"+d.id)||"null"); }catch(e){}
+  var regs=stage.querySelectorAll(".region");
+  for(var i=0;i<regs.length;i++){
+    (function(r,idx){
+      if(saved && saved[idx]) r.setAttribute("fill", saved[idx]);
+      r.addEventListener("click", function(){
+        paintHist.push({i:idx, prev:r.getAttribute("fill")});
+        r.setAttribute("fill", paintColor); sTap(); persistPaint();
+      });
+    })(regs[i], i);
+  }
+  sTap();
+}
+function persistPaint(){
+  if(!curDrawing) return;
+  var regs=document.getElementById("paintStage").querySelectorAll(".region"), arr=[];
+  for(var i=0;i<regs.length;i++) arr.push(regs[i].getAttribute("fill"));
+  try{ localStorage.setItem(KEY+"_paint_"+curDrawing.id, JSON.stringify(arr)); }catch(e){}
+}
+document.getElementById("undoBtn").addEventListener("click", function(){
+  var last=paintHist.pop(); if(!last){ toast("Nada para desfazer 💛"); return; }
+  var regs=document.getElementById("paintStage").querySelectorAll(".region");
+  if(regs[last.i]) regs[last.i].setAttribute("fill", last.prev||"#fff");
+  persistPaint(); sTap();
+});
+document.getElementById("clearBtn").addEventListener("click", function(){
+  var regs=document.getElementById("paintStage").querySelectorAll(".region");
+  for(var i=0;i<regs.length;i++){ if(regs[i].getAttribute("fill")!=="#333") regs[i].setAttribute("fill","#fff"); }
+  paintHist=[]; persistPaint(); sTap();
+});
+document.getElementById("newPaintBtn").addEventListener("click", showPaintPick);
+function showPaintPick(){
+  document.getElementById("paintArea").style.display="none";
+  document.getElementById("paintPick").style.display="block"; curDrawing=null; sTap();
+}
+document.getElementById("paintBack").addEventListener("click", function(){
+  if(curDrawing){ showPaintPick(); } else { go("jogar"); }
+});
+document.getElementById("finishPaintBtn").addEventListener("click", function(){
+  S.paintings++; S.gamesPlayed++; save(); logAct("Pintou: "+(curDrawing?curDrawing.t:"desenho"));
+  confetti(20); sGood(); toast("Parabéns! 🎨⭐ Sua pintura ficou linda!");
+  addStars(5,"pela pintura!"); showPaintPick();
+});
+
+/* =================== JOGO 3: ONDE ESTÁ =================== */
+var FIND=[
+  {n:"a Arca de Noé", e:"⛵"},{n:"a Cruz", e:"✝️"},{n:"a Bíblia", e:"📖"},{n:"a Pomba", e:"🕊️"},
+  {n:"a Estrela", e:"⭐"},{n:"o Coração", e:"❤️"},{n:"o Pão", e:"🍞"},{n:"o Peixe", e:"🐟"},
+  {n:"o Arco-íris", e:"🌈"},{n:"o Leão", e:"🦁"},{n:"a Ovelha", e:"🐑"},{n:"a Coroa", e:"👑"}
+];
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+var ondeLock=false;
+function newOnde(){
+  ondeLock=false;
+  var pool=shuffle(FIND), right=pool[0], opts=shuffle(pool.slice(0,4));
+  document.getElementById("ondeQ").textContent="Encontre "+right.n+"!";
+  document.getElementById("ondeMsg").textContent="";
+  var box=document.getElementById("ondeOpts"); box.innerHTML="";
+  opts.forEach(function(o){
+    var b=document.createElement("button"); b.className="opt"; b.textContent=o.e;
+    b.addEventListener("click", function(){
+      if(ondeLock) return;
+      if(o.e===right.e){
+        ondeLock=true; b.classList.add("right"); sGood(); confetti(10);
+        document.getElementById("ondeMsg").textContent="Muito bem! ⭐";
+        S.correct++; S.gamesPlayed++; save(); logAct("Acertou em Onde Está?");
+        addStars(2,"Muito bem!"); setTimeout(newOnde,1200);
+      } else {
+        b.classList.add("wrong"); sBad();
+        document.getElementById("ondeMsg").textContent="Tente novamente! 💛";
+      }
+    });
+    box.appendChild(b);
+  });
+}
+
+/* =================== JOGO 4: CONTE E TOQUE =================== */
+var COUNTABLES=[{e:"🐑",n:"ovelhinhas"},{e:"⭐",n:"estrelinhas"},{e:"🐟",n:"peixinhos"},{e:"🕊️",n:"pombinhas"},
+  {e:"🍞",n:"pães"},{e:"🦁",n:"leões"},{e:"❤️",n:"corações"},{e:"🌈",n:"arco-íris"}];
+var countLock=false;
+function newCount(){
+  countLock=false;
+  var it=COUNTABLES[Math.floor(Math.random()*COUNTABLES.length)];
+  var q=Math.floor(Math.random()*8)+2, s="";
+  for(var i=0;i<q;i++) s+=it.e+" ";
+  document.getElementById("countBox").textContent=s;
+  document.getElementById("countQ").textContent="Quantos(as) "+it.n+" você consegue ver?";
+  document.getElementById("countMsg").textContent="";
+  var set={}; set[q]=1;
+  while(Object.keys(set).length<4){ var v=Math.max(1,q+Math.floor(Math.random()*7)-3); set[v]=1; }
+  var opts=shuffle(Object.keys(set));
+  var box=document.getElementById("countOpts"); box.innerHTML="";
+  opts.forEach(function(v){
+    var b=document.createElement("button"); b.className="opt num"; b.textContent=v;
+    b.addEventListener("click", function(){
+      if(countLock) return;
+      if(parseInt(v,10)===q){
+        countLock=true; b.classList.add("right"); sGood(); confetti(10);
+        document.getElementById("countMsg").textContent="Isso mesmo! São "+q+"! ⭐";
+        S.correct++; S.gamesPlayed++; save(); logAct("Acertou em Conte e Toque");
+        addStars(2,"Contou certinho!"); setTimeout(newCount,1300);
+      } else { b.classList.add("wrong"); sBad(); document.getElementById("countMsg").textContent="Quase! Conte de novo 💛"; }
+    });
+    box.appendChild(b);
+  });
+}
+
+/* =================== JOGO 5: MEMÓRIA =================== */
+var MEMSET=["🦁","⛵","🐑","📖","✝️","⭐","🕊️","🐟","👑","🌈"];
+var memFirst=null, memLock=false, memPairs=0, memFound=0;
+function newMemory(pairs){
+  memFirst=null; memLock=false; memFound=0; memPairs=pairs;
+  var chosen=shuffle(MEMSET).slice(0,pairs);
+  var deck=shuffle(chosen.concat(chosen));
+  var grid=document.getElementById("memGrid");
+  var cols = pairs<=4?4:(pairs<=6?4:4);
+  grid.style.gridTemplateColumns="repeat("+cols+",1fr)";
+  grid.innerHTML="";
+  document.getElementById("memInfo").textContent="Encontre os "+pairs+" pares!";
+  deck.forEach(function(sym){
+    var c=document.createElement("div"); c.className="card3d"; c.textContent="?"; c.setAttribute("data-s",sym);
+    c.addEventListener("click", function(){
+      if(memLock || c.classList.contains("open") || c.classList.contains("done")) return;
+      c.classList.add("open"); c.textContent=sym; sTap();
+      if(!memFirst){ memFirst=c; return; }
+      if(memFirst===c) return;
+      memLock=true;
+      if(memFirst.getAttribute("data-s")===sym){
+        var f=memFirst; memFirst=null;
+        setTimeout(function(){ f.classList.add("done"); c.classList.add("done"); memLock=false;
+          memFound++; sGood();
+          if(memFound===memPairs){
+            confetti(24); S.memoryWins++; S.gamesPlayed++; save(); logAct("Venceu o Jogo da Memória ("+memPairs+" pares)");
+            addStars(pairs,"Você venceu a memória!");
+            document.getElementById("memInfo").textContent="Parabéns! Você achou todos os pares! 🎉";
+          }
+        },350);
+      } else {
+        var f2=memFirst; memFirst=null; sBad();
+        setTimeout(function(){ f2.classList.remove("open"); f2.textContent="?"; c.classList.remove("open"); c.textContent="?"; memLock=false; },800);
+      }
+    });
+    grid.appendChild(c);
+  });
+}
+(function(){
+  var bs=document.querySelectorAll("[data-diff]");
+  for(var i=0;i<bs.length;i++){
+    (function(b){ b.addEventListener("click", function(){ newMemory(parseInt(b.getAttribute("data-diff"),10)); }); })(bs[i]);
+  }
+})();
+
+/* =================== JOGO 6: MISSÕES =================== */
+var MISSIONS=[
+  {id:"m1",e:"💛",t:"Ajude alguém hoje", d:"Faça algo bom por uma pessoa da sua casa."},
+  {id:"m2",e:"🙏",t:"Faça uma oração antes de dormir", d:"Converse com Deus sobre o seu dia."},
+  {id:"m3",e:"❤️",t:"Diga algo carinhoso", d:"Fale palavras bonitas para alguém que você ama."},
+  {id:"m4",e:"📖",t:"Aprenda um versículo", d:"“Deus é amor.” 1 João 4:8"},
+  {id:"m5",e:"😊",t:"Agradeça por três coisas", d:"Diga a Deus três coisas boas do seu dia."},
+  {id:"m6",e:"🤝",t:"Compartilhe algo", d:"Divida um brinquedo ou um lanchinho."},
+  {id:"m7",e:"🧹",t:"Ajude a arrumar a casa", d:"Guarde seus brinquedos sem ninguém pedir."},
+  {id:"m8",e:"🌻",t:"Cuide da natureza", d:"Regue uma plantinha e agradeça pela Criação."}
+];
+function renderMissions(){
+  var box=document.getElementById("missionsList"); box.innerHTML="";
+  MISSIONS.forEach(function(m){
+    var done=S.missions.indexOf(m.id)>=0;
+    var d=document.createElement("div"); d.className="mission"+(done?" doneM":"");
+    d.innerHTML='<span class="e">'+m.e+'</span><div style="flex:1"><b>'+m.t+'</b><div class="muted">'+m.d+'</div></div>';
+    var b=document.createElement("button");
+    b.className="btn "+(done?"gray":"g"); b.textContent=done?"✅ Concluída":"Missão concluída";
+    if(!done){
+      b.addEventListener("click", function(){
+        S.missions.push(m.id); S.gamesPlayed++; save(); logAct("Missão concluída: "+m.t);
+        confetti(16); sGood(); addStars(4,"Missão cumprida!"); renderMissions();
+      });
+    }
+    d.appendChild(b); box.appendChild(d);
+  });
+}
+
+/* =================== HISTÓRIAS =================== */
+var STORIES=[
+  {id:"criacao",t:"A Criação",e:"🌍",c:"g-blue", audio:"", p:[
+    {t:"No começo de tudo, só existia Deus. Ele disse: “Haja luz!” e a luz apareceu. ✨"},
+    {t:"Deus criou o céu, o mar, as montanhas, as flores e as árvores cheias de frutas. 🌳"},
+    {t:"Depois Ele criou o sol, a lua, as estrelinhas, os peixes e os passarinhos. ⭐🐟🐦"},
+    {t:"Por último, Deus criou as pessoas, com muito amor. E viu que tudo era muito bom! 💛"}]},
+  {id:"arca",t:"Arca de Noé",e:"⛵",c:"g-teal", p:[
+    {t:"Deus pediu a Noé que construísse um barco bem grande: a Arca. 🔨"},
+    {t:"Os animais entraram de dois em dois: leões, girafas, elefantes e ovelhas. 🦁🦒🐘🐑"},
+    {t:"Choveu muitos dias, mas dentro da Arca todos estavam seguros. ☔"},
+    {t:"Depois apareceu um lindo arco-íris: a promessa de Deus de cuidar sempre. 🌈"}]},
+  {id:"davi",t:"Davi e Golias",e:"🪨",c:"g-orange", p:[
+    {t:"Davi era um menino pastor que cuidava das ovelhinhas. 🐑"},
+    {t:"Um gigante chamado Golias assustava todo mundo. 😮"},
+    {t:"Davi confiou em Deus, pegou sua funda e uma pedrinha. 🪨"},
+    {t:"Com a ajuda de Deus, o pequeno Davi venceu! Coragem vem de Deus. 💪"}]},
+  {id:"daniel",t:"Daniel na cova dos leões",e:"🦁",c:"g-purple", p:[
+    {t:"Daniel amava orar para Deus todos os dias. 🙏"},
+    {t:"Alguns homens não gostaram e o colocaram numa cova cheia de leões. 🦁"},
+    {t:"Mas Deus enviou um anjo e fechou a boca dos leões. 😇"},
+    {t:"De manhã, Daniel saiu bem, sem nenhum arranhão. Deus cuida de nós! 💛"}]},
+  {id:"jonas",t:"Jonas e o grande peixe",e:"🐟",c:"g-blue", p:[
+    {t:"Deus pediu que Jonas fosse avisar a cidade de Nínive. 🗺️"},
+    {t:"Jonas fugiu num barco, e veio uma tempestade bem forte. 🌊"},
+    {t:"Um peixe enorme engoliu Jonas, e lá dentro ele orou. 🙏"},
+    {t:"O peixe o colocou na praia e Jonas obedeceu a Deus. Obedecer é bom! 😊"}]},
+  {id:"natal",t:"O nascimento de Jesus",e:"👶",c:"g-pink", p:[
+    {t:"Maria e José viajaram até Belém numa noite estrelada. ⭐"},
+    {t:"Não havia lugar na hospedaria, então Jesus nasceu num estábulo. 🐄"},
+    {t:"Anjos cantaram e os pastores foram correndo ver o bebê. 🎶"},
+    {t:"Uma estrela guiou os magos com presentes. Jesus é o maior presente! 🎁"}]},
+  {id:"criancas",t:"Jesus e as crianças",e:"🧒",c:"g-green", p:[
+    {t:"Muitas crianças queriam ficar pertinho de Jesus. 🧒👧"},
+    {t:"Alguns adultos disseram: “Não incomodem!” 🙅"},
+    {t:"Mas Jesus falou: “Deixem as crianças virem a mim.” 💛"},
+    {t:"Ele abraçou cada uma e abençoou todas elas. Você também é amado! 🤗"}]},
+  {id:"samaritano",t:"O bom samaritano",e:"🤝",c:"g-orange", p:[
+    {t:"Um homem se machucou na estrada e precisava de ajuda. 🤕"},
+    {t:"Duas pessoas passaram e não ajudaram. 😔"},
+    {t:"Então um samaritano parou, cuidou dele e o levou para descansar. ❤️"},
+    {t:"Jesus ensinou: seja amigo de quem precisa de ajuda. 🤝"}]}
+];
+function renderStoriesList(){
+  var el=document.getElementById("storyList"); if(!el) return;
+  el.innerHTML="";
+  STORIES.forEach(function(s){
+    var b=document.createElement("button"); b.className="storycard "+s.c;
+    b.innerHTML='<div class="scene">'+(STORY_SCENE[s.id]||'')+'</div><div class="shade"></div>'+
+      '<div class="cap">'+(STORY_SCENE[s.id]?'':'<span class="e">'+s.e+'</span>')+'<b>'+s.t+'</b><br><small>Toque para ler ›</small></div>';
+    b.addEventListener("click", function(){ openStory(s); });
+    el.appendChild(b);
+  });
+}
+renderStoriesList();
+var curStory=null, curPage=0;
+function openStory(s){ curStory=s; curPage=0; go("historia"); renderStory(); }
+function renderStory(){
+  if(!curStory) return;
+  document.getElementById("stEmoji").textContent=curStory.e;
+  document.getElementById("stTitle").textContent=curStory.t;
+  var page = curStory.p[curPage];
+  document.getElementById("stText").textContent=typeof page === 'string' ? page : page.t;
+  document.getElementById("stPage").textContent="Página "+(curPage+1)+" de "+curStory.p.length;
+  document.getElementById("stNext").textContent = curPage===curStory.p.length-1 ? "✅ Concluir" : "Próximo ›";
+}
+
+document.getElementById("stPrev").addEventListener("click", function(){
+  if(curPage>0){ curPage--; renderStory(); sTap(); } else { toast("Esta é a primeira página 💛"); }
+});
+document.getElementById("stNext").addEventListener("click", function(){
+  if(!curStory) return;
+  if(curPage<curStory.p.length-1){
+    curPage++; renderStory(); sTap();
+  }
+  else{
+    if(S.storiesRead.indexOf(curStory.id)<0){ S.storiesRead.push(curStory.id); save(); addStars(3,"Você leu uma história!"); }
+    else { toast("Você já tinha lido essa! 💛"); }
+    logAct("Leu a história: "+curStory.t); confetti(14); sGood();
+    go("historias");
+  }
+});
+
+/* =================== CONQUISTAS =================== */
+var ACHS=[
+  {id:"a1",e:"⭐",t:"Primeira Estrela", d:"Ganhe sua 1ª estrela", ok:function(){return S.stars>=1;}},
+  {id:"a2",e:"🦁",t:"Explorador da Arca", d:"Ouça 6 animais", ok:function(){return S.animalsHeard.length>=6;}},
+  {id:"a3",e:"🎨",t:"Pequeno Artista", d:"Conclua 1 pintura", ok:function(){return S.paintings>=1;}},
+  {id:"a4",e:"🧠",t:"Mestre da Memória", d:"Vença a memória 2 vezes", ok:function(){return S.memoryWins>=2;}},
+  {id:"a5",e:"🔢",t:"Contador da Fé", d:"Acerte 5 desafios", ok:function(){return S.correct>=5;}},
+  {id:"a6",e:"💛",t:"Pequeno Ajudante", d:"Conclua 3 missões", ok:function(){return S.missions.length>=3;}},
+  {id:"a7",e:"📖",t:"Leitor da Bíblia", d:"Leia 3 histórias", ok:function(){return S.storiesRead.length>=3;}},
+  {id:"a8",e:"🌟",t:"Estrela Brilhante", d:"Chegue a 100 estrelas", ok:function(){return S.stars>=100;}},
+  {id:"a9",e:"👑",t:"Coroa da Fé", d:"Alcance o nível 5", ok:function(){return S.level>=5;}}
+];
+function checkAchievements(){
+  var novo=false;
+  ACHS.forEach(function(a){
+    if(S.achievements.indexOf(a.id)<0 && a.ok()){
+      S.achievements.push(a.id); novo=true; logAct("Conquista desbloqueada: "+a.t);
+      setTimeout(function(){ toast("🏅 Conquista: "+a.t+"!"); confetti(12); },700);
+    }
+  });
+  if(novo){ save(); renderMedals(); }
+}
+function renderMedals(){
+  var el=document.getElementById("medalsGrid"); if(!el) return; el.innerHTML="";
+  ACHS.forEach(function(a){
+    var got=S.achievements.indexOf(a.id)>=0;
+    var d=document.createElement("div"); d.className="medal"+(got?"":" locked");
+    d.innerHTML='<span class="e">'+(got?a.e:"🔒")+'</span><b>'+a.t+'</b><small>'+a.d+'</small>';
+    el.appendChild(d);
+  });
+}
+
+/* =================== PERFIL =================== */
+var AVATARS=["🧒","👧","👦","🧑","🦁","🐑","🐣","🐨","🦊","🐰","🐼","🦄"];
+function renderAvatars(){
+  var el=document.getElementById("avatarPick"); if(!el) return;
+  el.innerHTML="";
+  AVATARS.forEach(function(a){
+    var b=document.createElement("button"); b.className="av"; b.textContent=a; b.setAttribute("data-av",a);
+    b.addEventListener("click", function(){
+      S.avatar=a; save(); sTap(); renderProfile(); applyProfile();
+    });
+    el.appendChild(b);
+  });
+}
+renderAvatars();
+function renderProfile(){
+  document.getElementById("pName").value=S.name||"";
+  document.getElementById("pAge").value=S.age||"";
+  document.getElementById("perfAvatar").textContent=S.avatar;
+  var avs=document.querySelectorAll("#avatarPick .av");
+  for(var i=0;i<avs.length;i++) avs[i].classList.toggle("sel", avs[i].getAttribute("data-av")===S.avatar);
+  refreshStats();
+}
+function applyProfile(){
+  document.getElementById("avatarBtn").textContent=S.avatar;
+  document.getElementById("heroName").textContent = S.name ? S.name : "pequeno(a) aventureiro(a)";
+}
+document.getElementById("saveProfile").addEventListener("click", function(){
+  S.name=document.getElementById("pName").value.trim();
+  S.age=document.getElementById("pAge").value;
+  save(); applyProfile(); sGood(); confetti(10); toast("Perfil salvo! 💾💛");
+});
+document.getElementById("logoutBtn").addEventListener("click", function(){
+  sTap();
+  document.getElementById("v-cadastro").style.display = "block";
+  document.getElementById("mainHeader").style.display = "none";
+  document.getElementById("mainContent").style.display = "none";
+  document.getElementById("mainNav").style.display = "none";
+  
+  // Se já tem perfil, mostrar boas-vindas
+  if(S.name) {
+    var h2Cad = document.querySelector("#v-cadastro h2"); h2Cad.textContent = "";
+    h2Cad.appendChild(document.createTextNode("Olá, " + S.name + "! 💛"));
+    h2Cad.appendChild(document.createElement("br"));
+    h2Cad.appendChild(document.createTextNode("Que bom ter você de volta!"));
+    document.getElementById("cadBtn").textContent = "Entrar novamente 🎉";
+    document.getElementById("cadName").value = S.name;
+    document.getElementById("cadAge").value = S.age;
+    cadGender = S.avatar === "👦" ? "boy" : "girl";
+    
+    // Marcar visualmente o gênero
+    var boyBtn = document.getElementById("cadBoy");
+    var girlBtn = document.getElementById("cadGirl");
+    if(cadGender === "boy") {
+      boyBtn.style.borderColor = "var(--blue)"; boyBtn.style.background = "#f0f8ff";
+      boyBtn.querySelector(".check-mark").style.display = "block";
+      girlBtn.style.borderColor = "#eee"; girlBtn.style.background = "#fff";
+      girlBtn.querySelector(".check-mark").style.display = "none";
+    } else {
+      girlBtn.style.borderColor = "var(--pink)"; girlBtn.style.background = "#fff0f6";
+      girlBtn.querySelector(".check-mark").style.display = "block";
+      boyBtn.style.borderColor = "#eee"; boyBtn.style.background = "#fff";
+      boyBtn.querySelector(".check-mark").style.display = "none";
+    }
+  }
+});
+document.getElementById("avatarBtn").addEventListener("click", function(){ go("perfil"); });
+
+/* =================== FAMÍLIAS =================== */
+var TIPS=["Leiam juntos uma história bíblica antes de dormir.","Façam uma oração de agradecimento no jantar.",
+ "Desenhem em família a Arca de Noé.","Escolham uma missão da fé para fazer juntos hoje.",
+ "Cantem uma musiquinha cristã e dancem.","Conversem: o que você agradece a Deus hoje?"];
+function renderFamily(){
+  document.getElementById("famStats").innerHTML=
+    '<div class="kvi"><b>'+S.stars+'</b><small>Estrelas</small></div>'+
+    '<div class="kvi"><b>'+S.level+'</b><small>Nível</small></div>'+
+    '<div class="kvi"><b>'+S.gamesPlayed+'</b><small>Atividades</small></div>'+
+    '<div class="kvi"><b>'+S.storiesRead.length+'</b><small>Histórias lidas</small></div>'+
+    '<div class="kvi"><b>'+S.missions.length+'</b><small>Missões</small></div>'+
+    '<div class="kvi"><b>'+S.achievements.length+'</b><small>Conquistas</small></div>';
+  var h=document.getElementById("famHistory");
+  if(!S.history.length){ h.textContent="Ainda não há atividades registradas. Vamos brincar? 🎮"; }
+  else{
+    h.innerHTML=S.history.slice(0,10).map(function(x){
+      var d=new Date(x.d);
+      return "• "+x.t+" <small>("+d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+")</small>";
+    }).join("<br>");
+  }
+  document.getElementById("famTips").innerHTML=TIPS.map(function(t){return "💡 "+t;}).join("<br>");
+  updateSoundUI();
+}
+
+/* =================== CONFIG / SOM =================== */
+var cfgModal=document.getElementById("cfgModal");
+document.getElementById("cfgBtn").addEventListener("click", function(){ cfgModal.classList.add("show"); updateSoundUI(); updateMusicUI(); sTap(); });
+document.getElementById("cfgClose").addEventListener("click", function(){ cfgModal.classList.remove("show"); });
+cfgModal.addEventListener("click", function(e){ if(e.target===cfgModal) cfgModal.classList.remove("show"); });
+function toggleSound(){ S.sound=!S.sound; save(); updateSoundUI(); if(S.sound) sTap(); toast(S.sound?"Som ligado 🔊":"Som desligado 🔇"); }
+document.getElementById("cfgSound").addEventListener("click", toggleSound);
+document.getElementById("famSound").addEventListener("click", toggleSound);
+document.getElementById("cfgMusic").addEventListener("click", function(){ musicToggle(!S.music); });
+document.getElementById("musicBtn").addEventListener("click", function(){ musicToggle(!S.music); toast(S.music?"Música ligada 🎵":"Música desligada 🔇"); });
+
+function downloadFile(name, content, mime){
+  try{
+    var blob=new Blob([content],{type:mime||"text/plain;charset=utf-8"});
+    var url=URL.createObjectURL(blob); var a=document.createElement("a");
+    a.href=url; a.download=name; document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },600);
+    return true;
+  }catch(e){ toast("Não foi possível baixar 😢"); return false; }
+}
+document.getElementById("resetAll").addEventListener("click", function(){
+  if(!window.confirm("Recomeçar tudo? O progresso salvo neste aparelho será apagado.")) return;
+  try{
+    var del=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k && k.indexOf(KEY)===0) del.push(k); }
+    del.forEach(function(k){ localStorage.removeItem(k); });
+  }catch(e){}
+  S=JSON.parse(JSON.stringify(DEF)); save();
+  applyProfile(); refreshStats(); renderMedals(); renderMissions(); renderFamily(); renderProfile();
+  toast("Tudo recomeçado! 🌱"); location.reload();
+});
+
+/* =================== EXPORTAR APP COMO HTML ÚNICO (offline) =================== */
+// A imagem e os sons do app ficam em arquivos externos (assets/) para permitir
+// cache/instalação como PWA. Para continuar oferecendo um único HTML autocontido
+// (para uso 100% offline ou publicação em qualquer hospedagem estática), esta função
+// busca esses arquivos e os reinsere como base64 no momento do download.
+function blobToDataURL(blob){
+  return new Promise(function(resolve, reject){
+    var r = new FileReader();
+    r.onload = function(){ resolve(r.result); };
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+function fetchAsDataURL(url){
+  return fetch(url).then(function(res){
+    if(!res.ok) throw new Error("Falha ao buscar "+url);
+    return res.blob();
+  }).then(blobToDataURL);
+}
+function exportAppAsSelfContainedHtml(){
+  // Para evitar duplicação no exportado: limpamos os contêineres antes de gerar o HTML.
+  // Assim, quando o index.html baixado abrir, ele executará o init() e criará os elementos do zero.
+  document.getElementById("gamesGrid").innerHTML = "";
+  document.getElementById("gamesGrid2").innerHTML = "";
+  document.getElementById("animalsGrid").innerHTML = "";
+  document.getElementById("paintThumbs").innerHTML = "";
+  document.getElementById("palette").innerHTML = "";
+  document.getElementById("storyList").innerHTML = "";
+  document.getElementById("avatarPick").innerHTML = "";
+
+  // Garantir que a tela de cadastro esteja oculta no exportado se o usuário já estiver logado
+  // (o init() cuidará disso, mas limpar os estilos inline ajuda)
+  var vCad = document.getElementById("v-cadastro");
+  var initialDisplay = vCad.style.display;
+  vCad.style.display = "none";
+  var cadBg = vCad.querySelector(".cad-bg");
+  if(cadBg) cadBg.style.display = "none";
+
+  // Lemos o caminho da imagem a partir do próprio DOM em vez de escrever o
+  // valor fixo aqui no código: como a exportação clona o <script> inteiro,
+  // repetir o caminho aqui faria esse texto aparecer de novo lá dentro e
+  // ser substituído por engano.
+  var heroRelSrc = document.querySelector(".hero-banner-img").getAttribute("src");
+  var soundKeys = Object.keys(window.ANIMAL_SOUNDS);
+  var pending = [fetchAsDataURL(heroRelSrc)].concat(
+    soundKeys.map(function(k){ return fetchAsDataURL(window.ANIMAL_SOUNDS[k]); })
+  );
+
+  return Promise.all(pending).then(function(dataUrls){
+    var heroDataUrl = dataUrls[0];
+    var html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    html = html.split('"'+heroRelSrc+'"').join('"'+heroDataUrl+'"');
+    soundKeys.forEach(function(k, i){
+      var relPath = window.ANIMAL_SOUNDS[k];
+      html = html.split('"'+relPath+'"').join('"'+dataUrls[i+1]+'"');
+    });
+    return html;
+  }).finally(function(){
+    // Restaurar estado local
+    vCad.style.display = initialDisplay;
+    if(cadBg) cadBg.style.display = "block";
+    renderGames(document.getElementById("gamesGrid"));
+    renderGames(document.getElementById("gamesGrid2"));
+    renderAnimals();
+    renderPaint();
+    renderStoriesList();
+    renderAvatars();
+  });
+}
+function downloadAppHtml(){
+  toast("Preparando o HTML para baixar... ⏳");
+  return exportAppAsSelfContainedHtml().then(function(html){
+    downloadFile("index.html", html, "text/html;charset=utf-8");
+    confetti(18); toast("Aplicativo exportado! 📥");
+  }).catch(function(e){
+    console.error("Falha ao exportar app:", e);
+    toast("Não foi possível baixar agora 😢");
+  });
+}
+
+/* ---- atalho oculto: 5 cliques seguidos na logo ---- */
+var clicks=0, clickT=null;
+document.getElementById("logo").addEventListener("click", function(){
+  clicks++; if(clickT) clearTimeout(clickT);
+  clickT=setTimeout(function(){ clicks=0; },1400);
+  if(clicks>=5){ clicks=0; downloadAppHtml(); }
+  else if(clicks===1){ go("home"); }
+});
+
+/* ---- botão visível em Configurações ---- */
+var cfgDownloadBtn = document.getElementById("cfgDownload");
+if(cfgDownloadBtn) cfgDownloadBtn.addEventListener("click", downloadAppHtml);
+
+/* =================== BOTÃO CONTINUAR =================== */
+document.getElementById("continueBtn").addEventListener("click", function(){
+  ac(); go("jogar"); toast("Vamos brincar! 🎮");
+});
+
+var cadGender = "";
+document.getElementById("cadBoy").addEventListener("click", function(){
+  cadGender = "boy";
+  this.style.borderColor = "var(--blue)"; this.style.background = "#f0f8ff";
+  this.querySelector(".check-mark").style.display = "block";
+  document.getElementById("cadGirl").style.borderColor = "#eee";
+  document.getElementById("cadGirl").style.background = "#fff";
+  document.getElementById("cadGirl").querySelector(".check-mark").style.display = "none";
+  sTap();
+});
+document.getElementById("cadGirl").addEventListener("click", function(){
+  cadGender = "girl";
+  this.style.borderColor = "var(--pink)"; this.style.background = "#fff0f6";
+  this.querySelector(".check-mark").style.display = "block";
+  document.getElementById("cadBoy").style.borderColor = "#eee";
+  document.getElementById("cadBoy").style.background = "#fff";
+  document.getElementById("cadBoy").querySelector(".check-mark").style.display = "none";
+  sTap();
+});
+
+document.getElementById("cadBtn").addEventListener("click", function(){
+  var name = document.getElementById("cadName").value.trim();
+  var age = document.getElementById("cadAge").value;
+  if(!name){ toast("Escreva seu nome 💛"); return; }
+  if(!cadGender){ toast("Escolha se é menino ou menina 🧒👧"); return; }
+  if(!age){ toast("Qual a sua idade? 🎂"); return; }
+  
+  S.name = name;
+  S.age = age;
+  S.avatar = cadGender === "boy" ? "👦" : "👧";
+  save();
+  
+  confetti(24);
+  sGood();
+  toast("Oba, " + escapeHtml(name) + "! 🎉<br>Sua aventura vai começar!");
+  
+  setTimeout(function(){
+    document.getElementById("v-cadastro").style.display = "none";
+    document.getElementById("mainHeader").style.display = "block";
+    document.getElementById("mainContent").style.display = "block";
+    document.getElementById("mainNav").style.display = "flex";
+    initApp();
+  }, 1800);
+});
+
+function initApp(){
+  newOnde(); newCount(); newMemory(4); renderMissions(); renderMedals(); renderProfile();
+  applyProfile(); refreshStats(); updateSoundUI(); updateMusicUI(); checkAchievements();
+  if(S.music){
+    var once=function(){ musicToggle(true); document.removeEventListener("click", once); };
+    document.addEventListener("click", once);
+  }
+  document.addEventListener("click", function(){ ac(); }, {once:true});
+}
+
+function init(){
+  if(!S.name){
+    document.getElementById("v-cadastro").style.display = "block";
+    document.getElementById("mainHeader").style.display = "none";
+    document.getElementById("mainContent").style.display = "none";
+    document.getElementById("mainNav").style.display = "none";
+  } else {
+    document.getElementById("v-cadastro").style.display = "none";
+    document.getElementById("mainHeader").style.display = "block";
+    document.getElementById("mainContent").style.display = "block";
+    document.getElementById("mainNav").style.display = "flex";
+    initApp();
+  }
+}
+init();
+
+/* PWA offline: só registra o service worker quando servido por http(s) — em
+   file:// (HTML aberto direto no navegador) o navegador bloqueia SW, então
+   pulamos sem gerar erro. */
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(e){ console.warn("SW não registrado:", e); });
+  });
+}
+
+})();
+</script></body></html>

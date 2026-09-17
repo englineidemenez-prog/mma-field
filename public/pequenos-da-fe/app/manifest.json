@@ -1,0 +1,27 @@
+{
+  "name": "Pequenos da Fé Kids",
+  "short_name": "Pequenos da Fé",
+  "description": "Aplicativo infantil cristão com jogos bíblicos, histórias, missões da fé, estrelas e conquistas. Funciona online e offline.",
+  "start_url": "/pequenos-da-fe/app/",
+  "scope": "/pequenos-da-fe/app/",
+  "id": "/pequenos-da-fe/app/",
+  "display": "standalone",
+  "background_color": "#eaf7ff",
+  "theme_color": "#2f9bf5",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

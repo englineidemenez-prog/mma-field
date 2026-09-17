@@ -1,11 +1,6 @@
 ﻿import React, { useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, LabelList } from "recharts";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { supabase } from "./supabaseClient.js";
 
 const HC = "#1a3d2b";
 const COR = ["#5a4fcf","#2d6a4f","#b5451b","#7d5a3c","#b08000","#0e6b7c","#c0622b","#8b5e1a","#6b4c9a","#6b7280","#e63946","#457b9d","#2a9d8f","#e9c46a","#f4a261","#264653","#6d6875","#b5838d","#3d405b","#81b29a","#118ab2","#06d6a0","#ef476f","#ffd166","#4cc9f0","#4361ee","#3a0ca3","#7209b7"];
