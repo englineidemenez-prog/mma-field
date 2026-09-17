@@ -102,9 +102,14 @@ section.block{padding:56px 0;}
 .extra-card small{color:var(--ink2); font-weight:700; font-size:13.5px; line-height:1.4;}
 @media (max-width:700px){ .extra-row{grid-template-columns:1fr} }
 
+/* video demo */
+.demo-video{display:flex; justify-content:center; margin-bottom:32px;}
+.demo-video video{width:280px; border-radius:26px; box-shadow:var(--shadow-lg); border:6px solid #fff; background:#000;}
+
 /* screenshots */
-.shots{display:flex; justify-content:center; gap:26px; flex-wrap:wrap;}
-.shots img{width:230px; border-radius:22px; box-shadow:var(--shadow-lg); border:6px solid #fff;}
+.shots{display:flex; justify-content:center; gap:20px; flex-wrap:wrap;}
+.shots img{width:190px; border-radius:20px; box-shadow:var(--shadow-lg); border:5px solid #fff;}
+@media (max-width:520px){ .shots img{width:150px;} }
 
 /* benefits */
 .benefits{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
@@ -197,10 +202,21 @@ footer a{text-decoration:underline;}
   <div class="section-head">
     <div class="badge">📸</div>
     <h2>Veja o app por dentro</h2>
+    <p>Um vídeo real do Arca Kids funcionando, e mais telas do que a criança vai encontrar.</p>
+  </div>
+  <div class="demo-video">
+    <video controls playsinline poster="assets/demo-poster.webp" preload="metadata">
+      <source src="assets/demo.mp4" type="video/mp4">
+      <source src="assets/demo.webm" type="video/webm">
+    </video>
   </div>
   <div class="shots">
     <img src="assets/screenshot-cadastro.webp" alt="Tela de cadastro">
     <img src="assets/screenshot-home.webp" alt="Tela inicial com os jogos">
+    <img src="assets/screenshot-sons.webp" alt="Jogo Sons de Animais">
+    <img src="assets/screenshot-historias.webp" alt="Histórias bíblicas">
+    <img src="assets/screenshot-pintar.webp" alt="Jogo Pintando a Bíblia">
+    <img src="assets/screenshot-conquistas.webp" alt="Meu Álbum de conquistas">
   </div>
 </section>
 
@@ -221,7 +237,7 @@ footer a{text-decoration:underline;}
 
 <section class="block wrap" id="comprar">
   <div class="price-box">
-    <div class="old">de R$ 97,00</div>
+    <div class="old">de R$ 49,90</div>
     <div class="now"><small>R$</small> 12,90</div>
     <a class="btn-buy" href="https://pay.kiwify.com.br/SEU-LINK-AQUI" target="_blank" rel="noopener noreferrer">▶ Quero o Arca Kids agora</a>
     <ul>
