@@ -20,7 +20,7 @@ const LINK_ANUAL = "https://pay.kiwify.com.br/SEU-LINK-PEQUENOS-DA-FE-ANUAL";
 function Carregando({ texto }) {
   return (
     <div style={{ minHeight: "100vh", background: FUNDO, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONTE }}>
-      <div style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}>🦁 {texto || "Carregando..."}</div>
+      <div style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}>🐑 {texto || "Carregando..."}</div>
     </div>
   );
 }
@@ -28,8 +28,8 @@ function Carregando({ texto }) {
 function Marca() {
   return (
     <div style={{ textAlign: "center", marginBottom: 20 }}>
-      <div style={{ fontSize: 40 }}>🦁</div>
-      <div style={{ fontSize: 22, fontWeight: 900, color: HC }}>Pequenos da Fé <span style={{ color: "#f0a132" }}>Kids</span></div>
+      <div style={{ fontSize: 40 }}>🐑</div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: HC }}>Arca <span style={{ color: "#f0a132" }}>Kids</span></div>
       <div style={{ fontSize: 11, color: "#888", letterSpacing: 1, textTransform: "uppercase", marginTop: 3, fontWeight: 700 }}>Brincando e aprendendo sobre o amor de Deus</div>
     </div>
   );
@@ -157,7 +157,7 @@ function AssinaturaBloqueadaScreenPDF({ status, onLogout }) {
         <Marca />
         {semLinha
           ? <div style={{ background: "#fff8d9", border: "1px solid #ffe17b", borderRadius: 12, padding: "14px 16px", marginBottom: 20, fontSize: 13, color: "#7a5c00", lineHeight: 1.5 }}>Ainda não encontramos seu pagamento. Se você acabou de assinar, aguarde alguns minutos e atualize a página.</div>
-          : <div style={{ background: "#fff0f0", border: "1px solid #ffcccc", borderRadius: 12, padding: "14px 16px", marginBottom: 20, fontSize: 13, color: "#800000", lineHeight: 1.5 }}>Sua assinatura está com um pagamento pendente. Regularize para voltar a acessar o Pequenos da Fé Kids.</div>}
+          : <div style={{ background: "#fff0f0", border: "1px solid #ffcccc", borderRadius: 12, padding: "14px 16px", marginBottom: 20, fontSize: 13, color: "#800000", lineHeight: 1.5 }}>Sua assinatura está com um pagamento pendente. Regularize para voltar a acessar o Arca Kids.</div>}
         <div style={{ fontSize: 12, color: "#555", marginBottom: 16, textAlign: "center" }}>Escolha um plano para continuar:</div>
         <a href={LINK_MENSAL} target="_blank" rel="noopener noreferrer" style={{ ...ei, marginBottom: 10, display: "block" }}>💳 Plano Mensal</a>
         <a href={LINK_ANUAL} target="_blank" rel="noopener noreferrer" style={{ ...ei, background: "linear-gradient(135deg,#f0a132,#f5c542)", color: "#5a3600", marginBottom: 20, display: "block" }}>👑 Plano Anual</a>
