@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arca Kids — O app cristão que ensina, diverte e aproxima seu filho de Deus</title>
+<meta name="description" content="Aplicativo infantil cristão com 6 jogos, 8 histórias bíblicas, missões da fé e sistema de conquistas. Funciona online e offline, pagamento único, sem mensalidade.">
+<link rel="icon" type="image/webp" href="assets/mascot.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#bfe6ff; --sky2:#e9f6ff; --ink:#3b2a6b; --ink2:#6b6394;
+  --blue:#2f9bf5; --blue2:#1a6fd4;
+  --pink:#f857a6; --pink2:#d62a86;
+  --orange:#ffb01f; --orange2:#f57c1f;
+  --green:#67c33f; --green2:#3d9a2c;
+  --purple:#9a5cf0; --purple2:#6f34cf;
+  --teal:#2fd0c5; --teal2:#189aa8;
+  --yellow:#ffd23f;
+  --shadow:0 10px 24px rgba(60,80,140,.16);
+  --shadow-lg:0 18px 40px rgba(60,80,140,.22);
+  --font:'Baloo 2','Trebuchet MS','Segoe UI',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font); color:var(--ink); overflow-x:hidden;
+  background:
+    radial-gradient(1200px 500px at 12% -8%, #ffffff 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(900px 420px at 88% 4%, #ffffff 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(180deg,#d6efff 0%, #eaf7ff 32%, #f6f2ff 70%, #fff6ea 100%);
+}
+a{color:inherit; text-decoration:none;}
+h1,h2,h3{margin:0; line-height:1.15; font-weight:900;}
+p{margin:0;}
+.wrap{max-width:1100px; margin:0 auto; padding:0 20px;}
+img{max-width:100%; display:block;}
+
+/* header */
+header{padding:20px 0;}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:14px;}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand img{width:52px; height:52px; border-radius:50%; box-shadow:var(--shadow); border:3px solid #fff;}
+.brand b{font-size:22px; background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.nav-cta{background:linear-gradient(180deg,#ffd44f,#f5a01c); color:#5a3600; font-weight:900; padding:10px 20px; border-radius:999px; box-shadow:0 4px 0 #cf7d0d; font-size:14px;}
+
+/* hero */
+.hero{padding:30px 0 50px; display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center;}
+.eyebrow{display:inline-block; background:#fff; padding:6px 16px; border-radius:999px; font-weight:800; font-size:13px; color:var(--purple2); box-shadow:var(--shadow);}
+.hero h1{font-size:clamp(30px,4.6vw,46px); margin-top:16px; color:var(--ink);}
+.hero h1 span{background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero p.lead{margin-top:16px; font-size:18px; font-weight:700; color:var(--ink2); max-width:520px; line-height:1.5;}
+.cta-row{margin-top:26px; display:flex; flex-wrap:wrap; align-items:center; gap:16px;}
+.btn-buy{display:inline-flex; align-items:center; gap:10px; padding:18px 30px; border-radius:999px;
+  background:linear-gradient(180deg,#ffd44f,#f5a01c); color:#5a3600; font-weight:900; font-size:19px;
+  box-shadow:0 6px 0 #cf7d0d, var(--shadow); transition:.12s;}
+.btn-buy:active{transform:translateY(4px); box-shadow:0 2px 0 #cf7d0d}
+.price-tag{font-weight:800; color:var(--ink2); font-size:14px;}
+.price-tag b{color:var(--green2); font-size:22px;}
+.trust-mini{margin-top:18px; display:flex; flex-wrap:wrap; gap:10px 18px; font-size:13px; font-weight:700; color:var(--ink2);}
+.trust-mini span{display:inline-flex; align-items:center; gap:6px;}
+
+.hero-art{position:relative;}
+.hero-art .ark{border-radius:28px; box-shadow:var(--shadow-lg); overflow:hidden;}
+.hero-art .phone{position:absolute; right:-10px; bottom:-40px; width:150px; border-radius:18px; box-shadow:0 14px 30px rgba(0,0,0,.28); border:5px solid #fff;}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr; padding-bottom:80px;}
+  .hero-art{order:-1;}
+  .hero-art .phone{width:110px; right:6px; bottom:-30px;}
+}
+
+/* sections */
+section.block{padding:56px 0;}
+.section-head{text-align:center; max-width:640px; margin:0 auto 36px;}
+.section-head .badge{display:inline-flex; width:52px; height:52px; border-radius:16px; align-items:center; justify-content:center;
+  font-size:26px; background:linear-gradient(180deg,#a56cff,#6f34cf); color:#fff; box-shadow:var(--shadow); margin-bottom:14px;}
+.section-head h2{font-size:clamp(24px,3.4vw,32px);}
+.section-head p{margin-top:10px; color:var(--ink2); font-weight:700; font-size:16px;}
+
+.games{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+.gcard{border-radius:24px; padding:22px 20px; color:#fff; box-shadow:var(--shadow-lg); min-height:150px;}
+.gcard .e{font-size:34px; display:block; margin-bottom:10px;}
+.gcard h4{font-size:19px;}
+.gcard p{font-size:14px; font-weight:700; opacity:.95; margin-top:6px; line-height:1.4;}
+.g-blue{background:linear-gradient(160deg,var(--blue),var(--blue2))}
+.g-pink{background:linear-gradient(160deg,var(--pink),var(--pink2))}
+.g-orange{background:linear-gradient(160deg,var(--orange),var(--orange2))}
+.g-green{background:linear-gradient(160deg,var(--green),var(--green2))}
+.g-purple{background:linear-gradient(160deg,var(--purple),var(--purple2))}
+.g-teal{background:linear-gradient(160deg,var(--teal),var(--teal2))}
+
+@media (max-width:860px){ .games{grid-template-columns:1fr 1fr} }
+@media (max-width:520px){ .games{grid-template-columns:1fr} }
+
+.extra-row{margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+.extra-card{background:#fff; border-radius:22px; padding:22px; box-shadow:var(--shadow); display:flex; gap:14px; align-items:flex-start;}
+.extra-card .e{font-size:32px;}
+.extra-card b{font-size:16px; display:block; margin-bottom:4px;}
+.extra-card small{color:var(--ink2); font-weight:700; font-size:13.5px; line-height:1.4;}
+@media (max-width:700px){ .extra-row{grid-template-columns:1fr} }
+
+/* screenshots */
+.shots{display:flex; justify-content:center; gap:26px; flex-wrap:wrap;}
+.shots img{width:230px; border-radius:22px; box-shadow:var(--shadow-lg); border:6px solid #fff;}
+
+/* benefits */
+.benefits{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+.benefit{background:#fff; border-radius:20px; padding:20px; text-align:center; box-shadow:var(--shadow);}
+.benefit .e{font-size:30px; display:block; margin-bottom:8px;}
+.benefit b{font-size:14.5px; display:block; line-height:1.4;}
+@media (max-width:860px){ .benefits{grid-template-columns:1fr 1fr} }
+@media (max-width:520px){ .benefits{grid-template-columns:1fr} }
+
+/* pricing */
+.price-box{max-width:460px; margin:0 auto; background:#fff; border-radius:30px; padding:36px 32px; text-align:center; box-shadow:var(--shadow-lg); border:3px dashed #f0c15a;}
+.price-box .old{color:var(--ink2); font-weight:700; text-decoration:line-through; font-size:16px;}
+.price-box .now{font-size:52px; font-weight:900; color:var(--green2); margin-top:4px;}
+.price-box .now small{font-size:20px; font-weight:800;}
+.price-box .btn-buy{width:100%; justify-content:center; margin-top:20px;}
+.price-box ul{list-style:none; margin:22px 0 0; padding:0; text-align:left; display:grid; gap:10px;}
+.price-box li{font-weight:700; font-size:14.5px; color:var(--ink2); display:flex; gap:8px;}
+
+/* faq */
+.faq{max-width:720px; margin:0 auto; display:grid; gap:12px;}
+.faq details{background:#fff; border-radius:18px; padding:16px 20px; box-shadow:var(--shadow);}
+.faq summary{font-weight:800; font-size:15.5px; cursor:pointer; list-style:none;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary:before{content:"➤ "; color:var(--purple2);}
+.faq p{margin-top:10px; color:var(--ink2); font-weight:600; font-size:14.5px; line-height:1.55;}
+
+footer{padding:40px 0; text-align:center; color:var(--ink2); font-weight:700; font-size:13px;}
+footer a{text-decoration:underline;}
+
+.floating-cta{position:fixed; left:0; right:0; bottom:0; z-index:50; display:none;
+  background:#fff; box-shadow:0 -8px 24px rgba(60,80,140,.18); padding:12px 16px;}
+.floating-cta .btn-buy{width:100%; justify-content:center; font-size:16px; padding:14px;}
+@media (max-width:700px){ .floating-cta{display:block;} body{padding-bottom:78px;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap topbar">
+    <div class="brand">
+      <img src="assets/mascot.webp" alt="Arca Kids">
+      <b>Arca Kids</b>
+    </div>
+    <a class="nav-cta" href="#comprar">Comprar agora</a>
+  </div>
+</header>
+
+<section class="hero wrap">
+  <div>
+    <span class="eyebrow">📱 Aplicativo infantil cristão</span>
+    <h1>Seu filho vai <span>amar aprender</span> sobre a Bíblia brincando</h1>
+    <p class="lead">6 jogos educativos, 8 histórias bíblicas, missões da fé e um sistema de conquistas — tudo em português, feito para ensinar o amor de Deus de um jeito divertido e seguro.</p>
+    <div class="cta-row">
+      <a class="btn-buy" href="#comprar">▶ Quero o Arca Kids</a>
+      <div class="price-tag">Pagamento único, sem mensalidade<br><b>R$ 27,00</b></div>
+    </div>
+    <div class="trust-mini">
+      <span>✅ Funciona online e offline</span>
+      <span>✅ Sem anúncios</span>
+      <span>✅ Acesso imediato</span>
+    </div>
+  </div>
+  <div class="hero-art">
+    <img class="ark" src="assets/hero.webp" alt="Arca de Noé com os animais">
+    <img class="phone" src="assets/screenshot-home.webp" alt="Tela inicial do Arca Kids">
+  </div>
+</section>
+
+<section class="block wrap" id="jogos">
+  <div class="section-head">
+    <div class="badge">🎮</div>
+    <h2>6 jogos para aprender brincando</h2>
+    <p>Cada jogo trabalha uma habilidade diferente, sempre com um toque de fé.</p>
+  </div>
+  <div class="games">
+    <div class="gcard g-blue"><span class="e">🔊</span><h4>Sons de Animais</h4><p>Ouça e descubra os animais da Arca</p></div>
+    <div class="gcard g-pink"><span class="e">🎨</span><h4>Pintando a Bíblia</h4><p>Desenhos cristãos para colorir</p></div>
+    <div class="gcard g-orange"><span class="e">🔍</span><h4>Onde Está?</h4><p>Encontre a imagem correta</p></div>
+    <div class="gcard g-green"><span class="e">🔢</span><h4>Conte e Toque</h4><p>Aprenda os números brincando</p></div>
+    <div class="gcard g-purple"><span class="e">🧠</span><h4>Jogo da Memória</h4><p>Encontre os pares bíblicos</p></div>
+    <div class="gcard g-teal"><span class="e">🏆</span><h4>Missões da Fé</h4><p>Pequenos desafios com grandes ensinamentos</p></div>
+  </div>
+  <div class="extra-row">
+    <div class="extra-card"><span class="e">📖</span><div><b>8 Histórias Bíblicas</b><small>A Criação, Arca de Noé, Davi e Golias, Daniel na Cova dos Leões, Jonas e o Grande Peixe, O Nascimento de Jesus, Jesus e as Crianças e O Bom Samaritano.</small></div></div>
+    <div class="extra-card"><span class="e">⭐</span><div><b>Sistema de Conquistas</b><small>Estrelas, níveis e medalhas que motivam a criança a continuar aprendendo e celebrando cada progresso.</small></div></div>
+  </div>
+</section>
+
+<section class="block wrap">
+  <div class="section-head">
+    <div class="badge">📸</div>
+    <h2>Veja o app por dentro</h2>
+  </div>
+  <div class="shots">
+    <img src="assets/screenshot-cadastro.webp" alt="Tela de cadastro">
+    <img src="assets/screenshot-home.webp" alt="Tela inicial com os jogos">
+  </div>
+</section>
+
+<section class="block wrap">
+  <div class="section-head">
+    <div class="badge">💜</div>
+    <h2>Por que famílias escolhem o Arca Kids</h2>
+  </div>
+  <div class="benefits">
+    <div class="benefit"><span class="e">📴</span><b>Funciona offline, sem precisar de internet depois de aberto</b></div>
+    <div class="benefit"><span class="e">🚫</span><b>Sem anúncios e sem compras dentro do app</b></div>
+    <div class="benefit"><span class="e">👨‍👩‍👧‍👦</span><b>Feito para crianças de 1 a 12 anos</b></div>
+    <div class="benefit"><span class="e">💾</span><b>Progresso salvo automaticamente no aparelho</b></div>
+    <div class="benefit"><span class="e">🙏</span><b>Conteúdo 100% cristão, com cuidado e carinho</b></div>
+    <div class="benefit"><span class="e">🔄</span><b>Atualizações gratuitas para sempre</b></div>
+  </div>
+</section>
+
+<section class="block wrap" id="comprar">
+  <div class="price-box">
+    <div class="old">de R$ 97,00</div>
+    <div class="now"><small>R$</small> 27,00</div>
+    <a class="btn-buy" href="https://pay.kiwify.com.br/SEU-LINK-AQUI" target="_blank" rel="noopener noreferrer">▶ Quero o Arca Kids agora</a>
+    <ul>
+      <li>✅ Acesso imediato após o pagamento</li>
+      <li>✅ Funciona no celular e no computador</li>
+      <li>✅ Pagamento único — sem mensalidade</li>
+      <li>✅ Manual para a família incluso</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block wrap">
+  <div class="section-head">
+    <div class="badge">❓</div>
+    <h2>Perguntas frequentes</h2>
+  </div>
+  <div class="faq">
+    <details open>
+      <summary>Preciso de internet para usar?</summary>
+      <p>Não. Depois de abrir o app uma vez, ele continua funcionando offline — ótimo para viagens ou quando não tem Wi-Fi.</p>
+    </details>
+    <details>
+      <summary>Funciona no meu celular?</summary>
+      <p>Sim! O Arca Kids funciona em qualquer smartphone (Android ou iPhone), tablet ou computador, direto pelo navegador.</p>
+    </details>
+    <details>
+      <summary>Tem mensalidade?</summary>
+      <p>Não. É um pagamento único — você paga uma vez e tem acesso para sempre, incluindo atualizações futuras.</p>
+    </details>
+    <details>
+      <summary>Como recebo o acesso depois de comprar?</summary>
+      <p>Assim que o pagamento for aprovado, você recebe o link de acesso. Também é possível baixar o aplicativo para guardar no aparelho.</p>
+    </details>
+  </div>
+</section>
+
+<footer class="wrap">
+  🦁 Arca Kids · Brincando e aprendendo sobre o amor de Deus 💜
+</footer>
+
+<div class="floating-cta">
+  <a class="btn-buy" href="#comprar">▶ Quero o Arca Kids — R$ 27,00</a>
+</div>
+
+</body>
+</html>
