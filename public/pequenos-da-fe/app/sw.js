@@ -1,5 +1,9 @@
-/* Service worker do Pequenos da Fé Kids — cache offline (escopo: /pequenos-da-fe/app/) */
-var CACHE_NAME = "pequenos-da-fe-v1";
+/* Service worker do Arca Kids — cache offline.
+   IMPORTANTE: sempre que o conteúdo do app mudar, troque o número da versão
+   abaixo (v2, v3, ...). Isso força os celulares que já visitaram o site a
+   descartar o cache antigo e buscar a versão nova, em vez de continuar
+   mostrando para sempre a versão que guardaram na primeira visita. */
+var CACHE_NAME = "arca-kids-v2";
 var PRECACHE_URLS = [
   "./",
   "./index.html",

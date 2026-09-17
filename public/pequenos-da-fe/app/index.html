@@ -69,7 +69,7 @@ header{position:relative; z-index:5; padding:14px 0 4px;}
   border:4px solid #fff;
 }
 .lion span{filter:drop-shadow(0 2px 2px rgba(0,0,0,.15))}
-.crown{position:absolute; top:-16px; font-size:26px;}
+.crown{position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:26px;}
 .logo-txt{min-width:0}
 .logo-txt h1{font-size:clamp(22px,4.6vw,34px); font-weight:900; letter-spacing:-.5px;
   background:linear-gradient(180deg,#7b3ff2,#4a1fb8); -webkit-background-clip:text; background-clip:text; color:transparent;}
@@ -682,16 +682,12 @@ nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); col
   <div style="text-align:center;margin-top:18px"><button class="btn gray" id="cfgClose">Fechar</button></div>
 </div></div>
 
-<div class="modal" id="iosInstallModal"><div class="box" style="text-align:center">
+<div class="modal" id="installModal"><div class="box" style="text-align:center">
   <div style="font-size:44px">📲</div>
   <h3>Instalar na tela de início</h3>
-  <p class="muted" style="margin-top:8px">No iPhone/iPad, siga estes passos:</p>
-  <div style="text-align:left;margin-top:14px">
-    <div style="margin-bottom:10px"><b>1.</b> Toque no ícone de Compartilhar <span style="font-weight:900">⬆️</span> na barra do navegador</div>
-    <div style="margin-bottom:10px"><b>2.</b> Escolha <b>"Adicionar à Tela de Início"</b></div>
-    <div><b>3.</b> Toque em <b>Adicionar</b> — pronto! 🎉</div>
-  </div>
-  <div style="text-align:center;margin-top:18px"><button class="btn gray" id="iosInstallClose">Fechar</button></div>
+  <p class="muted" style="margin-top:8px" id="installSubtitle">Siga estes passos:</p>
+  <div style="text-align:left;margin-top:14px" id="installSteps"></div>
+  <div style="text-align:center;margin-top:18px"><button class="btn gray" id="installClose">Fechar</button></div>
 </div></div>
 
 <div class="toast" id="toast"></div>
@@ -1545,7 +1541,9 @@ function renderFamily(){
 /* =================== INSTALAR / FIXAR NA TELA (PWA) =================== */
 (function(){
   var installBtn = document.getElementById("installBtn");
-  var iosModal = document.getElementById("iosInstallModal");
+  var installModal = document.getElementById("installModal");
+  var installSubtitle = document.getElementById("installSubtitle");
+  var installSteps = document.getElementById("installSteps");
   var deferredEvent = null;
 
   function isStandalone(){
@@ -1554,35 +1552,53 @@ function renderFamily(){
   function isIOS(){
     return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
   }
+  function isMobile(){
+    return isIOS() || /android/i.test(navigator.userAgent);
+  }
   if(isStandalone()) return; // já instalado: não mostra o botão
 
-  if(isIOS()){
+  // Em celular, o botão já aparece de cara — não depende de o navegador
+  // "avisar" que o app é instalável (esse aviso pode nunca chegar).
+  if(isMobile()) installBtn.style.display = "grid";
+
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault();
+    deferredEvent = e;
     installBtn.style.display = "grid";
-    installBtn.addEventListener("click", function(){
-      iosModal.classList.add("show"); sTap();
-    });
-    document.getElementById("iosInstallClose").addEventListener("click", function(){ iosModal.classList.remove("show"); });
-    iosModal.addEventListener("click", function(e){ if(e.target===iosModal) iosModal.classList.remove("show"); });
-  } else {
-    window.addEventListener("beforeinstallprompt", function(e){
-      e.preventDefault();
-      deferredEvent = e;
-      installBtn.style.display = "grid";
-    });
-    installBtn.addEventListener("click", function(){
-      if(!deferredEvent) return;
-      sTap();
-      deferredEvent.prompt();
-      deferredEvent.userChoice.finally(function(){
-        deferredEvent = null;
-        installBtn.style.display = "none";
-      });
-    });
-    window.addEventListener("appinstalled", function(){
-      installBtn.style.display = "none";
-      confetti(16); toast("🎉 Aplicativo instalado!");
-    });
+  });
+  window.addEventListener("appinstalled", function(){
+    installBtn.style.display = "none";
+    confetti(16); toast("🎉 Aplicativo instalado!");
+  });
+
+  function showManualSteps(){
+    if(isIOS()){
+      installSubtitle.textContent = "No iPhone/iPad, siga estes passos:";
+      installSteps.innerHTML =
+        '<div style="margin-bottom:10px"><b>1.</b> Toque no ícone de Compartilhar <span style="font-weight:900">⬆️</span> na barra do navegador</div>'+
+        '<div style="margin-bottom:10px"><b>2.</b> Escolha <b>"Adicionar à Tela de Início"</b></div>'+
+        '<div><b>3.</b> Toque em <b>Adicionar</b> — pronto! 🎉</div>';
+    } else {
+      installSubtitle.textContent = "No Chrome do Android, siga estes passos:";
+      installSteps.innerHTML =
+        '<div style="margin-bottom:10px"><b>1.</b> Toque nos três pontinhos <span style="font-weight:900">⋮</span> no canto superior do navegador</div>'+
+        '<div style="margin-bottom:10px"><b>2.</b> Escolha <b>"Instalar app"</b> ou <b>"Adicionar à tela inicial"</b></div>'+
+        '<div><b>3.</b> Confirme — pronto! 🎉</div>';
+    }
+    installModal.classList.add("show");
   }
+
+  installBtn.addEventListener("click", function(){
+    sTap();
+    if(deferredEvent){
+      deferredEvent.prompt();
+      deferredEvent.userChoice.finally(function(){ deferredEvent = null; });
+      return;
+    }
+    showManualSteps();
+  });
+  document.getElementById("installClose").addEventListener("click", function(){ installModal.classList.remove("show"); });
+  installModal.addEventListener("click", function(e){ if(e.target===installModal) installModal.classList.remove("show"); });
 })();
 
 /* =================== CONFIG / SOM =================== */
