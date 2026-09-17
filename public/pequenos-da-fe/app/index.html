@@ -453,6 +453,7 @@ nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); col
       <div class="divider"></div>
       <div class="stat"><span class="ic">❤️</span><div><small>Nível</small><b id="levelTop">1</b></div></div>
     </div>
+    <button class="iconbtn" id="installBtn" aria-label="Instalar aplicativo" style="display:none">📲</button>
     <button class="iconbtn" id="musicBtn" aria-label="Música">🎵</button>
     <button class="iconbtn" id="cfgBtn" aria-label="Configurações">⚙️</button>
     <button class="avatarbtn" id="avatarBtn" aria-label="Perfil">👦</button>
@@ -679,6 +680,18 @@ nav.bottom button.active{background:linear-gradient(180deg,#ffe07a,#ffc42e); col
     <button class="btn g" id="cfgDownload" style="width:100%">📥 Baixar aplicativo HTML atualizado</button>
   </div>
   <div style="text-align:center;margin-top:18px"><button class="btn gray" id="cfgClose">Fechar</button></div>
+</div></div>
+
+<div class="modal" id="iosInstallModal"><div class="box" style="text-align:center">
+  <div style="font-size:44px">📲</div>
+  <h3>Instalar na tela de início</h3>
+  <p class="muted" style="margin-top:8px">No iPhone/iPad, siga estes passos:</p>
+  <div style="text-align:left;margin-top:14px">
+    <div style="margin-bottom:10px"><b>1.</b> Toque no ícone de Compartilhar <span style="font-weight:900">⬆️</span> na barra do navegador</div>
+    <div style="margin-bottom:10px"><b>2.</b> Escolha <b>"Adicionar à Tela de Início"</b></div>
+    <div><b>3.</b> Toque em <b>Adicionar</b> — pronto! 🎉</div>
+  </div>
+  <div style="text-align:center;margin-top:18px"><button class="btn gray" id="iosInstallClose">Fechar</button></div>
 </div></div>
 
 <div class="toast" id="toast"></div>
@@ -1528,6 +1541,49 @@ function renderFamily(){
   document.getElementById("famTips").innerHTML=TIPS.map(function(t){return "💡 "+t;}).join("<br>");
   updateSoundUI();
 }
+
+/* =================== INSTALAR / FIXAR NA TELA (PWA) =================== */
+(function(){
+  var installBtn = document.getElementById("installBtn");
+  var iosModal = document.getElementById("iosInstallModal");
+  var deferredEvent = null;
+
+  function isStandalone(){
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+  function isIOS(){
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  }
+  if(isStandalone()) return; // já instalado: não mostra o botão
+
+  if(isIOS()){
+    installBtn.style.display = "grid";
+    installBtn.addEventListener("click", function(){
+      iosModal.classList.add("show"); sTap();
+    });
+    document.getElementById("iosInstallClose").addEventListener("click", function(){ iosModal.classList.remove("show"); });
+    iosModal.addEventListener("click", function(e){ if(e.target===iosModal) iosModal.classList.remove("show"); });
+  } else {
+    window.addEventListener("beforeinstallprompt", function(e){
+      e.preventDefault();
+      deferredEvent = e;
+      installBtn.style.display = "grid";
+    });
+    installBtn.addEventListener("click", function(){
+      if(!deferredEvent) return;
+      sTap();
+      deferredEvent.prompt();
+      deferredEvent.userChoice.finally(function(){
+        deferredEvent = null;
+        installBtn.style.display = "none";
+      });
+    });
+    window.addEventListener("appinstalled", function(){
+      installBtn.style.display = "none";
+      confetti(16); toast("🎉 Aplicativo instalado!");
+    });
+  }
+})();
 
 /* =================== CONFIG / SOM =================== */
 var cfgModal=document.getElementById("cfgModal");
