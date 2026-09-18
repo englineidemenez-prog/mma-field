@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Arca Kids — O app cristão que ensina, diverte e aproxima seu filho de Deus</title>
-<meta name="description" content="Aplicativo infantil cristão com 6 jogos, 8 histórias bíblicas, missões da fé e sistema de conquistas. Funciona online e offline, pagamento único, sem mensalidade.">
+<meta name="description" content="Aplicativo infantil cristão com 6 jogos, 8 histórias bíblicas, missões da fé e sistema de conquistas. Funciona online e offline, pagamento único, sem mensalidade. Inclui 2 e-books bônus para imprimir.">
 <link rel="icon" type="image/webp" href="assets/mascot.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -111,6 +111,15 @@ section.block{padding:56px 0;}
 .shots img{width:190px; border-radius:20px; box-shadow:var(--shadow-lg); border:5px solid #fff;}
 @media (max-width:520px){ .shots img{width:150px;} }
 
+/* bonus */
+.bonus-row{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+.bonus-card{background:#fff; border-radius:26px; padding:22px; box-shadow:var(--shadow-lg); display:flex; gap:18px; align-items:center; border:3px dashed #f0c15a;}
+.bonus-card img{width:110px; border-radius:12px; box-shadow:var(--shadow);}
+.bonus-card .tag{display:inline-block; background:linear-gradient(160deg,#ff9d4d,#f0761e); color:#fff; font-weight:800; font-size:11.5px; padding:4px 12px; border-radius:999px; margin-bottom:8px;}
+.bonus-card h4{font-size:17px; margin-bottom:6px;}
+.bonus-card p{font-size:13.5px; color:var(--ink2); font-weight:700; line-height:1.4;}
+@media (max-width:700px){ .bonus-row{grid-template-columns:1fr} .bonus-card{padding:18px;} }
+
 /* benefits */
 .benefits{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
 .benefit{background:#fff; border-radius:20px; padding:20px; text-align:center; box-shadow:var(--shadow);}
@@ -170,6 +179,7 @@ footer a{text-decoration:underline;}
       <span>✅ Funciona online e offline</span>
       <span>✅ Sem anúncios</span>
       <span>✅ Acesso imediato</span>
+      <span>🎁 + 2 e-books bônus</span>
     </div>
   </div>
   <div class="hero-art">
@@ -222,6 +232,32 @@ footer a{text-decoration:underline;}
 
 <section class="block wrap">
   <div class="section-head">
+    <div class="badge">🎁</div>
+    <h2>2 bônus exclusivos inclusos</h2>
+    <p>Além do app, você recebe dois e-books para imprimir e usar com a família.</p>
+  </div>
+  <div class="bonus-row">
+    <div class="bonus-card">
+      <img src="assets/bonus-cover-colorir.webp" alt="Livro de Colorir Bíblico">
+      <div>
+        <span class="tag">BÔNUS 1</span>
+        <h4>Livro de Colorir Bíblico</h4>
+        <p>30 páginas para imprimir e colorir, com desenhos da Arca de Noé, do Presépio, da Coroa da Fé e muito mais.</p>
+      </div>
+    </div>
+    <div class="bonus-card">
+      <img src="assets/bonus-cover-historias.webp" alt="Livro de Histórias Bíblicas">
+      <div>
+        <span class="tag">BÔNUS 2</span>
+        <h4>Livro de Histórias Bíblicas</h4>
+        <p>30 páginas coloridas e ilustradas com as 8 histórias do app, prontas para ler junto com seu filho.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block wrap">
+  <div class="section-head">
     <div class="badge">💜</div>
     <h2>Por que famílias escolhem o Arca Kids</h2>
   </div>
@@ -245,6 +281,8 @@ footer a{text-decoration:underline;}
       <li>✅ Funciona no celular e no computador</li>
       <li>✅ Pagamento único — sem mensalidade</li>
       <li>✅ Manual para a família incluso</li>
+      <li>🎁 Bônus: Livro de Colorir Bíblico (30 páginas)</li>
+      <li>🎁 Bônus: Livro de Histórias Bíblicas (30 páginas)</li>
     </ul>
   </div>
 </section>
